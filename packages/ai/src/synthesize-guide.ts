@@ -1,0 +1,67 @@
+import {
+  synthesizedGuideSchema,
+  type CaptureEvent,
+  type SynthesizedGuide,
+} from "@workspace/contracts/capture";
+import { Output, generateText } from "ai";
+
+import { getModel } from "./model.js";
+
+/**
+ * The core transformation: a normalized action log → a human-quality guide.
+ * This prompt is Tacto's most valuable artifact — iterate it deliberately,
+ * and never let the model invent actions that are not in the log.
+ */
+
+const SYSTEM_PROMPT = `You are Tacto, an expert technical writer who turns recorded user actions into clear step-by-step guides.
+
+You receive an ordered log of real user actions (clicks, text inputs, page navigations) recorded while someone performed a workflow in a web app. Each event includes the element's visible label and page context.
+
+Write the guide a colleague would follow to repeat the workflow.
+
+Rules:
+- Every step is ONE imperative sentence ("Click **New customer** in the top-right."). Bold the element labels with markdown.
+- NEVER invent an action that is not in the log. Accuracy over completeness.
+- Merge actions that belong together into one step (e.g. several inputs on the same form → "Fill in the customer's name and email"), but keep distinct interactions distinct.
+- Navigations usually become steps like "Go to the Customers page" — use the page title or URL.
+- Ignore obvious noise or accidental actions (a click followed immediately by undoing it).
+- Masked values ("•••") are sensitive — refer to them by field name ("Enter the password"), never by value.
+- For each step, report which event indexes (0-based, from the input log) it was derived from in sourceEventIndexes.
+- Title: short and task-oriented. Summary: one or two sentences on what the workflow accomplishes.`;
+
+function formatEvents(events: CaptureEvent[]): string {
+  return events
+    .map((event, index) => {
+      switch (event.type) {
+        case "click":
+          return `${index}. CLICK "${event.target.text}" (${event.target.role ?? "element"})${event.target.nearbyContext ? ` in ${event.target.nearbyContext}` : ""} — on ${event.pageTitle ?? event.url}`;
+        case "input":
+          return `${index}. INPUT "${event.value}" into "${event.target.text}" (${event.target.role ?? "field"}) — on ${event.pageTitle ?? event.url}`;
+        case "navigation":
+          return `${index}. NAVIGATE to ${event.pageTitle ? `"${event.pageTitle}" (${event.url})` : event.url}`;
+      }
+    })
+    .join("\n");
+}
+
+export async function synthesizeGuide(
+  events: CaptureEvent[],
+  context?: { captureTitle?: string }
+): Promise<SynthesizedGuide> {
+  const { output } = await generateText({
+    model: getModel(),
+    system: SYSTEM_PROMPT,
+    prompt: [
+      context?.captureTitle
+        ? `The user titled this recording: "${context.captureTitle}"`
+        : null,
+      "Recorded action log:",
+      formatEvents(events),
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
+    output: Output.object({ schema: synthesizedGuideSchema }),
+  });
+
+  return output;
+}

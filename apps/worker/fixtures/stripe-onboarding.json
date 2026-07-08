@@ -1,0 +1,127 @@
+{
+  "title": "Add a new customer in Stripe",
+  "source": "IMPORT",
+  "events": [
+    {
+      "type": "navigation",
+      "timestamp": 1000,
+      "url": "https://dashboard.stripe.com/dashboard",
+      "pageTitle": "Dashboard – Stripe"
+    },
+    {
+      "type": "click",
+      "timestamp": 3200,
+      "url": "https://dashboard.stripe.com/dashboard",
+      "pageTitle": "Dashboard – Stripe",
+      "target": {
+        "selector": "a[href='/customers']",
+        "role": "link",
+        "text": "Customers",
+        "nearbyContext": "main navigation sidebar",
+        "boundingBox": { "x": 24, "y": 210, "w": 140, "h": 32 }
+      }
+    },
+    {
+      "type": "navigation",
+      "timestamp": 3900,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe"
+    },
+    {
+      "type": "click",
+      "timestamp": 6100,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "button[data-testid='add-customer']",
+        "role": "button",
+        "text": "Add customer",
+        "nearbyContext": "page header, top right",
+        "boundingBox": { "x": 1180, "y": 96, "w": 130, "h": 36 }
+      }
+    },
+    {
+      "type": "input",
+      "timestamp": 9400,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "input[name='name']",
+        "role": "textbox",
+        "text": "Name",
+        "nearbyContext": "Add customer dialog"
+      },
+      "value": "Acme Corporation"
+    },
+    {
+      "type": "input",
+      "timestamp": 13800,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "input[name='email']",
+        "role": "textbox",
+        "text": "Account email",
+        "nearbyContext": "Add customer dialog"
+      },
+      "value": "billing@acme.com"
+    },
+    {
+      "type": "input",
+      "timestamp": 17500,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "textarea[name='description']",
+        "role": "textbox",
+        "text": "Description",
+        "nearbyContext": "Add customer dialog"
+      },
+      "value": "Enterprise plan, onboarded July 2026"
+    },
+    {
+      "type": "click",
+      "timestamp": 20100,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "input[type='checkbox'][name='tax-exempt']",
+        "role": "checkbox",
+        "text": "Customer is tax exempt",
+        "nearbyContext": "Add customer dialog, billing information section"
+      }
+    },
+    {
+      "type": "click",
+      "timestamp": 23600,
+      "url": "https://dashboard.stripe.com/customers",
+      "pageTitle": "Customers – Stripe",
+      "target": {
+        "selector": "button[type='submit']",
+        "role": "button",
+        "text": "Add customer",
+        "nearbyContext": "Add customer dialog footer",
+        "boundingBox": { "x": 820, "y": 640, "w": 130, "h": 36 }
+      }
+    },
+    {
+      "type": "navigation",
+      "timestamp": 25300,
+      "url": "https://dashboard.stripe.com/customers/cus_Qx7abc123",
+      "pageTitle": "Acme Corporation – Customers – Stripe"
+    },
+    {
+      "type": "click",
+      "timestamp": 29800,
+      "url": "https://dashboard.stripe.com/customers/cus_Qx7abc123",
+      "pageTitle": "Acme Corporation – Customers – Stripe",
+      "target": {
+        "selector": "button[data-testid='create-invoice']",
+        "role": "button",
+        "text": "Create invoice",
+        "nearbyContext": "customer detail page, actions menu",
+        "boundingBox": { "x": 1150, "y": 180, "w": 140, "h": 36 }
+      }
+    }
+  ]
+}

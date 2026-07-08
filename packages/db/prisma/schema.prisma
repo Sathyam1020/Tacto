@@ -1,0 +1,233 @@
+// Tacto database schema.
+// Prisma 7: the datasource URL lives in prisma.config.ts, not here.
+//
+// Auth + organization models follow better-auth's generated schema exactly
+// (cross-checked with `npx @better-auth/cli generate`). Organizations are
+// Tacto "workspaces" — Organization in code, Workspace in UI copy.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── better-auth core models ──────────────────────────────────────────────
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions    Session[]
+  accounts    Account[]
+  members     Member[]
+  invitations Invitation[]
+  captures    Capture[]
+  guides      Guide[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Active workspace for this session (better-auth organization plugin).
+  activeOrganizationId String?
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ── Workspaces (better-auth organization plugin) ─────────────────────────
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  logo      String?
+  metadata  String?
+  createdAt DateTime @default(now())
+
+  members     Member[]
+  invitations Invitation[]
+  captures    Capture[]
+  guides      Guide[]
+
+  @@map("organization")
+}
+
+model Member {
+  id        String   @id @default(uuid())
+  role      String   @default("member")
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@map("member")
+}
+
+model Invitation {
+  id        String   @id @default(uuid())
+  email     String
+  role      String?
+  status    String   @default("pending")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitation")
+}
+
+// ── Product spine: Capture → Guide → Step ────────────────────────────────
+// All rows are workspace-scoped (organizationId). Capture and Guide use
+// soft deletes (deletedAt) — queries must filter deletedAt: null.
+
+enum CaptureSource {
+  EXTENSION
+  VIDEO_UPLOAD
+  IMPORT
+}
+
+enum CaptureStatus {
+  UPLOADING
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum GuideStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// Immutable raw material: the recorded event log. Never edited after
+/// completion — Guides are the editable derivative, and better models can
+/// reprocess the same Capture later.
+model Capture {
+  id           String        @id @default(uuid())
+  source       CaptureSource
+  status       CaptureStatus @default(UPLOADING)
+  title        String?
+  /// Normalized event log (contracts captureEventSchema[]). Inline JSONB
+  /// for MVP; moves to R2 when events carry screenshot payloads.
+  events       Json
+  errorMessage String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  guides Guide[]
+
+  @@index([organizationId, status])
+  @@map("capture")
+}
+
+/// The editable document derived from a Capture. One Capture can produce
+/// many Guides (reprocessing, translations later).
+model Guide {
+  id        String      @id @default(uuid())
+  title     String
+  summary   String?
+  status    GuideStatus @default(DRAFT)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  deletedAt DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  captureId      String?
+  capture        Capture?     @relation(fields: [captureId], references: [id], onDelete: SetNull)
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  steps Step[]
+
+  @@index([organizationId, status])
+  @@map("guide")
+}
+
+model Step {
+  id            String   @id @default(uuid())
+  position      Int
+  instruction   String
+  elementLabel  String?
+  url           String?
+  screenshotUrl String?
+  /// { x, y, w, h } of the interaction target, viewport coordinates.
+  boundingBox   Json?
+  /// 0–1; below ~0.7 the editor flags the step for review (video imports).
+  confidence    Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  guideId String
+  guide   Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  @@index([guideId, position])
+  @@map("step")
+}

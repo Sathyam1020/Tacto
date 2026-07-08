@@ -1,3 +1,18 @@
+/**
+ * Tacto Design System — "Ink, paper, and the touch ring."
+ *
+ * Foundations:
+ *  - Near-monochrome ink-on-paper chrome; user content is the loudest thing on screen.
+ *  - Viridian is the *touch color*: it appears only where action/contact lives
+ *    (primary actions, click indicators, focus rings, links). Never decoration.
+ *  - Signal red has exactly one job: the live-recording state.
+ *  - Hairlines over shadows. Radius 6px. Type: grotesk chrome / serif knowledge / mono data.
+ *
+ * All oklch values are exact conversions of the brand hex palette:
+ *  Paper #FBFBF8 · Ink #1C1D1A · Graphite #6E7168 · Hairline #E9E9E3
+ *  Viridian #0E7C5B (dark mode: #1FA678) · Signal #E5484D
+ */
+
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
@@ -8,38 +23,59 @@
 @source "../**/*.{ts,tsx}";
 
 @theme inline {
+    /* Type roles — fonts are provided by the app shell via next/font variables. */
+    --font-sans: var(--font-sans);   /* UI chrome: grotesk */
+    --font-serif: var(--font-serif); /* knowledge content: editorial serif */
+    --font-mono: var(--font-mono);   /* captured data: timestamps, selectors, kbd */
     --font-heading: var(--font-sans);
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
-    --color-border: var(--border);
-    --color-destructive: var(--destructive);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
+
+    /* Semantic colors (shadcn contract) */
     --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+
+    /* Brand primitives — usable directly as Tailwind colors
+       (bg-viridian, text-graphite, border-hairline, …) */
+    --color-paper: var(--paper);
+    --color-ink: var(--ink);
+    --color-graphite: var(--graphite);
+    --color-hairline: var(--hairline);
+    --color-viridian: var(--viridian);
+    --color-signal: var(--signal);
+
+    /* Charts (provisional set; revisit with real dataviz work) */
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+
+    /* Sidebar */
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+
+    /* Radius scale — precise, instrument-like. lg = 6px. */
     --radius-sm: calc(var(--radius) * 0.6);
     --radius-md: calc(var(--radius) * 0.8);
     --radius-lg: var(--radius);
@@ -47,76 +83,128 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
-    --font-sans: var(--font-sans);
+
+    /* Signature motion — the touch ring. */
+    --animate-touch-pulse: touch-pulse 1.8s cubic-bezier(0.3, 0, 0.4, 1) infinite;
+    --animate-ring-draw: ring-draw 1.2s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+
+    @keyframes touch-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.85;
+        }
+        70% {
+            transform: scale(1.7);
+            opacity: 0;
+        }
+        100% {
+            transform: scale(1.7);
+            opacity: 0;
+        }
+    }
+
+    @keyframes ring-draw {
+        0% {
+            stroke-dashoffset: var(--ring-circumference, 63);
+        }
+        60% {
+            stroke-dashoffset: 0;
+        }
+        100% {
+            stroke-dashoffset: calc(var(--ring-circumference, 63) * -1);
+        }
+    }
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    /* Brand primitives — light */
+    --paper: oklch(0.9873 0.004 106.5); /* #FBFBF8 */
+    --ink: oklch(0.2285 0.0059 121.9); /* #1C1D1A */
+    --graphite: oklch(0.5432 0.0142 121.9); /* #6E7168 */
+    --hairline: oklch(0.9324 0.008 106.6); /* #E9E9E3 */
+    --viridian: oklch(0.5215 0.1049 165.8); /* #0E7C5B */
+    --signal: oklch(0.6256 0.1933 23); /* #E5484D */
+
+    /* Semantic mapping — light */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: oklch(1 0 0); /* floating surfaces are pure white */
+    --card-foreground: var(--ink);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --popover-foreground: var(--ink);
+    --primary: var(--viridian); /* the touch color */
+    --primary-foreground: oklch(1 0 0);
+    --secondary: oklch(0.9568 0.0066 106.5); /* #F1F1EC */
+    --secondary-foreground: var(--ink);
+    --muted: oklch(0.9568 0.0066 106.5); /* #F1F1EC */
+    --muted-foreground: var(--graphite);
+    --accent: oklch(0.9442 0.0093 106.6); /* #EDEDE6 — hover wash */
+    --accent-foreground: var(--ink);
+    --destructive: var(--signal);
+    --border: var(--hairline);
+    --input: oklch(0.895 0.0121 106.6); /* #DDDDD4 — inputs read slightly firmer */
+    --ring: var(--viridian); /* focus IS the touch ring */
+    --radius: 0.375rem; /* 6px */
+
+    --chart-1: var(--viridian);
+    --chart-2: oklch(0.5383 0.0952 257.8); /* slate blue */
+    --chart-3: oklch(0.6629 0.1197 80.3); /* amber */
+    --chart-4: var(--graphite);
+    --chart-5: var(--signal);
+
+    --sidebar: oklch(0.972 0.0053 106.5); /* #F6F6F2 */
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--viridian);
+    --sidebar-primary-foreground: oklch(1 0 0);
+    --sidebar-accent: oklch(0.9442 0.0093 106.6);
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--hairline);
+    --sidebar-ring: var(--viridian);
 }
 
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    /* Brand primitives — dark (system inverted, viridian brightened one step) */
+    --paper: oklch(0.96 0.0053 106.5); /* #F2F2EE — becomes the text color */
+    --ink: oklch(0.1983 0.0042 128.7); /* #151614 — becomes the surface */
+    --graphite: oklch(0.6968 0.0161 119.2); /* #9C9F94 */
+    --hairline: oklch(0.2866 0.0073 118.3); /* #2A2B27 */
+    --viridian: oklch(0.6454 0.1303 163.9); /* #1FA678 */
+    --signal: oklch(0.6607 0.1894 22.1); /* #F0565B */
+
+    /* Semantic mapping — dark */
+    --background: var(--ink);
+    --foreground: var(--paper);
+    --card: oklch(0.2328 0.0058 121.9); /* #1D1E1B */
+    --card-foreground: var(--paper);
+    --popover: oklch(0.254 0.0057 121.9); /* #222320 */
+    --popover-foreground: var(--paper);
+    --primary: var(--viridian);
+    --primary-foreground: oklch(0.1983 0.0042 128.7);
+    --secondary: oklch(0.2578 0.0075 118.3); /* #232420 */
+    --secondary-foreground: var(--paper);
+    --muted: oklch(0.2578 0.0075 118.3);
+    --muted-foreground: var(--graphite);
+    --accent: oklch(0.2863 0.009 116.2); /* #2A2B26 */
+    --accent-foreground: var(--paper);
+    --destructive: var(--signal);
+    --border: var(--hairline);
+    --input: oklch(0.2866 0.0073 118.3);
+    --ring: var(--viridian);
+
+    --chart-1: var(--viridian);
+    --chart-2: oklch(0.5383 0.0952 257.8);
+    --chart-3: oklch(0.6629 0.1197 80.3);
+    --chart-4: var(--graphite);
+    --chart-5: var(--signal);
+
+    --sidebar: oklch(0.2328 0.0058 121.9);
+    --sidebar-foreground: var(--paper);
+    --sidebar-primary: var(--viridian);
+    --sidebar-primary-foreground: oklch(0.1983 0.0042 128.7);
+    --sidebar-accent: oklch(0.2863 0.009 116.2);
+    --sidebar-accent-foreground: var(--paper);
+    --sidebar-border: var(--hairline);
+    --sidebar-ring: var(--viridian);
 }
 
 @layer base {
@@ -128,5 +216,10 @@
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
+    }
+
+  /* Selection carries the touch color — a quiet, ever-present brand moment. */
+  ::selection {
+    background: color-mix(in oklch, var(--viridian), transparent 80%);
     }
 }
