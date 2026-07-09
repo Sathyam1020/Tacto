@@ -15,14 +15,18 @@
   "dependencies": {
     "@workspace/contracts": "*",
     "@workspace/db": "*",
+    "@workspace/storage": "*",
     "better-auth": "^1.6.23",
     "bullmq": "^5.79.3",
     "express": "^5.2.1",
+    "nanoid": "^5.1.16",
+    "sanitize-html": "^2.17.5",
     "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^20",
+    "@types/sanitize-html": "^2.16.0",
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
     "eslint": "^9",

@@ -67,6 +67,7 @@ export type Capture = Prisma.CaptureModel
 export type Guide = Prisma.GuideModel
 /**
  * Model Step
- * 
+ * A content block within a guide (table name kept as "step" for history).
+ * `content` is sanitized HTML. Media/interaction fields apply to STEP only.
  */
 export type Step = Prisma.StepModel

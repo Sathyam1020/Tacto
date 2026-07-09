@@ -37,16 +37,33 @@ export function GuideCard({ guide }: { guide: GuideListItem }) {
       href={`/guides/${guide.id}`}
       className="group bg-card focus-visible:ring-ring/50 block overflow-hidden rounded-xl border outline-none transition-shadow focus-visible:ring-3"
     >
-      <div
-        className={cn(
-          "flex aspect-[16/9] items-center justify-center p-6",
-          coverTint(guide.id)
-        )}
-      >
-        <span className="line-clamp-3 text-center font-serif text-xl leading-snug text-balance">
+      {guide.coverUrl ? (
+        <div className="relative aspect-[16/9] overflow-hidden border-b">
+          {/* Real screenshot cover (presigned URL, expires — plain img). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={guide.coverUrl}
+            alt=""
+            className="size-full object-cover object-top"
+          />
+        </div>
+      ) : (
+        <div
+          className={cn(
+            "flex aspect-[16/9] items-center justify-center p-6",
+            coverTint(guide.id)
+          )}
+        >
+          <span className="line-clamp-3 text-center font-serif text-xl leading-snug text-balance">
+            {guide.title}
+          </span>
+        </div>
+      )}
+      {guide.coverUrl && (
+        <p className="truncate px-4 pt-3 font-serif text-base leading-snug">
           {guide.title}
-        </span>
-      </div>
+        </p>
+      )}
       <div className="flex items-center justify-between px-4 py-3">
         <span className="text-muted-foreground font-mono text-xs">
           {guide.stepCount} steps · {formatDate(guide.createdAt)}

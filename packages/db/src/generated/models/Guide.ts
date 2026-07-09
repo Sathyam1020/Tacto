@@ -21,8 +21,18 @@ export type GuideModel = runtime.Types.Result.DefaultSelection<Prisma.$GuidePayl
 
 export type AggregateGuide = {
   _count: GuideCountAggregateOutputType | null
+  _avg: GuideAvgAggregateOutputType | null
+  _sum: GuideSumAggregateOutputType | null
   _min: GuideMinAggregateOutputType | null
   _max: GuideMaxAggregateOutputType | null
+}
+
+export type GuideAvgAggregateOutputType = {
+  viewCount: number | null
+}
+
+export type GuideSumAggregateOutputType = {
+  viewCount: number | null
 }
 
 export type GuideMinAggregateOutputType = {
@@ -30,6 +40,9 @@ export type GuideMinAggregateOutputType = {
   title: string | null
   summary: string | null
   status: $Enums.GuideStatus | null
+  shareId: string | null
+  publishedAt: Date | null
+  viewCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -43,6 +56,9 @@ export type GuideMaxAggregateOutputType = {
   title: string | null
   summary: string | null
   status: $Enums.GuideStatus | null
+  shareId: string | null
+  publishedAt: Date | null
+  viewCount: number | null
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
@@ -56,6 +72,9 @@ export type GuideCountAggregateOutputType = {
   title: number
   summary: number
   status: number
+  shareId: number
+  publishedAt: number
+  viewCount: number
   createdAt: number
   updatedAt: number
   deletedAt: number
@@ -66,11 +85,22 @@ export type GuideCountAggregateOutputType = {
 }
 
 
+export type GuideAvgAggregateInputType = {
+  viewCount?: true
+}
+
+export type GuideSumAggregateInputType = {
+  viewCount?: true
+}
+
 export type GuideMinAggregateInputType = {
   id?: true
   title?: true
   summary?: true
   status?: true
+  shareId?: true
+  publishedAt?: true
+  viewCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -84,6 +114,9 @@ export type GuideMaxAggregateInputType = {
   title?: true
   summary?: true
   status?: true
+  shareId?: true
+  publishedAt?: true
+  viewCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -97,6 +130,9 @@ export type GuideCountAggregateInputType = {
   title?: true
   summary?: true
   status?: true
+  shareId?: true
+  publishedAt?: true
+  viewCount?: true
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
@@ -144,6 +180,18 @@ export type GuideAggregateArgs<ExtArgs extends runtime.Types.Extensions.Internal
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: GuideAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: GuideSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: GuideMinAggregateInputType
@@ -174,6 +222,8 @@ export type GuideGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   _count?: GuideCountAggregateInputType | true
+  _avg?: GuideAvgAggregateInputType
+  _sum?: GuideSumAggregateInputType
   _min?: GuideMinAggregateInputType
   _max?: GuideMaxAggregateInputType
 }
@@ -183,6 +233,9 @@ export type GuideGroupByOutputType = {
   title: string
   summary: string | null
   status: $Enums.GuideStatus
+  shareId: string | null
+  publishedAt: Date | null
+  viewCount: number
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
@@ -190,6 +243,8 @@ export type GuideGroupByOutputType = {
   captureId: string | null
   createdById: string
   _count: GuideCountAggregateOutputType | null
+  _avg: GuideAvgAggregateOutputType | null
+  _sum: GuideSumAggregateOutputType | null
   _min: GuideMinAggregateOutputType | null
   _max: GuideMaxAggregateOutputType | null
 }
@@ -217,6 +272,9 @@ export type GuideWhereInput = {
   title?: Prisma.StringFilter<"Guide"> | string
   summary?: Prisma.StringNullableFilter<"Guide"> | string | null
   status?: Prisma.EnumGuideStatusFilter<"Guide"> | $Enums.GuideStatus
+  shareId?: Prisma.StringNullableFilter<"Guide"> | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  viewCount?: Prisma.IntFilter<"Guide"> | number
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
@@ -226,7 +284,7 @@ export type GuideWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   capture?: Prisma.XOR<Prisma.CaptureNullableScalarRelationFilter, Prisma.CaptureWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  steps?: Prisma.StepListRelationFilter
+  blocks?: Prisma.StepListRelationFilter
 }
 
 export type GuideOrderByWithRelationInput = {
@@ -234,6 +292,9 @@ export type GuideOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  shareId?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  viewCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -243,17 +304,20 @@ export type GuideOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   capture?: Prisma.CaptureOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
-  steps?: Prisma.StepOrderByRelationAggregateInput
+  blocks?: Prisma.StepOrderByRelationAggregateInput
 }
 
 export type GuideWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  shareId?: string
   AND?: Prisma.GuideWhereInput | Prisma.GuideWhereInput[]
   OR?: Prisma.GuideWhereInput[]
   NOT?: Prisma.GuideWhereInput | Prisma.GuideWhereInput[]
   title?: Prisma.StringFilter<"Guide"> | string
   summary?: Prisma.StringNullableFilter<"Guide"> | string | null
   status?: Prisma.EnumGuideStatusFilter<"Guide"> | $Enums.GuideStatus
+  publishedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  viewCount?: Prisma.IntFilter<"Guide"> | number
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
@@ -263,14 +327,17 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   capture?: Prisma.XOR<Prisma.CaptureNullableScalarRelationFilter, Prisma.CaptureWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  steps?: Prisma.StepListRelationFilter
-}, "id">
+  blocks?: Prisma.StepListRelationFilter
+}, "id" | "shareId">
 
 export type GuideOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
+  shareId?: Prisma.SortOrderInput | Prisma.SortOrder
+  publishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  viewCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -278,8 +345,10 @@ export type GuideOrderByWithAggregationInput = {
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
   _count?: Prisma.GuideCountOrderByAggregateInput
+  _avg?: Prisma.GuideAvgOrderByAggregateInput
   _max?: Prisma.GuideMaxOrderByAggregateInput
   _min?: Prisma.GuideMinOrderByAggregateInput
+  _sum?: Prisma.GuideSumOrderByAggregateInput
 }
 
 export type GuideScalarWhereWithAggregatesInput = {
@@ -290,6 +359,9 @@ export type GuideScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Guide"> | string
   summary?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
   status?: Prisma.EnumGuideStatusWithAggregatesFilter<"Guide"> | $Enums.GuideStatus
+  shareId?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
+  publishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Guide"> | Date | string | null
+  viewCount?: Prisma.IntWithAggregatesFilter<"Guide"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Guide"> | Date | string | null
@@ -303,13 +375,16 @@ export type GuideCreateInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
-  steps?: Prisma.StepCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateInput = {
@@ -317,13 +392,16 @@ export type GuideUncheckedCreateInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
   createdById: string
-  steps?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUpdateInput = {
@@ -331,13 +409,16 @@ export type GuideUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
-  steps?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateInput = {
@@ -345,13 +426,16 @@ export type GuideUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
-  steps?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateManyInput = {
@@ -359,6 +443,9 @@ export type GuideCreateManyInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -372,6 +459,9 @@ export type GuideUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -382,6 +472,9 @@ export type GuideUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -405,6 +498,9 @@ export type GuideCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  shareId?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  viewCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -413,11 +509,18 @@ export type GuideCountOrderByAggregateInput = {
   createdById?: Prisma.SortOrder
 }
 
+export type GuideAvgOrderByAggregateInput = {
+  viewCount?: Prisma.SortOrder
+}
+
 export type GuideMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  shareId?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  viewCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
@@ -431,12 +534,19 @@ export type GuideMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  shareId?: Prisma.SortOrder
+  publishedAt?: Prisma.SortOrder
+  viewCount?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+}
+
+export type GuideSumOrderByAggregateInput = {
+  viewCount?: Prisma.SortOrder
 }
 
 export type GuideScalarRelationFilter = {
@@ -574,18 +684,26 @@ export type EnumGuideStatusFieldUpdateOperationsInput = {
   set?: $Enums.GuideStatus
 }
 
-export type GuideCreateNestedOneWithoutStepsInput = {
-  create?: Prisma.XOR<Prisma.GuideCreateWithoutStepsInput, Prisma.GuideUncheckedCreateWithoutStepsInput>
-  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutStepsInput
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type GuideCreateNestedOneWithoutBlocksInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutBlocksInput, Prisma.GuideUncheckedCreateWithoutBlocksInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutBlocksInput
   connect?: Prisma.GuideWhereUniqueInput
 }
 
-export type GuideUpdateOneRequiredWithoutStepsNestedInput = {
-  create?: Prisma.XOR<Prisma.GuideCreateWithoutStepsInput, Prisma.GuideUncheckedCreateWithoutStepsInput>
-  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutStepsInput
-  upsert?: Prisma.GuideUpsertWithoutStepsInput
+export type GuideUpdateOneRequiredWithoutBlocksNestedInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutBlocksInput, Prisma.GuideUncheckedCreateWithoutBlocksInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutBlocksInput
+  upsert?: Prisma.GuideUpsertWithoutBlocksInput
   connect?: Prisma.GuideWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.GuideUpdateToOneWithWhereWithoutStepsInput, Prisma.GuideUpdateWithoutStepsInput>, Prisma.GuideUncheckedUpdateWithoutStepsInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuideUpdateToOneWithWhereWithoutBlocksInput, Prisma.GuideUpdateWithoutBlocksInput>, Prisma.GuideUncheckedUpdateWithoutBlocksInput>
 }
 
 export type GuideCreateWithoutCreatedByInput = {
@@ -593,12 +711,15 @@ export type GuideCreateWithoutCreatedByInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
-  steps?: Prisma.StepCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutCreatedByInput = {
@@ -606,12 +727,15 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
-  steps?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutCreatedByInput = {
@@ -648,6 +772,9 @@ export type GuideScalarWhereInput = {
   title?: Prisma.StringFilter<"Guide"> | string
   summary?: Prisma.StringNullableFilter<"Guide"> | string | null
   status?: Prisma.EnumGuideStatusFilter<"Guide"> | $Enums.GuideStatus
+  shareId?: Prisma.StringNullableFilter<"Guide"> | string | null
+  publishedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  viewCount?: Prisma.IntFilter<"Guide"> | number
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
@@ -661,12 +788,15 @@ export type GuideCreateWithoutOrganizationInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
-  steps?: Prisma.StepCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutOrganizationInput = {
@@ -674,12 +804,15 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   captureId?: string | null
   createdById: string
-  steps?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutOrganizationInput = {
@@ -713,12 +846,15 @@ export type GuideCreateWithoutCaptureInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
-  steps?: Prisma.StepCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutCaptureInput = {
@@ -726,12 +862,15 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organizationId: string
   createdById: string
-  steps?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutCaptureInput = {
@@ -760,11 +899,14 @@ export type GuideUpdateManyWithWhereWithoutCaptureInput = {
   data: Prisma.XOR<Prisma.GuideUpdateManyMutationInput, Prisma.GuideUncheckedUpdateManyWithoutCaptureInput>
 }
 
-export type GuideCreateWithoutStepsInput = {
+export type GuideCreateWithoutBlocksInput = {
   id?: string
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -773,11 +915,14 @@ export type GuideCreateWithoutStepsInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
 }
 
-export type GuideUncheckedCreateWithoutStepsInput = {
+export type GuideUncheckedCreateWithoutBlocksInput = {
   id?: string
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -786,27 +931,30 @@ export type GuideUncheckedCreateWithoutStepsInput = {
   createdById: string
 }
 
-export type GuideCreateOrConnectWithoutStepsInput = {
+export type GuideCreateOrConnectWithoutBlocksInput = {
   where: Prisma.GuideWhereUniqueInput
-  create: Prisma.XOR<Prisma.GuideCreateWithoutStepsInput, Prisma.GuideUncheckedCreateWithoutStepsInput>
+  create: Prisma.XOR<Prisma.GuideCreateWithoutBlocksInput, Prisma.GuideUncheckedCreateWithoutBlocksInput>
 }
 
-export type GuideUpsertWithoutStepsInput = {
-  update: Prisma.XOR<Prisma.GuideUpdateWithoutStepsInput, Prisma.GuideUncheckedUpdateWithoutStepsInput>
-  create: Prisma.XOR<Prisma.GuideCreateWithoutStepsInput, Prisma.GuideUncheckedCreateWithoutStepsInput>
+export type GuideUpsertWithoutBlocksInput = {
+  update: Prisma.XOR<Prisma.GuideUpdateWithoutBlocksInput, Prisma.GuideUncheckedUpdateWithoutBlocksInput>
+  create: Prisma.XOR<Prisma.GuideCreateWithoutBlocksInput, Prisma.GuideUncheckedCreateWithoutBlocksInput>
   where?: Prisma.GuideWhereInput
 }
 
-export type GuideUpdateToOneWithWhereWithoutStepsInput = {
+export type GuideUpdateToOneWithWhereWithoutBlocksInput = {
   where?: Prisma.GuideWhereInput
-  data: Prisma.XOR<Prisma.GuideUpdateWithoutStepsInput, Prisma.GuideUncheckedUpdateWithoutStepsInput>
+  data: Prisma.XOR<Prisma.GuideUpdateWithoutBlocksInput, Prisma.GuideUncheckedUpdateWithoutBlocksInput>
 }
 
-export type GuideUpdateWithoutStepsInput = {
+export type GuideUpdateWithoutBlocksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -815,11 +963,14 @@ export type GuideUpdateWithoutStepsInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
 }
 
-export type GuideUncheckedUpdateWithoutStepsInput = {
+export type GuideUncheckedUpdateWithoutBlocksInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -833,6 +984,9 @@ export type GuideCreateManyCreatedByInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -845,12 +999,15 @@ export type GuideUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
-  steps?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutCreatedByInput = {
@@ -858,12 +1015,15 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  steps?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
@@ -871,6 +1031,9 @@ export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -883,6 +1046,9 @@ export type GuideCreateManyOrganizationInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -895,12 +1061,15 @@ export type GuideUpdateWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
-  steps?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutOrganizationInput = {
@@ -908,12 +1077,15 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
-  steps?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
@@ -921,6 +1093,9 @@ export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -933,6 +1108,9 @@ export type GuideCreateManyCaptureInput = {
   title: string
   summary?: string | null
   status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
@@ -945,12 +1123,15 @@ export type GuideUpdateWithoutCaptureInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
-  steps?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutCaptureInput = {
@@ -958,12 +1139,15 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
-  steps?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutCaptureInput = {
@@ -971,6 +1155,9 @@ export type GuideUncheckedUpdateManyWithoutCaptureInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -984,11 +1171,11 @@ export type GuideUncheckedUpdateManyWithoutCaptureInput = {
  */
 
 export type GuideCountOutputType = {
-  steps: number
+  blocks: number
 }
 
 export type GuideCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  steps?: boolean | GuideCountOutputTypeCountStepsArgs
+  blocks?: boolean | GuideCountOutputTypeCountBlocksArgs
 }
 
 /**
@@ -1004,7 +1191,7 @@ export type GuideCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extens
 /**
  * GuideCountOutputType without action
  */
-export type GuideCountOutputTypeCountStepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type GuideCountOutputTypeCountBlocksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.StepWhereInput
 }
 
@@ -1014,6 +1201,9 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   title?: boolean
   summary?: boolean
   status?: boolean
+  shareId?: boolean
+  publishedAt?: boolean
+  viewCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1023,7 +1213,7 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  steps?: boolean | Prisma.Guide$stepsArgs<ExtArgs>
+  blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["guide"]>
 
@@ -1032,6 +1222,9 @@ export type GuideSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   title?: boolean
   summary?: boolean
   status?: boolean
+  shareId?: boolean
+  publishedAt?: boolean
+  viewCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1048,6 +1241,9 @@ export type GuideSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   title?: boolean
   summary?: boolean
   status?: boolean
+  shareId?: boolean
+  publishedAt?: boolean
+  viewCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1064,6 +1260,9 @@ export type GuideSelectScalar = {
   title?: boolean
   summary?: boolean
   status?: boolean
+  shareId?: boolean
+  publishedAt?: boolean
+  viewCount?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
@@ -1072,12 +1271,12 @@ export type GuideSelectScalar = {
   createdById?: boolean
 }
 
-export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "captureId" | "createdById", ExtArgs["result"]["guide"]>
+export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "captureId" | "createdById", ExtArgs["result"]["guide"]>
 export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  steps?: boolean | Prisma.Guide$stepsArgs<ExtArgs>
+  blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type GuideIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1097,13 +1296,19 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     organization: Prisma.$OrganizationPayload<ExtArgs>
     capture: Prisma.$CapturePayload<ExtArgs> | null
     createdBy: Prisma.$UserPayload<ExtArgs>
-    steps: Prisma.$StepPayload<ExtArgs>[]
+    blocks: Prisma.$StepPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     title: string
     summary: string | null
     status: $Enums.GuideStatus
+    /**
+     * Public unlisted-link identifier (nanoid), set on first publish.
+     */
+    shareId: string | null
+    publishedAt: Date | null
+    viewCount: number
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
@@ -1507,7 +1712,7 @@ export interface Prisma__GuideClient<T, Null = never, ExtArgs extends runtime.Ty
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   capture<T extends Prisma.Guide$captureArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$captureArgs<ExtArgs>>): Prisma.Prisma__CaptureClient<runtime.Types.Result.GetResult<Prisma.$CapturePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  steps<T extends Prisma.Guide$stepsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$stepsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  blocks<T extends Prisma.Guide$blocksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$blocksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1541,6 +1746,9 @@ export interface GuideFieldRefs {
   readonly title: Prisma.FieldRef<"Guide", 'String'>
   readonly summary: Prisma.FieldRef<"Guide", 'String'>
   readonly status: Prisma.FieldRef<"Guide", 'GuideStatus'>
+  readonly shareId: Prisma.FieldRef<"Guide", 'String'>
+  readonly publishedAt: Prisma.FieldRef<"Guide", 'DateTime'>
+  readonly viewCount: Prisma.FieldRef<"Guide", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Guide", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Guide", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Guide", 'DateTime'>
@@ -1967,9 +2175,9 @@ export type Guide$captureArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 }
 
 /**
- * Guide.steps
+ * Guide.blocks
  */
-export type Guide$stepsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Guide$blocksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
    * Select specific fields to fetch from the Step
    */

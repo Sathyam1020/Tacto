@@ -87,6 +87,19 @@ export const createCaptureSchema = z.object({
 
 export type CreateCaptureInput = z.infer<typeof createCaptureSchema>;
 
+/** Video capture: create → presigned PUT → browser uploads → complete. */
+export const createVideoCaptureSchema = z.object({
+  title: z.string().trim().max(200).optional(),
+  mimeType: z
+    .string()
+    .regex(/^video\/(webm|mp4)(;.*)?$/, "Unsupported recording format"),
+});
+
+export type CreateVideoCaptureInput = z.infer<typeof createVideoCaptureSchema>;
+
+/** Hard product limit — enforced client-side (auto-stop) and by ffprobe. */
+export const MAX_CAPTURE_DURATION_SEC = 300;
+
 // ── Queue contract (shared by api producer and worker consumer) ──────────
 
 export const CAPTURE_QUEUE = "capture-process";

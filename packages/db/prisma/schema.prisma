@@ -160,6 +160,15 @@ enum GuideStatus {
   PUBLISHED
 }
 
+/// A guide is an ordered list of typed blocks. Only STEP blocks are numbered
+/// in display; HEADING/TIP/ALERT are annotations between steps.
+enum BlockType {
+  STEP
+  HEADING
+  TIP
+  ALERT
+}
+
 /// Immutable raw material: the recorded event log. Never edited after
 /// completion — Guides are the editable derivative, and better models can
 /// reprocess the same Capture later.
@@ -168,9 +177,12 @@ model Capture {
   source       CaptureSource
   status       CaptureStatus @default(UPLOADING)
   title        String?
-  /// Normalized event log (contracts captureEventSchema[]). Inline JSONB
-  /// for MVP; moves to R2 when events carry screenshot payloads.
-  events       Json
+  /// Normalized event log (contracts captureEventSchema[]). Written at
+  /// creation for event captures; derived by video ingestion for uploads.
+  events       Json?
+  /// R2 object key of the raw recording (video captures).
+  videoKey     String?
+  durationSec  Float?
   errorMessage String?
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -194,9 +206,13 @@ model Guide {
   title     String
   summary   String?
   status    GuideStatus @default(DRAFT)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  deletedAt DateTime?
+  /// Public unlisted-link identifier (nanoid), set on first publish.
+  shareId     String?   @unique
+  publishedAt DateTime?
+  viewCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -205,16 +221,19 @@ model Guide {
   createdById    String
   createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
 
-  steps Step[]
+  blocks Step[]
 
   @@index([organizationId, status])
   @@map("guide")
 }
 
+/// A content block within a guide (table name kept as "step" for history).
+/// `content` is sanitized HTML. Media/interaction fields apply to STEP only.
 model Step {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
+  type          BlockType @default(STEP)
   position      Int
-  instruction   String
+  content       String
   elementLabel  String?
   url           String?
   screenshotUrl String?
@@ -222,8 +241,8 @@ model Step {
   boundingBox   Json?
   /// 0–1; below ~0.7 the editor flags the step for review (video imports).
   confidence    Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   guideId String
   guide   Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)

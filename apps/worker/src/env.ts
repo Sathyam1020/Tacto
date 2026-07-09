@@ -12,6 +12,12 @@ const envSchema = z.object({
   ANTHROPIC_API_KEY: z.string().optional(),
   AI_PROVIDER: z.enum(["openai", "anthropic"]).default("openai"),
   AI_MODEL: z.string().optional(),
+
+  /** Cloudflare R2 — required for video ingestion. */
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

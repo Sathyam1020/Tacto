@@ -211,8 +211,20 @@
   * {
     @apply border-border outline-ring/50;
     }
+  html {
+    /* Crisp, low-strain rendering for reading text. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    }
   body {
     @apply bg-background text-foreground;
+    font-size: 15px;
+    line-height: 1.6;
+    }
+  /* Display type: serif titles want tight tracking and a confident weight. */
+  .font-serif {
+    letter-spacing: -0.011em;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;

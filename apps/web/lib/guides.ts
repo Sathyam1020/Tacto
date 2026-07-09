@@ -1,4 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import type {
+  BlockType,
+  GuideBlockInput,
+} from "@workspace/contracts/guide"
+import axios from "axios"
 
 import { api } from "@/lib/api"
 
@@ -9,17 +14,29 @@ export type GuideListItem = {
   summary: string | null
   status: "DRAFT" | "PUBLISHED"
   stepCount: number
+  coverUrl: string | null
   createdAt: string
   updatedAt: string
 }
 
-export type GuideStep = {
+export type ActiveCapture = {
   id: string
+  title: string | null
+  source: "EXTENSION" | "VIDEO_UPLOAD" | "IMPORT"
+  status: "UPLOADING" | "PROCESSING" | "FAILED"
+  errorMessage: string | null
+  createdAt: string
+}
+
+export type GuideBlock = {
+  id: string
+  type: BlockType
   position: number
-  instruction: string
+  content: string
+  screenshotKey: string | null
+  screenshotUrl: string | null
   elementLabel: string | null
   url: string | null
-  screenshotUrl: string | null
   confidence: number | null
 }
 
@@ -28,8 +45,12 @@ export type GuideDetail = {
   title: string
   summary: string | null
   status: "DRAFT" | "PUBLISHED"
+  shareId: string | null
+  publishedAt: string | null
+  viewCount: number
+  captureSource: "EXTENSION" | "VIDEO_UPLOAD" | "IMPORT" | null
   createdAt: string
-  steps: GuideStep[]
+  blocks: GuideBlock[]
 }
 
 /** Workspace-keyed so switching workspaces refetches, never bleeds. */
@@ -44,6 +65,42 @@ export function useGuides(workspaceId: string | undefined) {
   })
 }
 
+/**
+ * In-flight captures (uploading/processing/failed). Polls while anything
+ * is active; when a capture completes it leaves this list — we invalidate
+ * the guides list so the new guide appears.
+ */
+export function useActiveCaptures(workspaceId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: ["captures", workspaceId],
+    queryFn: async () => {
+      const { data } = await api.get<{ captures: ActiveCapture[] }>(
+        "/captures"
+      )
+      const processing = data.captures.some(
+        (capture) =>
+          capture.status === "PROCESSING" || capture.status === "UPLOADING"
+      )
+      if (!processing) {
+        // Something may have just finished — refresh guides.
+        void queryClient.invalidateQueries({
+          queryKey: ["guides", workspaceId],
+        })
+      }
+      return data.captures
+    },
+    enabled: !!workspaceId,
+    refetchInterval: (query) =>
+      query.state.data?.some(
+        (capture) =>
+          capture.status === "PROCESSING" || capture.status === "UPLOADING"
+      )
+        ? 3000
+        : false,
+  })
+}
+
 export function useGuide(workspaceId: string | undefined, guideId: string) {
   return useQuery({
     queryKey: ["guide", workspaceId, guideId],
@@ -55,4 +112,57 @@ export function useGuide(workspaceId: string | undefined, guideId: string) {
     },
     enabled: !!workspaceId && !!guideId,
   })
+}
+
+/** Save the whole guide (title, summary, ordered blocks) in one write. */
+export function useUpdateGuide(guideId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (payload: {
+      title: string
+      summary: string | null
+      blocks: GuideBlockInput[]
+    }) => {
+      const { data } = await api.put(`/guides/${guideId}`, payload)
+      return data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["guide"] })
+      void queryClient.invalidateQueries({ queryKey: ["guides"] })
+    },
+  })
+}
+
+export function usePublishGuide(guideId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (publish: boolean) => {
+      const { data } = await api.post(
+        `/guides/${guideId}/${publish ? "publish" : "unpublish"}`
+      )
+      return data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["guide"] })
+      void queryClient.invalidateQueries({ queryKey: ["guides"] })
+    },
+  })
+}
+
+/**
+ * Upload an image to R2 for a step's media: get a presigned URL, PUT the
+ * file, return the object key the block should reference.
+ */
+export async function uploadStepMedia(
+  guideId: string,
+  file: File
+): Promise<string> {
+  const { data } = await api.post<{ key: string; uploadUrl: string }>(
+    "/media/upload-url",
+    { guideId, contentType: file.type }
+  )
+  await axios.put(data.uploadUrl, file, {
+    headers: { "Content-Type": file.type },
+  })
+  return data.key
 }

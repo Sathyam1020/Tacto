@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 import {
   SidebarInset,
@@ -11,11 +11,13 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { AppNavbar } from "@/components/app-navbar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { NavbarProvider } from "@/components/navbar-context"
 import { authClient } from "@/lib/auth-client"
 
 /**
  * Authenticated app shell: session guard + floating sidebar + floating
- * navbar. Pages inside (app)/ render on the paper canvas below the navbar.
+ * navbar. The editor route (paths ending in /edit) is chrome-free — sidebar
+ * hidden — for a focused editing surface.
  */
 export default function AppLayout({
   children,
@@ -23,7 +25,9 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { data: session, isPending } = authClient.useSession()
+  const focusedEditor = pathname.endsWith("/edit")
 
   React.useEffect(() => {
     if (!isPending && !session) {
@@ -45,12 +49,14 @@ export default function AppLayout({
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <AppNavbar />
-        <main className="flex-1 px-6 py-8 md:px-8">{children}</main>
-      </SidebarInset>
-    </SidebarProvider>
+    <NavbarProvider>
+      <SidebarProvider>
+        {!focusedEditor && <AppSidebar />}
+        <SidebarInset>
+          <AppNavbar />
+          <main className="flex-1 px-6 py-8 md:px-8">{children}</main>
+        </SidebarInset>
+      </SidebarProvider>
+    </NavbarProvider>
   )
 }

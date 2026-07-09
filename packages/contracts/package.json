@@ -7,6 +7,7 @@
     ".": "./src/index.ts",
     "./auth": "./src/auth.ts",
     "./capture": "./src/capture.ts",
+    "./guide": "./src/guide.ts",
     "./workspace": "./src/workspace.ts"
   },
   "scripts": {

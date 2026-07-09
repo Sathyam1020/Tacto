@@ -31,6 +31,12 @@ const envSchema = z.object({
   /** Redis, for enqueueing capture-processing jobs. */
   REDIS_URL: z.url().default("redis://localhost:6379"),
 
+  /** Cloudflare R2 — optional until configured; video capture 503s without. */
+  R2_ACCOUNT_ID: z.string().optional(),
+  R2_ACCESS_KEY_ID: z.string().optional(),
+  R2_SECRET_ACCESS_KEY: z.string().optional(),
+  R2_BUCKET: z.string().optional(),
+
   /** Google OAuth — optional; the google provider is disabled when absent. */
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

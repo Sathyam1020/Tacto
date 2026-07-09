@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist_Mono, Newsreader, Schibsted_Grotesk } from "next/font/google"
+import { Geist, Geist_Mono, Newsreader } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { cn } from "@workspace/ui/lib/utils"
@@ -9,11 +9,14 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 /**
  * Tacto type roles:
- *  - sans  (Schibsted Grotesk): UI chrome — nav, buttons, settings, metadata labels.
- *  - serif (Newsreader):        the knowledge itself — guide titles, step text, viewer.
- *  - mono  (Geist Mono):        captured data — timestamps, URLs, element labels, kbd.
+ *  - sans  (Geist):        UI chrome AND reading text — comfortable, legible.
+ *  - serif (Newsreader):   display only — guide titles, page headings, heroes.
+ *  - mono  (Geist Mono):   captured data — timestamps, URLs, element labels.
+ *
+ * Serif is reserved for large display sizes where it reads as editorial;
+ * body/instructional text is sans so following a guide never strains.
  */
-const fontSans = Schibsted_Grotesk({
+const fontSans = Geist({
   subsets: ["latin"],
   variable: "--font-sans",
 })
@@ -21,6 +24,7 @@ const fontSans = Schibsted_Grotesk({
 const fontSerif = Newsreader({
   subsets: ["latin"],
   style: ["normal", "italic"],
+  weight: ["400", "500", "600"],
   variable: "--font-serif",
 })
 

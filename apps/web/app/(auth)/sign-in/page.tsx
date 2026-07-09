@@ -49,7 +49,7 @@ export default function SignInPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl tracking-tight">Welcome back.</h1>
+      <h1 className="font-serif text-3xl font-medium tracking-tight">Welcome back.</h1>
       <p className="text-muted-foreground mt-2 text-sm">
         Sign in to your workspace.
       </p>

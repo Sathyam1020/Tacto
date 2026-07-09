@@ -13,6 +13,10 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.2",
+    "@tiptap/extension-link": "^3.27.3",
+    "@tiptap/pm": "^3.27.3",
+    "@tiptap/react": "^3.27.3",
+    "@tiptap/starter-kit": "^3.27.3",
     "@workspace/contracts": "*",
     "@workspace/ui": "*",
     "axios": "^1.18.1",
@@ -32,6 +36,7 @@
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
     "eslint": "^9",
+    "puppeteer-core": "^25.3.0",
     "typescript": "^5"
   }
 }

@@ -22,8 +22,18 @@ export type CaptureModel = runtime.Types.Result.DefaultSelection<Prisma.$Capture
 
 export type AggregateCapture = {
   _count: CaptureCountAggregateOutputType | null
+  _avg: CaptureAvgAggregateOutputType | null
+  _sum: CaptureSumAggregateOutputType | null
   _min: CaptureMinAggregateOutputType | null
   _max: CaptureMaxAggregateOutputType | null
+}
+
+export type CaptureAvgAggregateOutputType = {
+  durationSec: number | null
+}
+
+export type CaptureSumAggregateOutputType = {
+  durationSec: number | null
 }
 
 export type CaptureMinAggregateOutputType = {
@@ -31,6 +41,8 @@ export type CaptureMinAggregateOutputType = {
   source: $Enums.CaptureSource | null
   status: $Enums.CaptureStatus | null
   title: string | null
+  videoKey: string | null
+  durationSec: number | null
   errorMessage: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -44,6 +56,8 @@ export type CaptureMaxAggregateOutputType = {
   source: $Enums.CaptureSource | null
   status: $Enums.CaptureStatus | null
   title: string | null
+  videoKey: string | null
+  durationSec: number | null
   errorMessage: string | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -58,6 +72,8 @@ export type CaptureCountAggregateOutputType = {
   status: number
   title: number
   events: number
+  videoKey: number
+  durationSec: number
   errorMessage: number
   createdAt: number
   updatedAt: number
@@ -68,11 +84,21 @@ export type CaptureCountAggregateOutputType = {
 }
 
 
+export type CaptureAvgAggregateInputType = {
+  durationSec?: true
+}
+
+export type CaptureSumAggregateInputType = {
+  durationSec?: true
+}
+
 export type CaptureMinAggregateInputType = {
   id?: true
   source?: true
   status?: true
   title?: true
+  videoKey?: true
+  durationSec?: true
   errorMessage?: true
   createdAt?: true
   updatedAt?: true
@@ -86,6 +112,8 @@ export type CaptureMaxAggregateInputType = {
   source?: true
   status?: true
   title?: true
+  videoKey?: true
+  durationSec?: true
   errorMessage?: true
   createdAt?: true
   updatedAt?: true
@@ -100,6 +128,8 @@ export type CaptureCountAggregateInputType = {
   status?: true
   title?: true
   events?: true
+  videoKey?: true
+  durationSec?: true
   errorMessage?: true
   createdAt?: true
   updatedAt?: true
@@ -147,6 +177,18 @@ export type CaptureAggregateArgs<ExtArgs extends runtime.Types.Extensions.Intern
   /**
    * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
    * 
+   * Select which fields to average
+  **/
+  _avg?: CaptureAvgAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
+   * Select which fields to sum
+  **/
+  _sum?: CaptureSumAggregateInputType
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+   * 
    * Select which fields to find the minimum value
   **/
   _min?: CaptureMinAggregateInputType
@@ -177,6 +219,8 @@ export type CaptureGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   _count?: CaptureCountAggregateInputType | true
+  _avg?: CaptureAvgAggregateInputType
+  _sum?: CaptureSumAggregateInputType
   _min?: CaptureMinAggregateInputType
   _max?: CaptureMaxAggregateInputType
 }
@@ -186,7 +230,9 @@ export type CaptureGroupByOutputType = {
   source: $Enums.CaptureSource
   status: $Enums.CaptureStatus
   title: string | null
-  events: runtime.JsonValue
+  events: runtime.JsonValue | null
+  videoKey: string | null
+  durationSec: number | null
   errorMessage: string | null
   createdAt: Date
   updatedAt: Date
@@ -194,6 +240,8 @@ export type CaptureGroupByOutputType = {
   organizationId: string
   createdById: string
   _count: CaptureCountAggregateOutputType | null
+  _avg: CaptureAvgAggregateOutputType | null
+  _sum: CaptureSumAggregateOutputType | null
   _min: CaptureMinAggregateOutputType | null
   _max: CaptureMaxAggregateOutputType | null
 }
@@ -221,7 +269,9 @@ export type CaptureWhereInput = {
   source?: Prisma.EnumCaptureSourceFilter<"Capture"> | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFilter<"Capture"> | $Enums.CaptureStatus
   title?: Prisma.StringNullableFilter<"Capture"> | string | null
-  events?: Prisma.JsonFilter<"Capture">
+  events?: Prisma.JsonNullableFilter<"Capture">
+  videoKey?: Prisma.StringNullableFilter<"Capture"> | string | null
+  durationSec?: Prisma.FloatNullableFilter<"Capture"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Capture"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
@@ -238,7 +288,9 @@ export type CaptureOrderByWithRelationInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
-  events?: Prisma.SortOrder
+  events?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationSec?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -258,7 +310,9 @@ export type CaptureWhereUniqueInput = Prisma.AtLeast<{
   source?: Prisma.EnumCaptureSourceFilter<"Capture"> | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFilter<"Capture"> | $Enums.CaptureStatus
   title?: Prisma.StringNullableFilter<"Capture"> | string | null
-  events?: Prisma.JsonFilter<"Capture">
+  events?: Prisma.JsonNullableFilter<"Capture">
+  videoKey?: Prisma.StringNullableFilter<"Capture"> | string | null
+  durationSec?: Prisma.FloatNullableFilter<"Capture"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Capture"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
@@ -275,7 +329,9 @@ export type CaptureOrderByWithAggregationInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrderInput | Prisma.SortOrder
-  events?: Prisma.SortOrder
+  events?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  durationSec?: Prisma.SortOrderInput | Prisma.SortOrder
   errorMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -283,8 +339,10 @@ export type CaptureOrderByWithAggregationInput = {
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
   _count?: Prisma.CaptureCountOrderByAggregateInput
+  _avg?: Prisma.CaptureAvgOrderByAggregateInput
   _max?: Prisma.CaptureMaxOrderByAggregateInput
   _min?: Prisma.CaptureMinOrderByAggregateInput
+  _sum?: Prisma.CaptureSumOrderByAggregateInput
 }
 
 export type CaptureScalarWhereWithAggregatesInput = {
@@ -295,7 +353,9 @@ export type CaptureScalarWhereWithAggregatesInput = {
   source?: Prisma.EnumCaptureSourceWithAggregatesFilter<"Capture"> | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusWithAggregatesFilter<"Capture"> | $Enums.CaptureStatus
   title?: Prisma.StringNullableWithAggregatesFilter<"Capture"> | string | null
-  events?: Prisma.JsonWithAggregatesFilter<"Capture">
+  events?: Prisma.JsonNullableWithAggregatesFilter<"Capture">
+  videoKey?: Prisma.StringNullableWithAggregatesFilter<"Capture"> | string | null
+  durationSec?: Prisma.FloatNullableWithAggregatesFilter<"Capture"> | number | null
   errorMessage?: Prisma.StringNullableWithAggregatesFilter<"Capture"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Capture"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Capture"> | Date | string
@@ -309,7 +369,9 @@ export type CaptureCreateInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -324,7 +386,9 @@ export type CaptureUncheckedCreateInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -339,7 +403,9 @@ export type CaptureUpdateInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -354,7 +420,9 @@ export type CaptureUncheckedUpdateInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -369,7 +437,9 @@ export type CaptureCreateManyInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -383,7 +453,9 @@ export type CaptureUpdateManyMutationInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -395,7 +467,9 @@ export type CaptureUncheckedUpdateManyInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -420,6 +494,8 @@ export type CaptureCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
   events?: Prisma.SortOrder
+  videoKey?: Prisma.SortOrder
+  durationSec?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -428,11 +504,17 @@ export type CaptureCountOrderByAggregateInput = {
   createdById?: Prisma.SortOrder
 }
 
+export type CaptureAvgOrderByAggregateInput = {
+  durationSec?: Prisma.SortOrder
+}
+
 export type CaptureMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  videoKey?: Prisma.SortOrder
+  durationSec?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -446,12 +528,18 @@ export type CaptureMinOrderByAggregateInput = {
   source?: Prisma.SortOrder
   status?: Prisma.SortOrder
   title?: Prisma.SortOrder
+  videoKey?: Prisma.SortOrder
+  durationSec?: Prisma.SortOrder
   errorMessage?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+}
+
+export type CaptureSumOrderByAggregateInput = {
+  durationSec?: Prisma.SortOrder
 }
 
 export type CaptureNullableScalarRelationFilter = {
@@ -551,6 +639,14 @@ export type EnumCaptureStatusFieldUpdateOperationsInput = {
   set?: $Enums.CaptureStatus
 }
 
+export type NullableFloatFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type CaptureCreateNestedOneWithoutGuidesInput = {
   create?: Prisma.XOR<Prisma.CaptureCreateWithoutGuidesInput, Prisma.CaptureUncheckedCreateWithoutGuidesInput>
   connectOrCreate?: Prisma.CaptureCreateOrConnectWithoutGuidesInput
@@ -572,7 +668,9 @@ export type CaptureCreateWithoutCreatedByInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -586,7 +684,9 @@ export type CaptureUncheckedCreateWithoutCreatedByInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -629,7 +729,9 @@ export type CaptureScalarWhereInput = {
   source?: Prisma.EnumCaptureSourceFilter<"Capture"> | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFilter<"Capture"> | $Enums.CaptureStatus
   title?: Prisma.StringNullableFilter<"Capture"> | string | null
-  events?: Prisma.JsonFilter<"Capture">
+  events?: Prisma.JsonNullableFilter<"Capture">
+  videoKey?: Prisma.StringNullableFilter<"Capture"> | string | null
+  durationSec?: Prisma.FloatNullableFilter<"Capture"> | number | null
   errorMessage?: Prisma.StringNullableFilter<"Capture"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Capture"> | Date | string
@@ -643,7 +745,9 @@ export type CaptureCreateWithoutOrganizationInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -657,7 +761,9 @@ export type CaptureUncheckedCreateWithoutOrganizationInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -697,7 +803,9 @@ export type CaptureCreateWithoutGuidesInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -711,7 +819,9 @@ export type CaptureUncheckedCreateWithoutGuidesInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -741,7 +851,9 @@ export type CaptureUpdateWithoutGuidesInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -755,7 +867,9 @@ export type CaptureUncheckedUpdateWithoutGuidesInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -769,7 +883,9 @@ export type CaptureCreateManyCreatedByInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -782,7 +898,9 @@ export type CaptureUpdateWithoutCreatedByInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -796,7 +914,9 @@ export type CaptureUncheckedUpdateWithoutCreatedByInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -810,7 +930,9 @@ export type CaptureUncheckedUpdateManyWithoutCreatedByInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -823,7 +945,9 @@ export type CaptureCreateManyOrganizationInput = {
   source: $Enums.CaptureSource
   status?: $Enums.CaptureStatus
   title?: string | null
-  events: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
   errorMessage?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -836,7 +960,9 @@ export type CaptureUpdateWithoutOrganizationInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -850,7 +976,9 @@ export type CaptureUncheckedUpdateWithoutOrganizationInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -864,7 +992,9 @@ export type CaptureUncheckedUpdateManyWithoutOrganizationInput = {
   source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
   status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
   title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  events?: Prisma.JsonNullValueInput | runtime.InputJsonValue
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -909,6 +1039,8 @@ export type CaptureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   title?: boolean
   events?: boolean
+  videoKey?: boolean
+  durationSec?: boolean
   errorMessage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -927,6 +1059,8 @@ export type CaptureSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   title?: boolean
   events?: boolean
+  videoKey?: boolean
+  durationSec?: boolean
   errorMessage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -943,6 +1077,8 @@ export type CaptureSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   title?: boolean
   events?: boolean
+  videoKey?: boolean
+  durationSec?: boolean
   errorMessage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -959,6 +1095,8 @@ export type CaptureSelectScalar = {
   status?: boolean
   title?: boolean
   events?: boolean
+  videoKey?: boolean
+  durationSec?: boolean
   errorMessage?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -967,7 +1105,7 @@ export type CaptureSelectScalar = {
   createdById?: boolean
 }
 
-export type CaptureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "source" | "status" | "title" | "events" | "errorMessage" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "createdById", ExtArgs["result"]["capture"]>
+export type CaptureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "source" | "status" | "title" | "events" | "videoKey" | "durationSec" | "errorMessage" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "createdById", ExtArgs["result"]["capture"]>
 export type CaptureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -996,10 +1134,15 @@ export type $CapturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     status: $Enums.CaptureStatus
     title: string | null
     /**
-     * Normalized event log (contracts captureEventSchema[]). Inline JSONB
-     * for MVP; moves to R2 when events carry screenshot payloads.
+     * Normalized event log (contracts captureEventSchema[]). Written at
+     * creation for event captures; derived by video ingestion for uploads.
      */
-    events: runtime.JsonValue
+    events: runtime.JsonValue | null
+    /**
+     * R2 object key of the raw recording (video captures).
+     */
+    videoKey: string | null
+    durationSec: number | null
     errorMessage: string | null
     createdAt: Date
     updatedAt: Date
@@ -1437,6 +1580,8 @@ export interface CaptureFieldRefs {
   readonly status: Prisma.FieldRef<"Capture", 'CaptureStatus'>
   readonly title: Prisma.FieldRef<"Capture", 'String'>
   readonly events: Prisma.FieldRef<"Capture", 'Json'>
+  readonly videoKey: Prisma.FieldRef<"Capture", 'String'>
+  readonly durationSec: Prisma.FieldRef<"Capture", 'Float'>
   readonly errorMessage: Prisma.FieldRef<"Capture", 'String'>
   readonly createdAt: Prisma.FieldRef<"Capture", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Capture", 'DateTime'>

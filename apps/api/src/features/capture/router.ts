@@ -1,5 +1,9 @@
-import { createCaptureSchema } from "@workspace/contracts/capture";
+import {
+  createCaptureSchema,
+  createVideoCaptureSchema,
+} from "@workspace/contracts/capture";
 import { prisma } from "@workspace/db";
+import { presignPut } from "@workspace/storage";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -44,6 +48,106 @@ captureRouter.post(
         createdAt: capture.createdAt,
       },
     });
+  }
+);
+
+/**
+ * Video capture, step 1: create the Capture row + a presigned upload URL.
+ * The browser PUTs the recording straight to R2 (never through this API),
+ * then calls /complete.
+ */
+captureRouter.post(
+  "/api/captures/video",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const input = createVideoCaptureSchema.parse(req.body);
+    const extension = input.mimeType.startsWith("video/mp4") ? "mp4" : "webm";
+
+    const capture = await prisma.capture.create({
+      data: {
+        title: input.title ?? null,
+        source: "VIDEO_UPLOAD",
+        status: "UPLOADING",
+        organizationId: req.workspace!.id,
+        createdById: req.user!.id,
+      },
+    });
+
+    const videoKey = `captures/${req.workspace!.id}/${capture.id}/raw.${extension}`;
+    await prisma.capture.update({
+      where: { id: capture.id },
+      data: { videoKey },
+    });
+
+    const uploadUrl = await presignPut(videoKey, input.mimeType);
+
+    res.status(201).json({
+      capture: { id: capture.id, status: "UPLOADING" },
+      uploadUrl,
+    });
+  }
+);
+
+/** Video capture, step 2: upload finished — enqueue processing. */
+captureRouter.post(
+  "/api/captures/:id/complete",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const capture = await prisma.capture.findFirst({
+      where: {
+        id,
+        organizationId: req.workspace!.id,
+        deletedAt: null,
+      },
+    });
+    if (!capture) {
+      throw new AppError(404, "NOT_FOUND", "Capture not found");
+    }
+    if (capture.status !== "UPLOADING") {
+      throw new AppError(
+        409,
+        "ALREADY_PROCESSED",
+        "This capture has already been submitted"
+      );
+    }
+
+    await prisma.capture.update({
+      where: { id: capture.id },
+      data: { status: "PROCESSING" },
+    });
+    await captureQueue.add("process", { captureId: capture.id });
+
+    res.json({ capture: { id: capture.id, status: "PROCESSING" } });
+  }
+);
+
+/** In-flight captures for the home page's processing cards. */
+captureRouter.get(
+  "/api/captures",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const captures = await prisma.capture.findMany({
+      where: {
+        organizationId: req.workspace!.id,
+        deletedAt: null,
+        status: { in: ["UPLOADING", "PROCESSING", "FAILED"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        source: true,
+        status: true,
+        errorMessage: true,
+        createdAt: true,
+      },
+    });
+    res.json({ captures });
   }
 );
 

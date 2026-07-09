@@ -4,7 +4,9 @@ import { toNodeHandler } from "better-auth/node";
 import { captureRouter } from "./features/capture/router.js";
 import { guideRouter } from "./features/guide/router.js";
 import { healthRouter } from "./features/health/router.js";
+import { mediaRouter } from "./features/media/router.js";
 import { meRouter } from "./features/me/router.js";
+import { publicRouter } from "./features/public/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
 import { auth } from "./lib/auth.js";
 import { errorHandler } from "./middleware/error.js";
@@ -26,10 +28,12 @@ export function createApp(): Express {
   app.use(express.json());
 
   app.use(healthRouter);
+  app.use(publicRouter);
   app.use(meRouter);
   app.use(workspaceRouter);
   app.use(captureRouter);
   app.use(guideRouter);
+  app.use(mediaRouter);
 
   app.use(errorHandler);
 

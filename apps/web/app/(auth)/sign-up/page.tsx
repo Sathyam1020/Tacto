@@ -50,7 +50,7 @@ export default function SignUpPage() {
 
   return (
     <div>
-      <h1 className="font-serif text-3xl tracking-tight">
+      <h1 className="font-serif text-3xl font-medium tracking-tight">
         Capture once, teach forever.
       </h1>
       <p className="text-muted-foreground mt-2 text-sm">

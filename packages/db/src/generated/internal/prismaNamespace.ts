@@ -1294,6 +1294,8 @@ export const CaptureScalarFieldEnum = {
   status: 'status',
   title: 'title',
   events: 'events',
+  videoKey: 'videoKey',
+  durationSec: 'durationSec',
   errorMessage: 'errorMessage',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -1310,6 +1312,9 @@ export const GuideScalarFieldEnum = {
   title: 'title',
   summary: 'summary',
   status: 'status',
+  shareId: 'shareId',
+  publishedAt: 'publishedAt',
+  viewCount: 'viewCount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
@@ -1323,8 +1328,9 @@ export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof Gu
 
 export const StepScalarFieldEnum = {
   id: 'id',
+  type: 'type',
   position: 'position',
-  instruction: 'instruction',
+  content: 'content',
   elementLabel: 'elementLabel',
   url: 'url',
   screenshotUrl: 'screenshotUrl',
@@ -1344,13 +1350,6 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
-export const JsonNullValueInput = {
-  JsonNull: JsonNull
-} as const
-
-export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
@@ -1470,6 +1469,20 @@ export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$Prisma
 
 
 /**
+ * Reference to a field of type 'Float'
+ */
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+/**
+ * Reference to a field of type 'Float[]'
+ */
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+/**
  * Reference to a field of type 'GuideStatus'
  */
 export type EnumGuideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideStatus'>
@@ -1498,16 +1511,16 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
- * Reference to a field of type 'Float'
+ * Reference to a field of type 'BlockType'
  */
-export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+export type EnumBlockTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BlockType'>
     
 
 
 /**
- * Reference to a field of type 'Float[]'
+ * Reference to a field of type 'BlockType[]'
  */
-export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+export type ListEnumBlockTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BlockType[]'>
     
 
 /**

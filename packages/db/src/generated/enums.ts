@@ -34,3 +34,13 @@ export const GuideStatus = {
 } as const
 
 export type GuideStatus = (typeof GuideStatus)[keyof typeof GuideStatus]
+
+
+export const BlockType = {
+  STEP: 'STEP',
+  HEADING: 'HEADING',
+  TIP: 'TIP',
+  ALERT: 'ALERT'
+} as const
+
+export type BlockType = (typeof BlockType)[keyof typeof BlockType]

@@ -14,7 +14,8 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model Step
- * 
+ * A content block within a guide (table name kept as "step" for history).
+ * `content` is sanitized HTML. Media/interaction fields apply to STEP only.
  */
 export type StepModel = runtime.Types.Result.DefaultSelection<Prisma.$StepPayload>
 
@@ -38,8 +39,9 @@ export type StepSumAggregateOutputType = {
 
 export type StepMinAggregateOutputType = {
   id: string | null
+  type: $Enums.BlockType | null
   position: number | null
-  instruction: string | null
+  content: string | null
   elementLabel: string | null
   url: string | null
   screenshotUrl: string | null
@@ -51,8 +53,9 @@ export type StepMinAggregateOutputType = {
 
 export type StepMaxAggregateOutputType = {
   id: string | null
+  type: $Enums.BlockType | null
   position: number | null
-  instruction: string | null
+  content: string | null
   elementLabel: string | null
   url: string | null
   screenshotUrl: string | null
@@ -64,8 +67,9 @@ export type StepMaxAggregateOutputType = {
 
 export type StepCountAggregateOutputType = {
   id: number
+  type: number
   position: number
-  instruction: number
+  content: number
   elementLabel: number
   url: number
   screenshotUrl: number
@@ -90,8 +94,9 @@ export type StepSumAggregateInputType = {
 
 export type StepMinAggregateInputType = {
   id?: true
+  type?: true
   position?: true
-  instruction?: true
+  content?: true
   elementLabel?: true
   url?: true
   screenshotUrl?: true
@@ -103,8 +108,9 @@ export type StepMinAggregateInputType = {
 
 export type StepMaxAggregateInputType = {
   id?: true
+  type?: true
   position?: true
-  instruction?: true
+  content?: true
   elementLabel?: true
   url?: true
   screenshotUrl?: true
@@ -116,8 +122,9 @@ export type StepMaxAggregateInputType = {
 
 export type StepCountAggregateInputType = {
   id?: true
+  type?: true
   position?: true
-  instruction?: true
+  content?: true
   elementLabel?: true
   url?: true
   screenshotUrl?: true
@@ -217,8 +224,9 @@ export type StepGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type StepGroupByOutputType = {
   id: string
+  type: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel: string | null
   url: string | null
   screenshotUrl: string | null
@@ -254,8 +262,9 @@ export type StepWhereInput = {
   OR?: Prisma.StepWhereInput[]
   NOT?: Prisma.StepWhereInput | Prisma.StepWhereInput[]
   id?: Prisma.StringFilter<"Step"> | string
+  type?: Prisma.EnumBlockTypeFilter<"Step"> | $Enums.BlockType
   position?: Prisma.IntFilter<"Step"> | number
-  instruction?: Prisma.StringFilter<"Step"> | string
+  content?: Prisma.StringFilter<"Step"> | string
   elementLabel?: Prisma.StringNullableFilter<"Step"> | string | null
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -269,8 +278,9 @@ export type StepWhereInput = {
 
 export type StepOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  instruction?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   elementLabel?: Prisma.SortOrderInput | Prisma.SortOrder
   url?: Prisma.SortOrderInput | Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -287,8 +297,9 @@ export type StepWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.StepWhereInput | Prisma.StepWhereInput[]
   OR?: Prisma.StepWhereInput[]
   NOT?: Prisma.StepWhereInput | Prisma.StepWhereInput[]
+  type?: Prisma.EnumBlockTypeFilter<"Step"> | $Enums.BlockType
   position?: Prisma.IntFilter<"Step"> | number
-  instruction?: Prisma.StringFilter<"Step"> | string
+  content?: Prisma.StringFilter<"Step"> | string
   elementLabel?: Prisma.StringNullableFilter<"Step"> | string | null
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -302,8 +313,9 @@ export type StepWhereUniqueInput = Prisma.AtLeast<{
 
 export type StepOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  instruction?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   elementLabel?: Prisma.SortOrderInput | Prisma.SortOrder
   url?: Prisma.SortOrderInput | Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -324,8 +336,9 @@ export type StepScalarWhereWithAggregatesInput = {
   OR?: Prisma.StepScalarWhereWithAggregatesInput[]
   NOT?: Prisma.StepScalarWhereWithAggregatesInput | Prisma.StepScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Step"> | string
+  type?: Prisma.EnumBlockTypeWithAggregatesFilter<"Step"> | $Enums.BlockType
   position?: Prisma.IntWithAggregatesFilter<"Step"> | number
-  instruction?: Prisma.StringWithAggregatesFilter<"Step"> | string
+  content?: Prisma.StringWithAggregatesFilter<"Step"> | string
   elementLabel?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   url?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
@@ -338,8 +351,9 @@ export type StepScalarWhereWithAggregatesInput = {
 
 export type StepCreateInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -347,13 +361,14 @@ export type StepCreateInput = {
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  guide: Prisma.GuideCreateNestedOneWithoutStepsInput
+  guide: Prisma.GuideCreateNestedOneWithoutBlocksInput
 }
 
 export type StepUncheckedCreateInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -366,8 +381,9 @@ export type StepUncheckedCreateInput = {
 
 export type StepUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -375,13 +391,14 @@ export type StepUpdateInput = {
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  guide?: Prisma.GuideUpdateOneRequiredWithoutStepsNestedInput
+  guide?: Prisma.GuideUpdateOneRequiredWithoutBlocksNestedInput
 }
 
 export type StepUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -394,8 +411,9 @@ export type StepUncheckedUpdateInput = {
 
 export type StepCreateManyInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -408,8 +426,9 @@ export type StepCreateManyInput = {
 
 export type StepUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -421,8 +440,9 @@ export type StepUpdateManyMutationInput = {
 
 export type StepUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -445,8 +465,9 @@ export type StepOrderByRelationAggregateInput = {
 
 export type StepCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  instruction?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   elementLabel?: Prisma.SortOrder
   url?: Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrder
@@ -464,8 +485,9 @@ export type StepAvgOrderByAggregateInput = {
 
 export type StepMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  instruction?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   elementLabel?: Prisma.SortOrder
   url?: Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrder
@@ -477,8 +499,9 @@ export type StepMaxOrderByAggregateInput = {
 
 export type StepMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  type?: Prisma.SortOrder
   position?: Prisma.SortOrder
-  instruction?: Prisma.SortOrder
+  content?: Prisma.SortOrder
   elementLabel?: Prisma.SortOrder
   url?: Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrder
@@ -535,26 +558,15 @@ export type StepUncheckedUpdateManyWithoutGuideNestedInput = {
   deleteMany?: Prisma.StepScalarWhereInput | Prisma.StepScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
-export type NullableFloatFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
+export type EnumBlockTypeFieldUpdateOperationsInput = {
+  set?: $Enums.BlockType
 }
 
 export type StepCreateWithoutGuideInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -566,8 +578,9 @@ export type StepCreateWithoutGuideInput = {
 
 export type StepUncheckedCreateWithoutGuideInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -608,8 +621,9 @@ export type StepScalarWhereInput = {
   OR?: Prisma.StepScalarWhereInput[]
   NOT?: Prisma.StepScalarWhereInput | Prisma.StepScalarWhereInput[]
   id?: Prisma.StringFilter<"Step"> | string
+  type?: Prisma.EnumBlockTypeFilter<"Step"> | $Enums.BlockType
   position?: Prisma.IntFilter<"Step"> | number
-  instruction?: Prisma.StringFilter<"Step"> | string
+  content?: Prisma.StringFilter<"Step"> | string
   elementLabel?: Prisma.StringNullableFilter<"Step"> | string | null
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
@@ -622,8 +636,9 @@ export type StepScalarWhereInput = {
 
 export type StepCreateManyGuideInput = {
   id?: string
+  type?: $Enums.BlockType
   position: number
-  instruction: string
+  content: string
   elementLabel?: string | null
   url?: string | null
   screenshotUrl?: string | null
@@ -635,8 +650,9 @@ export type StepCreateManyGuideInput = {
 
 export type StepUpdateWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -648,8 +664,9 @@ export type StepUpdateWithoutGuideInput = {
 
 export type StepUncheckedUpdateWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -661,8 +678,9 @@ export type StepUncheckedUpdateWithoutGuideInput = {
 
 export type StepUncheckedUpdateManyWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.EnumBlockTypeFieldUpdateOperationsInput | $Enums.BlockType
   position?: Prisma.IntFieldUpdateOperationsInput | number
-  instruction?: Prisma.StringFieldUpdateOperationsInput | string
+  content?: Prisma.StringFieldUpdateOperationsInput | string
   elementLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -676,8 +694,9 @@ export type StepUncheckedUpdateManyWithoutGuideInput = {
 
 export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  type?: boolean
   position?: boolean
-  instruction?: boolean
+  content?: boolean
   elementLabel?: boolean
   url?: boolean
   screenshotUrl?: boolean
@@ -691,8 +710,9 @@ export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 
 export type StepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  type?: boolean
   position?: boolean
-  instruction?: boolean
+  content?: boolean
   elementLabel?: boolean
   url?: boolean
   screenshotUrl?: boolean
@@ -706,8 +726,9 @@ export type StepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type StepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  type?: boolean
   position?: boolean
-  instruction?: boolean
+  content?: boolean
   elementLabel?: boolean
   url?: boolean
   screenshotUrl?: boolean
@@ -721,8 +742,9 @@ export type StepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type StepSelectScalar = {
   id?: boolean
+  type?: boolean
   position?: boolean
-  instruction?: boolean
+  content?: boolean
   elementLabel?: boolean
   url?: boolean
   screenshotUrl?: boolean
@@ -733,7 +755,7 @@ export type StepSelectScalar = {
   guideId?: boolean
 }
 
-export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "position" | "instruction" | "elementLabel" | "url" | "screenshotUrl" | "boundingBox" | "confidence" | "createdAt" | "updatedAt" | "guideId", ExtArgs["result"]["step"]>
+export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "position" | "content" | "elementLabel" | "url" | "screenshotUrl" | "boundingBox" | "confidence" | "createdAt" | "updatedAt" | "guideId", ExtArgs["result"]["step"]>
 export type StepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guide?: boolean | Prisma.GuideDefaultArgs<ExtArgs>
 }
@@ -751,8 +773,9 @@ export type $StepPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    type: $Enums.BlockType
     position: number
-    instruction: string
+    content: string
     elementLabel: string | null
     url: string | null
     screenshotUrl: string | null
@@ -1192,8 +1215,9 @@ export interface Prisma__StepClient<T, Null = never, ExtArgs extends runtime.Typ
  */
 export interface StepFieldRefs {
   readonly id: Prisma.FieldRef<"Step", 'String'>
+  readonly type: Prisma.FieldRef<"Step", 'BlockType'>
   readonly position: Prisma.FieldRef<"Step", 'Int'>
-  readonly instruction: Prisma.FieldRef<"Step", 'String'>
+  readonly content: Prisma.FieldRef<"Step", 'String'>
   readonly elementLabel: Prisma.FieldRef<"Step", 'String'>
   readonly url: Prisma.FieldRef<"Step", 'String'>
   readonly screenshotUrl: Prisma.FieldRef<"Step", 'String'>

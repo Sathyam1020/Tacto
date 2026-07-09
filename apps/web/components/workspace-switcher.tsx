@@ -147,7 +147,7 @@ export function WorkspaceSwitcher() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl tracking-tight">
+            <DialogTitle className="font-serif text-xl font-medium tracking-tight">
               Create a workspace
             </DialogTitle>
             <DialogDescription>
