@@ -35,7 +35,9 @@ export function AppSidebar() {
   const pathname = usePathname()
 
   return (
-    <Sidebar variant="floating" collapsible="icon">
+    // `py-5` overrides the floating panel's built-in `p-2` inset (the fixed,
+    // full-height container ignores margin — spacing here must be padding).
+    <Sidebar variant="floating" collapsible="icon" className="py-4">
       <SidebarHeader>
         <WorkspaceSwitcher />
       </SidebarHeader>
