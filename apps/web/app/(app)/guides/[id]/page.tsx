@@ -3,7 +3,10 @@
 import * as React from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { BarChart3, Download, Info, Pencil, Share2 } from "lucide-react"
+import { BarChart3, Info, Share2 } from "lucide-react"
+
+import { DownloadIcon } from "@workspace/ui/components/download"
+import { SquarePenIcon } from "@workspace/ui/components/square-pen"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -63,14 +66,14 @@ export default function GuidePage() {
             label="Download PDF"
             onClick={() => guide && void downloadGuidePdf(guide)}
           >
-            <Download className="size-4" />
+            <DownloadIcon size={16} />
           </IconButton>
           <Button
             size="sm"
             variant="outline"
             render={<Link href={`/guides/${params.id}/edit`} />}
           >
-            <Pencil className="size-3.5" />
+            <SquarePenIcon size={15} />
             Edit
           </Button>
           <Button size="sm" onClick={() => setShareOpen(true)}>

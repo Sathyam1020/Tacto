@@ -244,10 +244,11 @@ function ZoomableFrame({
 
 function ChromeBar() {
   return (
-    <div className="flex items-center gap-1.5 border-b px-3 py-2">
-      <span className="size-2.5 rounded-full bg-[#ec6a5e]" />
-      <span className="size-2.5 rounded-full bg-[#f4bf4f]" />
-      <span className="size-2.5 rounded-full bg-[#61c454]" />
+    <div className="flex items-center gap-1.5 border-b px-3 py-2.5">
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-sheet ml-2 h-4 flex-1 rounded-full border" />
     </div>
   )
 }
@@ -267,7 +268,11 @@ function Spotlight({ rect }: { rect: ClickRect }) {
   )
 }
 
-/** The animated click pointer — crisp target dot with radar ripples. */
+/**
+ * The Datum reticle — the signature click mark: a surveyor's crosshair
+ * (ticks + ring + core) with a radar ping. It marks the exact point of the
+ * interaction on every screenshot.
+ */
 function Marker({
   leftPct,
   topPct,
@@ -279,17 +284,22 @@ function Marker({
 }) {
   return (
     <span
-      className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+      className="text-primary pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
       style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
       <span className="block" style={{ transform: `scale(${counterScale})` }}>
-        <span className="relative flex size-4 items-center justify-center">
-          <span className="border-viridian animate-click-ripple absolute inset-0 rounded-full border motion-reduce:hidden" />
-          <span
-            className="border-viridian animate-click-ripple absolute inset-0 rounded-full border motion-reduce:hidden"
-            style={{ animationDelay: "1s" }}
-          />
-          <span className="bg-viridian animate-click-core size-2.5 rounded-full shadow-[0_0_0_2px_white,0_1px_3px_rgba(0,0,0,0.35)] motion-reduce:animate-none" />
+        <span className="relative flex size-5 items-center justify-center">
+          {/* radar ping */}
+          <span className="animate-click-ripple absolute inset-1 rounded-full border border-current motion-reduce:hidden" />
+          {/* crosshair ticks */}
+          <span className="absolute top-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
+          <span className="absolute bottom-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
+          <span className="absolute top-1/2 left-0 h-px w-1.5 -translate-y-1/2 bg-current" />
+          <span className="absolute top-1/2 right-0 h-px w-1.5 -translate-y-1/2 bg-current" />
+          {/* fixed ring */}
+          <span className="absolute inset-1 rounded-full border border-current" />
+          {/* core */}
+          <span className="animate-click-core size-1.5 rounded-full bg-current shadow-[0_0_0_2px_white] motion-reduce:animate-none" />
         </span>
       </span>
     </span>

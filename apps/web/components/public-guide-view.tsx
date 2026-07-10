@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Download } from "lucide-react"
+import { DownloadIcon } from "@workspace/ui/components/download"
 
 import { Button } from "@workspace/ui/components/button"
 import { LogoMark } from "@workspace/ui/components/logo"
@@ -35,7 +35,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
               variant="outline"
               onClick={() => void downloadGuidePdf(guide)}
             >
-              <Download className="size-3.5" />
+              <DownloadIcon size={15} />
               PDF
             </Button>
           </div>

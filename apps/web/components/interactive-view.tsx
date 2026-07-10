@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { AnimatePresence, m, useReducedMotion } from "motion/react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
@@ -21,10 +22,14 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     [blocks]
   )
   const [index, setIndex] = React.useState(0)
+  const [dir, setDir] = React.useState(1)
+  const reduce = useReducedMotion()
 
   const go = React.useCallback(
-    (delta: number) =>
-      setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1)),
+    (delta: number) => {
+      setDir(delta > 0 ? 1 : -1)
+      setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1))
+    },
     [slides.length]
   )
 
@@ -68,29 +73,46 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
   return (
     <div className="mx-auto max-w-4xl">
       <div className="relative">
-        {hasShot ? (
-          <>
-            <ScreenshotFrame
-              src={slide.screenshotUrl!}
-              clickRect={rect}
-              spotlight
-              zoom={rect ? 1.1 : undefined}
-            />
-            <div
-              className="bg-card absolute z-10 w-56 max-w-[70%] rounded-lg border p-3 shadow-xl"
-              style={calloutStyle}
-            >
-              <RichText html={slide.content} className="text-[13px] leading-snug" />
-            </div>
-          </>
-        ) : (
-          <div className="bg-card flex min-h-[320px] items-center justify-center rounded-xl border p-10">
-            <RichText
-              html={slide.content}
-              className="max-w-lg text-center text-xl"
-            />
-          </div>
-        )}
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <m.div
+            key={slide.id}
+            custom={dir}
+            initial={{ opacity: 0, x: reduce ? 0 : dir * 28 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: reduce ? 0 : dir * -28 }}
+            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {hasShot ? (
+              <div className="relative">
+                <ScreenshotFrame
+                  src={slide.screenshotUrl!}
+                  clickRect={rect}
+                  spotlight
+                  zoom={rect ? 1.1 : undefined}
+                />
+                <div
+                  className="bg-card absolute z-10 w-56 max-w-[70%] rounded-lg border p-3 shadow-xl"
+                  style={calloutStyle}
+                >
+                  <span className="text-muted-foreground mb-1.5 block font-mono text-[10px] tracking-widest uppercase">
+                    Step {index + 1} / {slides.length}
+                  </span>
+                  <RichText
+                    html={slide.content}
+                    className="text-[13px] leading-snug"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-card flex min-h-[320px] items-center justify-center rounded-xl border p-10">
+                <RichText
+                  html={slide.content}
+                  className="max-w-lg text-center text-xl"
+                />
+              </div>
+            )}
+          </m.div>
+        </AnimatePresence>
 
         <EdgeChevron side="left" onClick={() => go(-1)} disabled={atStart} />
         <EdgeChevron side="right" onClick={() => go(1)} disabled={atEnd} />

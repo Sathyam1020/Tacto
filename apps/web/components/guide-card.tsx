@@ -3,17 +3,13 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import {
-  Copy,
-  FolderInput,
-  Link2,
-  MoreHorizontal,
-  Pencil,
-  Pin,
-  PinOff,
-  Trash2,
-} from "lucide-react"
+import { Link2, MoreHorizontal, Pin, PinOff } from "lucide-react"
 import { toast } from "sonner"
+
+import { CopyIcon } from "@workspace/ui/components/copy"
+import { DeleteIcon } from "@workspace/ui/components/delete"
+import { FolderInputIcon } from "@workspace/ui/components/folder-input"
+import { SquarePenIcon } from "@workspace/ui/components/square-pen"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -58,10 +54,10 @@ import {
  */
 
 const COVER_TINTS = [
-  "bg-ink text-paper dark:bg-paper dark:text-ink", // ink
-  "bg-viridian text-white", // viridian
-  "bg-[#4A6FA5] text-white", // slate
-  "bg-[#B98A2E] text-white", // amber
+  "bg-ink text-paper", // ink
+  "bg-primary text-primary-foreground", // cobalt
+  "bg-sage text-white", // sage
+  "bg-[#3f5a86] text-white", // muted slate
 ] as const
 
 function coverTint(id: string): string {
@@ -214,7 +210,7 @@ export function GuideCard({ guide }: { guide: GuideListItem }) {
             <DropdownMenuItem
               onClick={() => router.push(`/guides/${guide.id}/edit`)}
             >
-              <Pencil />
+              <SquarePenIcon size={16} />
               Edit
             </DropdownMenuItem>
             <DropdownMenuItem onClick={togglePin}>
@@ -222,12 +218,12 @@ export function GuideCard({ guide }: { guide: GuideListItem }) {
               {pinned ? "Unpin" : "Pin"}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={cloneGuide}>
-              <Copy />
+              <CopyIcon size={16} />
               Clone
             </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
-                <FolderInput />
+                <FolderInputIcon size={16} />
                 Move
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent className="w-48">
@@ -252,7 +248,7 @@ export function GuideCard({ guide }: { guide: GuideListItem }) {
               variant="destructive"
               onClick={() => setConfirmOpen(true)}
             >
-              <Trash2 />
+              <DeleteIcon size={16} />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

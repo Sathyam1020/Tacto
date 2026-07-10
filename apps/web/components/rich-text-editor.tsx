@@ -160,8 +160,8 @@ function ToolbarButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "hover:bg-muted flex size-7 items-center justify-center rounded-md transition-colors",
-        active && "bg-muted text-viridian"
+        "hover:bg-muted flex size-8 items-center justify-center rounded-md transition-colors",
+        active && "bg-accent text-accent-foreground"
       )}
     >
       {children}

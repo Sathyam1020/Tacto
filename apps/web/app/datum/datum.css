@@ -1,0 +1,135 @@
+/**
+ * Datum — Tacto V2 visual language, scoped to `.datum` so it never touches
+ * the running app's tokens. Cool-neutral drafting canvas, cobalt as the one
+ * action color, the throughline + reticle + registration signature.
+ */
+.datum {
+  --dt-sans: var(--font-geist), -apple-system, "SF Pro Text", system-ui, sans-serif;
+  --dt-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --paper: #eef1f5;
+  --sheet: #f6f8fb;
+  --plate: #fdfdfe;
+  --ink: #1b1d22;
+  --ink-2: #545862;
+  --ink-3: #888c96;
+  --line: #e0e3ea;
+  --line-2: #ccd0d9;
+
+  --cobalt: #1f47d6;
+  --cobalt-press: #16379f;
+  --cobalt-tint: #e6ebfb;
+  --cobalt-ink: #163aa8;
+  --sage: #4f8168;
+  --sage-tint: #e4efe9;
+  --sage-ink: #356049;
+  --amber: #a4711d;
+  --amber-tint: #f4ecd7;
+  --amber-ink: #7c5514;
+  --rose: #ae4f5e;
+  --rose-tint: #f6e7ea;
+  --rose-ink: #8f3a49;
+
+  --ring: rgba(31, 71, 214, 0.32);
+  --r-sm: 6px; --r-md: 9px; --r-lg: 13px; --r-xl: 18px;
+  --e1: 0 1px 2px rgba(27, 29, 34, 0.05);
+  --e2: 0 12px 30px -14px rgba(27, 29, 34, 0.20);
+  --e3: 0 34px 70px -30px rgba(27, 29, 34, 0.30);
+
+  color: var(--ink);
+  font-family: var(--dt-sans);
+  letter-spacing: -0.006em;
+  min-height: 100vh;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(rgba(27, 29, 34, 0.05) 1px, transparent 1.4px);
+  background-size: auto, 26px 26px;
+  background-attachment: fixed, fixed;
+}
+
+.datum ::selection { background: var(--cobalt-tint); color: var(--cobalt-ink); }
+.datum *:focus-visible { outline: 2px solid var(--cobalt); outline-offset: 3px; border-radius: 4px; }
+
+.dt-wrap { max-width: 1080px; margin: 0 auto; padding: 0 40px; }
+.dt-eyebrow { font-family: var(--dt-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+.dt-h1 { font-weight: 500; letter-spacing: -0.035em; line-height: 1; font-size: clamp(40px, 7vw, 72px); margin: 0; text-wrap: balance; }
+.dt-h1 b { font-weight: 500; color: var(--cobalt); }
+.dt-h2 { font-weight: 500; letter-spacing: -0.028em; font-size: clamp(26px, 4vw, 36px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.dt-sub { color: var(--ink-2); font-size: 17px; line-height: 1.55; letter-spacing: -0.01em; }
+
+.dt-sec { border-top: 1px solid var(--line); padding: 84px 0; }
+.dt-sechead { display: grid; grid-template-columns: auto 1fr; gap: 15px; align-items: baseline; margin-bottom: 36px; }
+.dt-sechead .n { font-family: var(--dt-mono); font-size: 12px; color: var(--cobalt); }
+
+/* Registration / crop marks */
+.dt-reg { position: absolute; width: 12px; height: 12px; pointer-events: none; color: var(--line-2); }
+.dt-reg::before, .dt-reg::after { content: ""; position: absolute; background: currentColor; }
+.dt-reg::before { width: 12px; height: 1px; } .dt-reg::after { width: 1px; height: 12px; }
+.dt-reg.tl { top: -1px; left: -1px; } .dt-reg.tr { top: -1px; right: -1px; }
+.dt-reg.tr::before, .dt-reg.tr::after { right: 0; }
+.dt-reg.bl { bottom: -1px; left: -1px; } .dt-reg.bl::before, .dt-reg.bl::after { bottom: 0; }
+.dt-reg.br { bottom: -1px; right: -1px; } .dt-reg.br::before, .dt-reg.br::after { right: 0; bottom: 0; }
+
+/* Reticle */
+.dt-reticle { position: absolute; width: 38px; height: 38px; transform: translate(-50%, -50%); color: var(--cobalt); pointer-events: none; }
+.dt-reticle .c { position: absolute; inset: 9px; border: 1.5px solid currentColor; border-radius: 50%; }
+.dt-reticle .d { position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: currentColor; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px var(--plate); }
+.dt-reticle i { position: absolute; background: currentColor; }
+.dt-reticle i.t { left: 50%; top: 0; width: 1.5px; height: 7px; transform: translateX(-50%); }
+.dt-reticle i.b { left: 50%; bottom: 0; width: 1.5px; height: 7px; transform: translateX(-50%); }
+.dt-reticle i.l { top: 50%; left: 0; height: 1.5px; width: 7px; transform: translateY(-50%); }
+.dt-reticle i.r { top: 50%; right: 0; height: 1.5px; width: 7px; transform: translateY(-50%); }
+
+/* Buttons */
+.dt-btn { font-family: var(--dt-sans); font-size: 14px; font-weight: 520; letter-spacing: -0.01em; padding: 10px 17px; border-radius: var(--r-md); border: 1px solid transparent; cursor: pointer; display: inline-flex; align-items: center; gap: 9px; min-height: 42px; }
+.dt-btn-primary { background: var(--cobalt); color: #fff; box-shadow: var(--e1); }
+.dt-btn-primary:hover { background: var(--cobalt-press); box-shadow: var(--e2); }
+.dt-btn-ghost { background: var(--plate); color: var(--ink); border-color: var(--line-2); }
+.dt-btn-ghost:hover { border-color: var(--ink-3); }
+.dt-btn-text { background: transparent; color: var(--ink-2); }
+.dt-btn-text:hover { color: var(--cobalt); }
+
+/* Plate (screenshot) */
+.dt-plate { position: relative; border: 1px solid var(--line-2); border-radius: var(--r-lg); background: var(--plate); box-shadow: var(--e2); overflow: hidden; }
+.dt-plate .bar { height: 34px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 6px; padding: 0 13px; }
+.dt-plate .bar span { width: 8px; height: 8px; border-radius: 50%; background: var(--line-2); }
+.dt-plate .bar .addr { margin-left: 8px; height: 15px; flex: 1; max-width: 200px; border-radius: 999px; background: var(--sheet); border: 1px solid var(--line); }
+.dt-plate .canvas { position: relative; padding: 24px; display: flex; flex-direction: column; gap: 12px; min-height: 190px; }
+.dt-plate .l { height: 10px; border-radius: 5px; background: var(--line); }
+.dt-plate .ctrl { align-self: flex-start; margin-top: 6px; font-size: 13px; font-weight: 520; color: #fff; background: var(--cobalt); padding: 9px 15px; border-radius: var(--r-md); }
+
+/* Badges */
+.dt-badge { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 520; padding: 4px 11px; border-radius: 999px; }
+.dt-badge .dot { width: 6px; height: 6px; border-radius: 50%; }
+.dt-badge.pub { background: var(--sage-tint); color: var(--sage-ink); } .dt-badge.pub .dot { background: var(--sage); }
+.dt-badge.proc { background: var(--cobalt-tint); color: var(--cobalt-ink); } .dt-badge.proc .dot { background: var(--cobalt); }
+.dt-badge.err { background: var(--rose-tint); color: var(--rose-ink); } .dt-badge.err .dot { background: var(--rose); }
+.dt-badge.warn { background: var(--amber-tint); color: var(--amber-ink); } .dt-badge.warn .dot { background: var(--amber); }
+
+/* Cards / panels */
+.dt-card { position: relative; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--sheet); padding: 24px; }
+.dt-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 22px; align-items: start; }
+.dt-grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; }
+
+/* Skeleton shimmer */
+.dt-skel { background: linear-gradient(90deg, var(--line) 25%, var(--sheet) 40%, var(--line) 60%); background-size: 300% 100%; animation: dt-sh 1.4s linear infinite; border-radius: 5px; }
+@keyframes dt-sh { to { background-position: -120% 0; } }
+
+/* Field */
+.dt-field { display: flex; align-items: center; gap: 10px; background: var(--plate); border: 1px solid var(--line-2); border-radius: var(--r-md); padding: 11px 14px; min-height: 42px; }
+.dt-field:focus-within { border-color: var(--cobalt); box-shadow: 0 0 0 3px var(--ring); }
+.dt-field input { border: 0; outline: 0; background: transparent; color: var(--ink); font: inherit; width: 100%; }
+.dt-field input::placeholder { color: var(--ink-3); }
+
+.dt-empty { position: relative; border: 1px solid var(--line); border-radius: var(--r-xl); background: var(--sheet); padding: 52px 36px; text-align: center; }
+.dt-empty h3 { font-size: 23px; font-weight: 550; letter-spacing: -0.02em; margin: 24px 0 8px; }
+.dt-empty p { color: var(--ink-2); font-size: 15px; max-width: 40ch; margin: 0 auto 22px; }
+
+.dt-mono { font-family: var(--dt-mono); }
+
+@media (max-width: 720px) {
+  .dt-wrap { padding: 0 20px; }
+  .dt-sec { padding: 56px 0; }
+  .dt-sechead { grid-template-columns: 1fr; }
+}

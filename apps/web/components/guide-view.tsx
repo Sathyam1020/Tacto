@@ -24,8 +24,16 @@ export function GuideBody({
   const numbered = withStepNumbers(blocks)
   return (
     <div className="flex flex-col gap-8">
-      {numbered.map((block) => (
-        <BlockView key={block.id} block={block} stepNumber={block.stepNumber} />
+      {numbered.map((block, i) => (
+        <BlockView
+          key={block.id}
+          block={block}
+          stepNumber={block.stepNumber}
+          // Thread the spine only between back-to-back steps.
+          connect={
+            block.type === "STEP" && numbered[i + 1]?.type === "STEP"
+          }
+        />
       ))}
     </div>
   )

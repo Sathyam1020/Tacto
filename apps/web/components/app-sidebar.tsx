@@ -2,8 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { House, Settings } from "lucide-react"
 
+import { HomeIcon } from "@workspace/ui/components/home"
+import { SettingsIcon } from "@workspace/ui/components/settings"
 import {
   Sidebar,
   SidebarContent,
@@ -26,8 +27,8 @@ import { WorkspaceSwitcher } from "@/components/workspace-switcher"
  */
 
 const NAV_ITEMS = [
-  { title: "Home", href: "/home", icon: House },
-  { title: "Settings", href: "/settings", icon: Settings },
+  { title: "Home", href: "/home", icon: HomeIcon },
+  { title: "Settings", href: "/settings", icon: SettingsIcon },
 ] as const
 
 export function AppSidebar() {
@@ -50,7 +51,7 @@ export function AppSidebar() {
                     isActive={pathname.startsWith(item.href)}
                     tooltip={item.title}
                   >
-                    <item.icon className="size-4" />
+                    <item.icon size={18} className="shrink-0" />
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

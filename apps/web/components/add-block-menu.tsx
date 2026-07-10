@@ -2,7 +2,9 @@
 
 import * as React from "react"
 import type { BlockType } from "@workspace/contracts/guide"
-import { Heading1, Info, Plus, SquarePlus, TriangleAlert } from "lucide-react"
+import { Heading1, Info, SquarePlus, TriangleAlert } from "lucide-react"
+
+import { PlusIcon } from "@workspace/ui/components/plus"
 
 import {
   Popover,
@@ -42,7 +44,7 @@ export function AddBlockMenu({
           aria-label="Add block"
           className="bg-viridian relative z-10 flex size-6 items-center justify-center rounded-full text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 data-[popup-open]:opacity-100"
         >
-          <Plus className="size-3.5" />
+          <PlusIcon size={15} />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-1" align="center">
           <div className="flex gap-1">

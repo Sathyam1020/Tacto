@@ -1,10 +1,10 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { ChevronsUpDown, LogOut, Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
+import { ChevronsUpDown } from "lucide-react"
 
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { LogoutIcon } from "@workspace/ui/components/logout"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +22,9 @@ import {
 
 import { authClient } from "@/lib/auth-client"
 
-/** Sidebar footer — the signed-in user, theme toggle, sign out. */
+/** Sidebar footer — the signed-in user + sign out. */
 export function NavUser() {
   const router = useRouter()
-  const { resolvedTheme, setTheme } = useTheme()
   const { data: session } = authClient.useSession()
 
   if (!session) return null
@@ -72,21 +71,8 @@ export function NavUser() {
               </DropdownMenuLabel>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                setTheme(resolvedTheme === "dark" ? "light" : "dark")
-              }
-            >
-              {resolvedTheme === "dark" ? (
-                <Sun className="size-4" />
-              ) : (
-                <Moon className="size-4" />
-              )}
-              Switch to {resolvedTheme === "dark" ? "light" : "dark"} mode
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
-              <LogOut className="size-4" />
+              <LogoutIcon size={16} className="shrink-0" />
               Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>

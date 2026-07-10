@@ -11,6 +11,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { AppNavbar } from "@/components/app-navbar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { CommandPalette } from "@/components/command-palette"
 import { ExtensionOnboarding } from "@/components/extension-onboarding"
 import { NavbarProvider } from "@/components/navbar-context"
 import { authClient } from "@/lib/auth-client"
@@ -58,6 +59,7 @@ export default function AppLayout({
 
   return (
     <NavbarProvider>
+      <CommandPalette />
       <SidebarProvider>
         {!focusedEditor && <AppSidebar />}
         <SidebarInset>

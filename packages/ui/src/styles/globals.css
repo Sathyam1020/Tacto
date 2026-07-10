@@ -58,6 +58,25 @@
     --color-viridian: var(--viridian);
     --color-signal: var(--signal);
 
+    /* Datum palette — cobalt is the one action color; sage/amber/rose are
+       semantic; violet is intentionally absent (AI wears ink). */
+    --color-cobalt: var(--cobalt);
+    --color-cobalt-tint: var(--cobalt-tint);
+    --color-cobalt-ink: var(--cobalt-ink);
+    --color-sage: var(--sage);
+    --color-sage-tint: var(--sage-tint);
+    --color-sage-ink: var(--sage-ink);
+    --color-amber: var(--amber);
+    --color-amber-tint: var(--amber-tint);
+    --color-amber-ink: var(--amber-ink);
+    --color-rose: var(--rose);
+    --color-rose-tint: var(--rose-tint);
+    --color-rose-ink: var(--rose-ink);
+    --color-plate: var(--plate);
+    --color-sheet: var(--sheet);
+    --color-line: var(--line);
+    --color-line-2: var(--line-2);
+
     /* Charts (provisional set; revisit with real dataviz work) */
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -83,6 +102,12 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Skeleton shimmer — premium loading, no spinner. */
+    --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
 
     /* Signature motion — the touch ring. */
     --animate-touch-pulse: touch-pulse 1.8s cubic-bezier(0.3, 0, 0.4, 1) infinite;
@@ -142,49 +167,62 @@
 }
 
 :root {
-    /* Brand primitives — light */
-    --paper: oklch(0.9873 0.004 106.5); /* #FBFBF8 */
-    --ink: oklch(0.2285 0.0059 121.9); /* #1C1D1A */
-    --graphite: oklch(0.5432 0.0142 121.9); /* #6E7168 */
-    --hairline: oklch(0.9324 0.008 106.6); /* #E9E9E3 */
-    --viridian: oklch(0.5215 0.1049 165.8); /* #0E7C5B */
-    --signal: oklch(0.6256 0.1933 23); /* #E5484D */
+    /* Brand primitives — remapped to Datum. Legacy names kept so existing
+       bg-viridian / text-graphite / border-hairline usages re-skin to the new
+       language without editing every file (renamed progressively per phase). */
+    --paper: #eef1f5; /* cool drafting canvas */
+    --ink: #1b1d22; /* near-black, never #000 */
+    --graphite: #545862; /* secondary ink */
+    --hairline: #e0e3ea; /* line */
+    --viridian: #1f47d6; /* now COBALT — the one action color */
+    --signal: #ae4f5e; /* now muted rose */
 
-    /* Semantic mapping — light */
+    /* Grotesque-only: legacy font-serif call sites render as Geist until
+       migrated (a display serif can be slotted in later for hero moments). */
+    --font-serif: var(--font-sans);
+
+    /* Datum semantic accents + surfaces */
+    --cobalt: #1f47d6; --cobalt-tint: #e6ebfb; --cobalt-ink: #163aa8;
+    --sage: #4f8168; --sage-tint: #e4efe9; --sage-ink: #356049;
+    --amber: #a4711d; --amber-tint: #f4ecd7; --amber-ink: #7c5514;
+    --rose: #ae4f5e; --rose-tint: #f6e7ea; --rose-ink: #8f3a49;
+    --plate: #fdfdfe; --sheet: #f6f8fb; --line: #e0e3ea; --line-2: #ccd0d9;
+
+    /* Semantic mapping — Datum (light only) */
     --background: var(--paper);
     --foreground: var(--ink);
-    --card: oklch(1 0 0); /* floating surfaces are pure white */
+    --card: var(--plate); /* floating surfaces — near-white, never pure */
     --card-foreground: var(--ink);
-    --popover: oklch(1 0 0);
+    --popover: var(--plate);
     --popover-foreground: var(--ink);
-    --primary: var(--viridian); /* the touch color */
-    --primary-foreground: oklch(1 0 0);
-    --secondary: oklch(0.9568 0.0066 106.5); /* #F1F1EC */
+    --primary: var(--cobalt); /* the one action color */
+    --primary-foreground: #ffffff;
+    --secondary: var(--sheet);
     --secondary-foreground: var(--ink);
-    --muted: oklch(0.9568 0.0066 106.5); /* #F1F1EC */
+    --muted: #e9edf3;
     --muted-foreground: var(--graphite);
-    --accent: oklch(0.9442 0.0093 106.6); /* #EDEDE6 — hover wash */
-    --accent-foreground: var(--ink);
-    --destructive: var(--signal);
-    --border: var(--hairline);
-    --input: oklch(0.895 0.0121 106.6); /* #DDDDD4 — inputs read slightly firmer */
-    --ring: var(--viridian); /* focus IS the touch ring */
-    --radius: 0.375rem; /* 6px */
+    --accent: var(--cobalt-tint); /* hover wash carries the accent */
+    --accent-foreground: var(--cobalt-ink);
+    --destructive: var(--rose);
+    --border: var(--line);
+    --input: #d5dae2; /* inputs read slightly firmer than borders */
+    --ring: var(--cobalt); /* focus is cobalt */
+    --radius: 0.625rem; /* 10px base */
 
-    --chart-1: var(--viridian);
-    --chart-2: oklch(0.5383 0.0952 257.8); /* slate blue */
-    --chart-3: oklch(0.6629 0.1197 80.3); /* amber */
+    --chart-1: var(--cobalt);
+    --chart-2: var(--sage);
+    --chart-3: var(--amber);
     --chart-4: var(--graphite);
-    --chart-5: var(--signal);
+    --chart-5: var(--rose);
 
-    --sidebar: oklch(0.972 0.0053 106.5); /* #F6F6F2 */
+    --sidebar: var(--sheet);
     --sidebar-foreground: var(--ink);
-    --sidebar-primary: var(--viridian);
-    --sidebar-primary-foreground: oklch(1 0 0);
-    --sidebar-accent: oklch(0.9442 0.0093 106.6);
-    --sidebar-accent-foreground: var(--ink);
-    --sidebar-border: var(--hairline);
-    --sidebar-ring: var(--viridian);
+    --sidebar-primary: var(--cobalt);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: var(--cobalt-tint);
+    --sidebar-accent-foreground: var(--cobalt-ink);
+    --sidebar-border: var(--line);
+    --sidebar-ring: var(--cobalt);
 }
 
 .dark {
@@ -244,7 +282,7 @@
     }
   body {
     @apply bg-background text-foreground;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.6;
     }
   /* Display type: serif titles want tight tracking and a confident weight. */

@@ -27,9 +27,12 @@ type ViewableBlock = {
 export function BlockView({
   block,
   stepNumber,
+  connect = false,
 }: {
   block: ViewableBlock
   stepNumber?: number
+  /** Draw the throughline spine down to the next step (set by GuideBody). */
+  connect?: boolean
 }) {
   switch (block.type) {
     case "HEADING":
@@ -42,24 +45,21 @@ export function BlockView({
 
     case "TIP":
       return (
-        <div className="border-viridian/20 bg-viridian/5 flex gap-3 rounded-xl border px-4 py-3">
-          <span className="bg-viridian mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-white">
+        <div className="border-sage/25 bg-sage-tint flex gap-3 rounded-xl border px-4 py-3">
+          <span className="bg-sage mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-white">
             <Info className="size-3" />
           </span>
-          <RichText html={block.content} className="text-viridian text-sm" />
+          <RichText html={block.content} className="text-sage-ink text-sm" />
         </div>
       )
 
     case "ALERT":
       return (
-        <div className="flex gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
-          <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white">
+        <div className="border-amber/25 bg-amber-tint flex gap-3 rounded-xl border px-4 py-3">
+          <span className="bg-amber mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-white">
             <TriangleAlert className="size-3" />
           </span>
-          <RichText
-            html={block.content}
-            className="text-sm text-amber-700 dark:text-amber-500"
-          />
+          <RichText html={block.content} className="text-amber-ink text-sm" />
         </div>
       )
 
@@ -67,7 +67,15 @@ export function BlockView({
     default:
       return (
         <div className="flex gap-5">
-          <StepMarker step={stepNumber ?? 1} size="lg" className="mt-0.5" />
+          <div className="relative flex flex-col items-center">
+            <StepMarker step={stepNumber ?? 1} size="lg" className="mt-0.5" />
+            {connect && (
+              <span
+                aria-hidden
+                className="bg-line-2 mt-2 -mb-8 w-px flex-1"
+              />
+            )}
+          </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between gap-3">
               <RichText html={block.content} className="text-[17px]" />

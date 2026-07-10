@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useTheme } from "next-themes"
+import { LazyMotion, domMax } from "motion/react"
 import { Toaster } from "sonner"
 
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
@@ -27,13 +27,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   )
 
-  const { resolvedTheme } = useTheme()
-
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>{children}</TooltipProvider>
+      {/* domMax = full feature set incl. layout animations (layoutId).
+          No `strict`, so the standalone /datum reference route (which uses
+          motion.*) keeps working while shared components use lightweight m.* */}
+      <LazyMotion features={domMax}>
+        <TooltipProvider>{children}</TooltipProvider>
+      </LazyMotion>
       <Toaster
-        theme={resolvedTheme === "dark" ? "dark" : "light"}
+        theme="light"
         position="bottom-right"
         toastOptions={{ className: "font-sans" }}
       />
