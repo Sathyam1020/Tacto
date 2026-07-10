@@ -24,6 +24,22 @@ import { requireWorkspace } from "../../middleware/require-workspace.js";
  */
 export const captureRouter: Router = Router();
 
+/** A guide is worthless without screenshots — does any event carry one? */
+function eventsHaveScreenshot(events: unknown): boolean {
+  return (
+    Array.isArray(events) &&
+    events.some(
+      (e) =>
+        !!e &&
+        typeof e === "object" &&
+        !!(e as Record<string, unknown>).screenshotId
+    )
+  );
+}
+
+const NO_SCREENSHOTS_MESSAGE =
+  "No screenshots were captured — please record again.";
+
 captureRouter.post(
   "/api/captures",
   requireAuth,
@@ -195,6 +211,16 @@ captureRouter.post(
       throw new AppError(409, "ALREADY_PROCESSED", "Capture already submitted");
     }
 
+    // Guard: never start the pipeline for a capture with no screenshots — it
+    // can only yield an imageless "guide". Fail it fast + visibly instead.
+    if (!eventsHaveScreenshot(events)) {
+      await prisma.capture.update({
+        where: { id },
+        data: { events, status: "FAILED", errorMessage: NO_SCREENSHOTS_MESSAGE },
+      });
+      throw new AppError(422, "NO_SCREENSHOTS", NO_SCREENSHOTS_MESSAGE);
+    }
+
     await prisma.capture.update({
       where: { id },
       data: { events, status: "PROCESSING" },
@@ -210,7 +236,7 @@ captureRouter.get(
   requireAuth,
   requireWorkspace,
   async (req, res) => {
-    const captures = await prisma.capture.findMany({
+    const rows = await prisma.capture.findMany({
       where: {
         organizationId: req.workspace!.id,
         deletedAt: null,
@@ -225,8 +251,21 @@ captureRouter.get(
         status: true,
         errorMessage: true,
         createdAt: true,
+        // Needed only to decide `retryable`; not sent to the client.
+        videoKey: true,
+        events: true,
       },
     });
+
+    // A FAILED capture is retryable only if reprocessing could actually
+    // succeed: a video to re-ingest, or events that carry screenshots.
+    // Abandoned/empty/screenshot-less captures are dismiss-only.
+    const captures = rows.map(({ videoKey, events, ...c }) => ({
+      ...c,
+      retryable:
+        c.status === "FAILED" &&
+        (!!videoKey || eventsHaveScreenshot(events)),
+    }));
     res.json({ captures });
   }
 );
@@ -260,5 +299,63 @@ captureRouter.get(
       throw new AppError(404, "NOT_FOUND", "Capture not found");
     }
     res.json({ capture });
+  }
+);
+
+/** Retry a FAILED capture that still has its source data — re-enqueue it. */
+captureRouter.post(
+  "/api/captures/:id/retry",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const capture = await prisma.capture.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true, status: true, videoKey: true, events: true },
+    });
+    if (!capture) throw new AppError(404, "NOT_FOUND", "Capture not found");
+    if (capture.status !== "FAILED") {
+      throw new AppError(
+        409,
+        "NOT_FAILED",
+        "Only a failed capture can be retried"
+      );
+    }
+
+    if (!capture.videoKey && !eventsHaveScreenshot(capture.events)) {
+      throw new AppError(
+        422,
+        "NOTHING_TO_RETRY",
+        "This capture has no screenshots to reprocess — please record again"
+      );
+    }
+
+    await prisma.capture.update({
+      where: { id },
+      data: { status: "PROCESSING", errorMessage: null },
+    });
+    await captureQueue.add("process", { captureId: id });
+    res.json({ capture: { id, status: "PROCESSING" } });
+  }
+);
+
+/** Dismiss a capture (soft delete) — clears it from the home list. */
+captureRouter.delete(
+  "/api/captures/:id",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const capture = await prisma.capture.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!capture) throw new AppError(404, "NOT_FOUND", "Capture not found");
+
+    await prisma.capture.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    res.json({ ok: true });
   }
 );

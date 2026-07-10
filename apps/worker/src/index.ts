@@ -9,6 +9,7 @@ import { prisma } from "@workspace/db";
 import { Worker } from "bullmq";
 
 import { processCapture } from "./pipeline/process-capture.js";
+import { startReaper } from "./reaper.js";
 
 /**
  * Tacto worker — consumes capture-processing jobs. Slow, failure-prone work
@@ -36,6 +37,11 @@ const worker = new Worker<CaptureJobData>(
   {
     connection,
     concurrency: 3,
+    // Recover jobs orphaned by a crashed/killed worker: if a job stops
+    // reporting progress it's considered stalled and re-queued; after
+    // maxStalledCount stalls it's moved to failed (→ capture marked FAILED).
+    stalledInterval: 30_000,
+    maxStalledCount: 2,
   }
 );
 
@@ -58,9 +64,14 @@ worker.on("ready", () => {
   console.log(`tacto worker ready — queue "${CAPTURE_QUEUE}"`);
 });
 
+// Self-healing sweep for captures orphaned outside the queue (abandoned
+// uploads, jobs lost while the worker was down).
+const reaperTimer = startReaper();
+
 /** Graceful shutdown: finish in-flight jobs, then close connections. */
 async function shutdown(signal: string) {
   console.log(`${signal} received — shutting down…`);
+  clearInterval(reaperTimer);
   await worker.close();
   process.exit(0);
 }

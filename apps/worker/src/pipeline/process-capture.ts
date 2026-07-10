@@ -74,6 +74,21 @@ export async function processCapture(captureId: string): Promise<void> {
     );
   }
 
+  // Choke point: a Tacto guide is screenshots + pointers. If nothing carries a
+  // screenshot, there's no guide to build — fail fast (no AI call, no retries)
+  // with a clear message instead of producing an imageless "guide".
+  if (!events.some((event) => event.screenshotId)) {
+    console.log(`[${captureId}] no screenshots — failing without processing`);
+    await prisma.capture.update({
+      where: { id: captureId },
+      data: {
+        status: "FAILED",
+        errorMessage: "No screenshots were captured — please record again.",
+      },
+    });
+    return;
+  }
+
   console.log(`[${captureId}] segment… (${events.length} events)`);
   const segments = segment(events);
 
@@ -83,6 +98,17 @@ export async function processCapture(captureId: string): Promise<void> {
   const synthesized = await synthesizeGuide(events, {
     captureTitle: capture.title ?? undefined,
   });
+
+  // Dismiss-mid-flight guard: if the user deleted this capture while we were
+  // synthesizing, don't resurrect it into a guide.
+  const stillLive = await prisma.capture.findUnique({
+    where: { id: captureId },
+    select: { deletedAt: true },
+  });
+  if (!stillLive || stillLive.deletedAt) {
+    console.log(`[${captureId}] dismissed during processing — skipping`);
+    return;
+  }
 
   console.log(
     `[${captureId}] assemble… ("${synthesized.title}", ${synthesized.steps.length} steps)`

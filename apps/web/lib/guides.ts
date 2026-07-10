@@ -1,9 +1,11 @@
+import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
   BlockType,
   GuideBlockInput,
 } from "@workspace/contracts/guide"
 import axios from "axios"
+import { toast } from "sonner"
 
 import { api } from "@/lib/api"
 
@@ -27,6 +29,8 @@ export type ActiveCapture = {
   source: "EXTENSION" | "VIDEO_UPLOAD" | "IMPORT"
   status: "UPLOADING" | "PROCESSING" | "FAILED"
   errorMessage: string | null
+  /** FAILED captures that still have their source data can be re-run. */
+  retryable: boolean
   createdAt: string
 }
 
@@ -77,12 +81,32 @@ export function useGuides(workspaceId: string | undefined) {
  */
 export function useActiveCaptures(workspaceId: string | undefined) {
   const queryClient = useQueryClient()
+  // Remember each capture's last-seen status so we can notify on the
+  // moment it transitions to FAILED (not for failures already present on
+  // first load — those show as persistent cards, no toast spam).
+  const lastStatus = React.useRef<Map<string, ActiveCapture["status"]>>(
+    new Map()
+  )
   return useQuery({
     queryKey: ["captures", workspaceId],
     queryFn: async () => {
       const { data } = await api.get<{ captures: ActiveCapture[] }>(
         "/captures"
       )
+      for (const capture of data.captures) {
+        const before = lastStatus.current.get(capture.id)
+        if (before && before !== "FAILED" && capture.status === "FAILED") {
+          toast.error(`Couldn't process “${capture.title ?? "your capture"}”`, {
+            description:
+              capture.errorMessage ??
+              "Something went wrong. Retry or dismiss it below.",
+          })
+        }
+      }
+      lastStatus.current = new Map(
+        data.captures.map((capture) => [capture.id, capture.status])
+      )
+
       const processing = data.captures.some(
         (capture) =>
           capture.status === "PROCESSING" || capture.status === "UPLOADING"
@@ -151,6 +175,31 @@ export function usePublishGuide(guideId: string) {
       void queryClient.invalidateQueries({ queryKey: ["guide"] })
       void queryClient.invalidateQueries({ queryKey: ["guides"] })
     },
+  })
+}
+
+/** Retry a failed capture — re-enqueues processing. */
+export function useRetryCapture(workspaceId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (captureId: string) => {
+      const { data } = await api.post(`/captures/${captureId}/retry`)
+      return data
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["captures", workspaceId] }),
+  })
+}
+
+/** Dismiss (soft-delete) a capture — clears it from the home list. */
+export function useDismissCapture(workspaceId: string | undefined) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (captureId: string) => {
+      await api.delete(`/captures/${captureId}`)
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["captures", workspaceId] }),
   })
 }
 

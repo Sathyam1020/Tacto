@@ -145,6 +145,12 @@ export default defineBackground(() => {
       error = "No actions were captured"
       return
     }
+    // A Tacto guide is screenshots + pointers — no shots, no guide. Stop here
+    // so we never create a capture that can only fail downstream.
+    if (shots.length === 0) {
+      error = "No screenshots were captured — try recording again"
+      return
+    }
 
     try {
       const firstNav = events.find((e) => e.type === "navigation")

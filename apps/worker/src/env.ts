@@ -18,6 +18,15 @@ const envSchema = z.object({
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET: z.string().optional(),
+
+  // ── Stuck-capture reaper ────────────────────────────────────────────────
+  /** How often the reaper sweeps for stuck captures (seconds). */
+  REAPER_INTERVAL_SEC: z.coerce.number().int().positive().default(60),
+  /** UPLOADING longer than this = abandoned upload → FAILED (minutes). */
+  STUCK_UPLOAD_TIMEOUT_MIN: z.coerce.number().positive().default(10),
+  /** PROCESSING longer than this = lost/dead job → FAILED (minutes).
+   *  Generous: long video ingests are legitimately slow. */
+  STUCK_PROCESSING_TIMEOUT_MIN: z.coerce.number().positive().default(20),
 });
 
 const parsed = envSchema.safeParse(process.env);

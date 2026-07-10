@@ -21,7 +21,7 @@ const connection = {
 export const captureQueue = new Queue<CaptureJobData>(CAPTURE_QUEUE, {
   connection,
   defaultJobOptions: {
-    attempts: 2,
+    attempts: 3,
     backoff: { type: "exponential", delay: 3000 },
     removeOnComplete: { count: 500 },
     removeOnFail: { count: 500 },
