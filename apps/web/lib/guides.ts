@@ -13,8 +13,10 @@ export type GuideListItem = {
   title: string
   summary: string | null
   status: "DRAFT" | "PUBLISHED"
+  shareId: string | null
   stepCount: number
   coverUrl: string | null
+  pinnedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -149,6 +151,63 @@ export function usePublishGuide(guideId: string) {
       void queryClient.invalidateQueries({ queryKey: ["guide"] })
       void queryClient.invalidateQueries({ queryKey: ["guides"] })
     },
+  })
+}
+
+/** Pin / unpin a guide (toggle). Invalidates the list so order updates. */
+export function usePinGuide() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (guideId: string) => {
+      const { data } = await api.post<{ guide: { pinnedAt: string | null } }>(
+        `/guides/${guideId}/pin`
+      )
+      return data.guide
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["guides"] }),
+  })
+}
+
+/** Duplicate a guide into a new DRAFT copy. Returns the new guide id. */
+export function useCloneGuide() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (guideId: string) => {
+      const { data } = await api.post<{ guide: { id: string } }>(
+        `/guides/${guideId}/clone`
+      )
+      return data.guide
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["guides"] }),
+  })
+}
+
+/** Move a guide to another workspace the caller belongs to. */
+export function useMoveGuide() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: { guideId: string; organizationId: string }) => {
+      const { data } = await api.post(`/guides/${vars.guideId}/move`, {
+        organizationId: vars.organizationId,
+      })
+      return data
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["guides"] }),
+  })
+}
+
+/** Soft-delete a guide (removed from the workspace list). */
+export function useDeleteGuide() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (guideId: string) => {
+      await api.delete(`/guides/${guideId}`)
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["guides"] }),
   })
 }
 

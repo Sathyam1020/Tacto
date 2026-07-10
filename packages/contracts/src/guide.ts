@@ -34,6 +34,12 @@ export const updateGuideSchema = z.object({
 });
 export type UpdateGuideInput = z.infer<typeof updateGuideSchema>;
 
+/** Move a guide to another workspace the caller is a member of. */
+export const moveGuideSchema = z.object({
+  organizationId: z.string().min(1),
+});
+export type MoveGuideInput = z.infer<typeof moveGuideSchema>;
+
 /** A block as returned to clients (screenshotUrl is presigned for display). */
 export const guideBlockSchema = z.object({
   id: z.string(),

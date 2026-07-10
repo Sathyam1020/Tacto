@@ -46,6 +46,7 @@ export type GuideMinAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  pinnedAt: Date | null
   organizationId: string | null
   captureId: string | null
   createdById: string | null
@@ -62,6 +63,7 @@ export type GuideMaxAggregateOutputType = {
   createdAt: Date | null
   updatedAt: Date | null
   deletedAt: Date | null
+  pinnedAt: Date | null
   organizationId: string | null
   captureId: string | null
   createdById: string | null
@@ -78,6 +80,7 @@ export type GuideCountAggregateOutputType = {
   createdAt: number
   updatedAt: number
   deletedAt: number
+  pinnedAt: number
   organizationId: number
   captureId: number
   createdById: number
@@ -104,6 +107,7 @@ export type GuideMinAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  pinnedAt?: true
   organizationId?: true
   captureId?: true
   createdById?: true
@@ -120,6 +124,7 @@ export type GuideMaxAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  pinnedAt?: true
   organizationId?: true
   captureId?: true
   createdById?: true
@@ -136,6 +141,7 @@ export type GuideCountAggregateInputType = {
   createdAt?: true
   updatedAt?: true
   deletedAt?: true
+  pinnedAt?: true
   organizationId?: true
   captureId?: true
   createdById?: true
@@ -239,6 +245,7 @@ export type GuideGroupByOutputType = {
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
+  pinnedAt: Date | null
   organizationId: string
   captureId: string | null
   createdById: string
@@ -278,6 +285,7 @@ export type GuideWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  pinnedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -298,6 +306,7 @@ export type GuideOrderByWithRelationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pinnedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -321,6 +330,7 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  pinnedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -341,6 +351,7 @@ export type GuideOrderByWithAggregationInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  pinnedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -365,6 +376,7 @@ export type GuideScalarWhereWithAggregatesInput = {
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Guide"> | Date | string | null
+  pinnedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Guide"> | Date | string | null
   organizationId?: Prisma.StringWithAggregatesFilter<"Guide"> | string
   captureId?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
   createdById?: Prisma.StringWithAggregatesFilter<"Guide"> | string
@@ -381,6 +393,7 @@ export type GuideCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -398,6 +411,7 @@ export type GuideUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -415,6 +429,7 @@ export type GuideUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -432,6 +447,7 @@ export type GuideUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -449,6 +465,7 @@ export type GuideCreateManyInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -465,6 +482,7 @@ export type GuideUpdateManyMutationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type GuideUncheckedUpdateManyInput = {
@@ -478,6 +496,7 @@ export type GuideUncheckedUpdateManyInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -504,6 +523,7 @@ export type GuideCountOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  pinnedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -524,6 +544,7 @@ export type GuideMaxOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  pinnedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -540,6 +561,7 @@ export type GuideMinOrderByAggregateInput = {
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   deletedAt?: Prisma.SortOrder
+  pinnedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -717,6 +739,7 @@ export type GuideCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
@@ -733,6 +756,7 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
@@ -778,6 +802,7 @@ export type GuideScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Guide"> | Date | string
   deletedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
+  pinnedAt?: Prisma.DateTimeNullableFilter<"Guide"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -794,6 +819,7 @@ export type GuideCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
@@ -810,6 +836,7 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   captureId?: string | null
   createdById: string
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
@@ -852,6 +879,7 @@ export type GuideCreateWithoutCaptureInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
@@ -868,6 +896,7 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   createdById: string
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
@@ -910,6 +939,7 @@ export type GuideCreateWithoutBlocksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -926,6 +956,7 @@ export type GuideUncheckedCreateWithoutBlocksInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -958,6 +989,7 @@ export type GuideUpdateWithoutBlocksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -974,6 +1006,7 @@ export type GuideUncheckedUpdateWithoutBlocksInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -990,6 +1023,7 @@ export type GuideCreateManyCreatedByInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
 }
@@ -1005,6 +1039,7 @@ export type GuideUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
@@ -1021,6 +1056,7 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
@@ -1037,6 +1073,7 @@ export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
@@ -1052,6 +1089,7 @@ export type GuideCreateManyOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   captureId?: string | null
   createdById: string
 }
@@ -1067,6 +1105,7 @@ export type GuideUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
@@ -1083,6 +1122,7 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
@@ -1099,6 +1139,7 @@ export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1114,6 +1155,7 @@ export type GuideCreateManyCaptureInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
   organizationId: string
   createdById: string
 }
@@ -1129,6 +1171,7 @@ export type GuideUpdateWithoutCaptureInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
@@ -1145,6 +1188,7 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
@@ -1161,6 +1205,7 @@ export type GuideUncheckedUpdateManyWithoutCaptureInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1207,6 +1252,7 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  pinnedAt?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -1228,6 +1274,7 @@ export type GuideSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  pinnedAt?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -1247,6 +1294,7 @@ export type GuideSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  pinnedAt?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -1266,12 +1314,13 @@ export type GuideSelectScalar = {
   createdAt?: boolean
   updatedAt?: boolean
   deletedAt?: boolean
+  pinnedAt?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
 }
 
-export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "captureId" | "createdById", ExtArgs["result"]["guide"]>
+export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "pinnedAt" | "organizationId" | "captureId" | "createdById", ExtArgs["result"]["guide"]>
 export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
@@ -1312,6 +1361,10 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     createdAt: Date
     updatedAt: Date
     deletedAt: Date | null
+    /**
+     * When pinned to the top of the workspace list (null = not pinned).
+     */
+    pinnedAt: Date | null
     organizationId: string
     captureId: string | null
     createdById: string
@@ -1752,6 +1805,7 @@ export interface GuideFieldRefs {
   readonly createdAt: Prisma.FieldRef<"Guide", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Guide", 'DateTime'>
   readonly deletedAt: Prisma.FieldRef<"Guide", 'DateTime'>
+  readonly pinnedAt: Prisma.FieldRef<"Guide", 'DateTime'>
   readonly organizationId: Prisma.FieldRef<"Guide", 'String'>
   readonly captureId: Prisma.FieldRef<"Guide", 'String'>
   readonly createdById: Prisma.FieldRef<"Guide", 'String'>

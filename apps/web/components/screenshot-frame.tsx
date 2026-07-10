@@ -164,7 +164,16 @@ function ZoomableFrame({
   }
 
   return (
-    <div className={cn("bg-card overflow-hidden rounded-xl border", className)}>
+    <div
+      // The screenshot is self-contained: its clicks/drags never bubble to a
+      // wrapping "tap to edit" region (editor preview) — only the text opens
+      // the editor. select-none stops stray text highlighting while panning.
+      onClick={(e) => e.stopPropagation()}
+      className={cn(
+        "bg-card cursor-default overflow-hidden rounded-xl border select-none",
+        className
+      )}
+    >
       {chrome && <ChromeBar />}
       <div
         ref={viewportRef}
@@ -204,6 +213,10 @@ function ZoomableFrame({
             otherwise swallow the button click). */}
         <div
           onPointerDown={(e) => e.stopPropagation()}
+          // Don't let a press start a text selection, and don't let the click
+          // bubble to a wrapping "tap to edit" region (the editor preview).
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={(e) => e.stopPropagation()}
           className="absolute right-3 bottom-3 z-10 flex flex-col items-center overflow-hidden rounded-full border border-white/20 bg-black/25 text-white shadow-[0_8px_28px_-6px_rgba(0,0,0,0.6),inset_0_1px_0_0_rgba(255,255,255,0.45),inset_0_-1px_1px_0_rgba(0,0,0,0.25)] backdrop-blur-xl backdrop-saturate-150"
         >
           <button
