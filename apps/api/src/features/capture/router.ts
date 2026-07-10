@@ -1,6 +1,9 @@
 import {
   createCaptureSchema,
+  createExtensionCaptureSchema,
   createVideoCaptureSchema,
+  screenshotUrlsSchema,
+  submitCaptureSchema,
 } from "@workspace/contracts/capture";
 import { prisma } from "@workspace/db";
 import { presignPut } from "@workspace/storage";
@@ -121,6 +124,83 @@ captureRouter.post(
     await captureQueue.add("process", { captureId: capture.id });
 
     res.json({ capture: { id: capture.id, status: "PROCESSING" } });
+  }
+);
+
+// ── Extension capture flow ───────────────────────────────────────────────
+// Mirrors the video two-phase: create (UPLOADING) → presign screenshots →
+// upload to R2 → submit events (referencing the screenshot keys). The worker
+// then runs the same normalize → synthesize → assemble pipeline.
+
+captureRouter.post(
+  "/api/captures/extension",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const input = createExtensionCaptureSchema.parse(req.body);
+    const capture = await prisma.capture.create({
+      data: {
+        title: input.title ?? null,
+        source: "EXTENSION",
+        status: "UPLOADING",
+        organizationId: req.workspace!.id,
+        createdById: req.user!.id,
+      },
+    });
+    res.status(201).json({ captureId: capture.id });
+  }
+);
+
+captureRouter.post(
+  "/api/captures/:id/screenshot-urls",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { count } = screenshotUrlsSchema.parse(req.body);
+
+    const capture = await prisma.capture.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true, status: true },
+    });
+    if (!capture) throw new AppError(404, "NOT_FOUND", "Capture not found");
+    if (capture.status !== "UPLOADING") {
+      throw new AppError(409, "ALREADY_PROCESSED", "Capture already submitted");
+    }
+
+    const urls = await Promise.all(
+      Array.from({ length: count }, async (_unused, index) => {
+        const key = `captures/${req.workspace!.id}/${id}/shots/${index}.png`;
+        return { key, uploadUrl: await presignPut(key, "image/png") };
+      })
+    );
+    res.json({ urls });
+  }
+);
+
+captureRouter.post(
+  "/api/captures/:id/submit",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { events } = submitCaptureSchema.parse(req.body);
+
+    const capture = await prisma.capture.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true, status: true },
+    });
+    if (!capture) throw new AppError(404, "NOT_FOUND", "Capture not found");
+    if (capture.status !== "UPLOADING") {
+      throw new AppError(409, "ALREADY_PROCESSED", "Capture already submitted");
+    }
+
+    await prisma.capture.update({
+      where: { id },
+      data: { events, status: "PROCESSING" },
+    });
+    await captureQueue.add("process", { captureId: id });
+    res.json({ capture: { id, status: "PROCESSING" } });
   }
 );
 

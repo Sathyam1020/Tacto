@@ -1,3 +1,4 @@
+import type { ClickRect } from "@workspace/contracts/capture";
 import type { BlockType } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
 
@@ -10,6 +11,7 @@ type BlockRow = {
   elementLabel: string | null;
   url: string | null;
   screenshotUrl: string | null; // R2 key
+  clickRect: unknown; // normalized { x, y, w, h } | null (Prisma Json)
   confidence: number | null;
 };
 
@@ -29,6 +31,7 @@ export async function serializeBlock(block: BlockRow) {
     screenshotUrl: key ? await presignGet(key) : null,
     elementLabel: block.elementLabel,
     url: block.url,
+    clickRect: (block.clickRect as ClickRect | null) ?? null,
     confidence: block.confidence,
   };
 }
@@ -45,5 +48,6 @@ export const blockSelect = {
   elementLabel: true,
   url: true,
   screenshotUrl: true,
+  clickRect: true,
   confidence: true,
 } as const;

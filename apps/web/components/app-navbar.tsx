@@ -11,7 +11,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 
-import { CaptureRecorder } from "@/components/capture-recorder"
+import { CaptureButton } from "@/components/capture-button"
 import { useNavbar } from "@/components/navbar-context"
 
 /**
@@ -37,8 +37,9 @@ export function AppNavbar() {
     "Tacto"
 
   return (
-    <header className="bg-card mx-4 mt-4 flex h-12 shrink-0 items-center gap-3 rounded-xl border px-3 md:mx-6">
-      {leftActions ?? (
+    <div className="bg-background/70 sticky top-0 z-30 px-4 pt-4 pb-2 backdrop-blur md:px-6">
+      <header className="bg-card flex h-12 shrink-0 items-center gap-3 rounded-xl border px-3">
+        {leftActions ?? (
         <>
           {!minimal && (
             <>
@@ -55,9 +56,10 @@ export function AppNavbar() {
         </>
       )}
 
-      <div className="flex-1" />
+        <div className="flex-1" />
 
-      {actions ?? <CaptureRecorder />}
-    </header>
+        {actions ?? <CaptureButton />}
+      </header>
+    </div>
   )
 }

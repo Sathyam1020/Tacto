@@ -11,8 +11,10 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { AppNavbar } from "@/components/app-navbar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { ExtensionOnboarding } from "@/components/extension-onboarding"
 import { NavbarProvider } from "@/components/navbar-context"
 import { authClient } from "@/lib/auth-client"
+import { useExtension } from "@/lib/extension"
 
 /**
  * Authenticated app shell: session guard + floating sidebar + floating
@@ -27,6 +29,7 @@ export default function AppLayout({
   const router = useRouter()
   const pathname = usePathname()
   const { data: session, isPending } = authClient.useSession()
+  const { state: extensionState } = useExtension()
   const focusedEditor = pathname.endsWith("/edit")
 
   React.useEffect(() => {
@@ -35,7 +38,12 @@ export default function AppLayout({
     }
   }, [isPending, session, router])
 
-  if (isPending || !session) {
+  // Gate the app on the extension: capturing is the product.
+  if (session && extensionState !== "unknown" && extensionState !== "connected") {
+    return <ExtensionOnboarding state={extensionState} />
+  }
+
+  if (isPending || !session || extensionState === "unknown") {
     return (
       <div className="flex min-h-svh gap-4 p-4">
         <Skeleton className="hidden w-60 rounded-xl md:block" />

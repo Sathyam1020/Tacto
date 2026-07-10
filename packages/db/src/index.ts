@@ -20,7 +20,9 @@ function createPrismaClient(): PrismaClient {
       "DATABASE_URL is not set. Load your environment (e.g. dotenv) before importing @workspace/db."
     );
   }
-  const adapter = new PrismaPg({ connectionString });
+  // Larger pool so concurrent polling + worker transactions don't starve
+  // each other on Neon's pooler.
+  const adapter = new PrismaPg({ connectionString, max: 20 });
   return new PrismaClient({ adapter });
 }
 

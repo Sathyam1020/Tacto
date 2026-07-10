@@ -222,6 +222,7 @@ export const StepScalarFieldEnum = {
   url: 'url',
   screenshotUrl: 'screenshotUrl',
   boundingBox: 'boundingBox',
+  clickRect: 'clickRect',
   confidence: 'confidence',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',

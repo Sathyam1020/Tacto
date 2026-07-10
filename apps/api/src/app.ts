@@ -1,26 +1,58 @@
+import cors from "cors";
 import express, { type Express } from "express";
 import { toNodeHandler } from "better-auth/node";
 
 import { captureRouter } from "./features/capture/router.js";
+import { extensionRouter } from "./features/extension/router.js";
 import { guideRouter } from "./features/guide/router.js";
 import { healthRouter } from "./features/health/router.js";
 import { mediaRouter } from "./features/media/router.js";
 import { meRouter } from "./features/me/router.js";
 import { publicRouter } from "./features/public/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
+import { env } from "./env.js";
 import { auth } from "./lib/auth.js";
 import { errorHandler } from "./middleware/error.js";
 
 /**
  * App assembly. Order is load-bearing:
- *  1. better-auth handler FIRST — it must receive the raw body;
- *     express.json() before it breaks the auth endpoints (per docs).
- *  2. JSON parsing for our own routes.
- *  3. Feature routers.
- *  4. Error middleware LAST.
+ *  1. CORS — the Chrome extension calls this API cross-origin with Bearer.
+ *  2. better-auth handler — must receive the raw body; express.json()
+ *     before it breaks the auth endpoints (per docs).
+ *  3. JSON parsing for our own routes.
+ *  4. Feature routers.
+ *  5. Error middleware LAST.
  */
 export function createApp(): Express {
   const app = express();
+
+  // The extension's origin is chrome-extension://<id>; the web app is
+  // same-origin (proxied) and doesn't need CORS but is allowed anyway.
+  app.use(
+    cors({
+      origin: (origin, callback) => {
+        if (
+          !origin ||
+          origin.startsWith("chrome-extension://") ||
+          origin === env.WEB_ORIGIN
+        ) {
+          callback(null, true);
+        } else {
+          callback(null, false);
+        }
+      },
+      credentials: true,
+      allowedHeaders: ["Content-Type", "Authorization"],
+    })
+  );
+
+  // Dev request log — makes extension/cross-origin calls visible.
+  app.use((req, _res, next) => {
+    if (req.path.startsWith("/api/extension") || req.path.startsWith("/api/captures")) {
+      console.log(`→ ${req.method} ${req.path}  origin=${req.headers.origin ?? "-"}`);
+    }
+    next();
+  });
 
   // Express 5 catch-all syntax (`*splat`, not `*`).
   app.all("/api/auth/*splat", toNodeHandler(auth));
@@ -34,6 +66,7 @@ export function createApp(): Express {
   app.use(captureRouter);
   app.use(guideRouter);
   app.use(mediaRouter);
+  app.use(extensionRouter);
 
   app.use(errorHandler);
 

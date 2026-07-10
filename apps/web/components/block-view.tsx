@@ -5,6 +5,8 @@ import { Badge } from "@workspace/ui/components/badge"
 import { StepMarker } from "@workspace/ui/components/step-marker"
 
 import { RichText } from "@/components/rich-text"
+import { ScreenshotFrame } from "@/components/screenshot-frame"
+import type { ClickRect } from "@/lib/guides"
 
 /** The fields BlockView needs — satisfied by both GuideBlock and EditBlock. */
 type ViewableBlock = {
@@ -12,6 +14,7 @@ type ViewableBlock = {
   content: string
   screenshotUrl: string | null
   url: string | null
+  clickRect?: ClickRect | null
   confidence: number | null
 }
 
@@ -83,15 +86,12 @@ export function BlockView({
               </p>
             )}
             {block.screenshotUrl && (
-              <div className="mt-4 overflow-hidden rounded-xl border">
-                {/* Presigned URL, short-lived — plain img by design. */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={block.screenshotUrl}
-                  alt={`Screenshot for step ${stepNumber ?? ""}`}
-                  className="w-full"
-                />
-              </div>
+              <ScreenshotFrame
+                src={block.screenshotUrl}
+                clickRect={block.clickRect}
+                controls
+                className="mt-4"
+              />
             )}
           </div>
         </div>

@@ -23,7 +23,12 @@ import { BlockView, withStepNumbers } from "@/components/block-view"
 import { useSetNavbar } from "@/components/navbar-context"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { authClient } from "@/lib/auth-client"
-import { useGuide, useUpdateGuide, uploadStepMedia } from "@/lib/guides"
+import {
+  useGuide,
+  useUpdateGuide,
+  uploadStepMedia,
+  type ClickRect,
+} from "@/lib/guides"
 
 /** Client-side editable block (has a stable key; `id` present if persisted). */
 type EditBlock = {
@@ -35,6 +40,7 @@ type EditBlock = {
   screenshotUrl: string | null
   elementLabel: string | null
   url: string | null
+  clickRect: ClickRect | null
   confidence: number | null
 }
 
@@ -82,6 +88,7 @@ export default function GuideEditPage() {
           screenshotUrl: b.screenshotUrl,
           elementLabel: b.elementLabel,
           url: b.url,
+          clickRect: b.clickRect,
           confidence: b.confidence,
         }))
       )
@@ -127,6 +134,7 @@ export default function GuideEditPage() {
         screenshotKey: b.screenshotKey,
         elementLabel: b.elementLabel,
         url: b.url,
+        clickRect: b.clickRect,
       })),
     }
     await save(payload)
@@ -171,6 +179,7 @@ export default function GuideEditPage() {
       screenshotUrl: null,
       elementLabel: null,
       url: null,
+      clickRect: null,
       confidence: null,
     }
     setBlocks((prev) => [
@@ -236,15 +245,28 @@ export default function GuideEditPage() {
 
   return (
     <div className="mx-auto max-w-2xl pb-24">
-      {/* Editable title */}
-      <input
+      {/* Editable title — auto-grows so long headings wrap and show fully */}
+      <textarea
         value={title}
         onChange={(e) => {
           setTitle(e.target.value)
           markDirty()
         }}
+        rows={1}
         placeholder="Untitled guide"
-        className="w-full bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none placeholder:text-muted-foreground/40"
+        className="placeholder:text-muted-foreground/40 w-full resize-none bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none [field-sizing:content]"
+      />
+
+      {/* Editable subheading / description */}
+      <textarea
+        value={summary ?? ""}
+        onChange={(e) => {
+          setSummary(e.target.value || null)
+          markDirty()
+        }}
+        rows={1}
+        placeholder="Add a description (optional)"
+        className="placeholder:text-muted-foreground/40 text-muted-foreground mt-3 w-full resize-none bg-transparent text-lg leading-relaxed outline-none [field-sizing:content]"
       />
 
       <div className="mt-10">

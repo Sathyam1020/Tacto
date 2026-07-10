@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { clickRectSchema } from "./capture.js";
+
 /**
  * Guide editing + publishing contracts.
  *
@@ -20,6 +22,8 @@ export const guideBlockInputSchema = z.object({
   screenshotKey: z.string().nullish(),
   elementLabel: z.string().nullish(),
   url: z.string().nullish(),
+  /** Preserved through edits so the click pointer survives (not edited). */
+  clickRect: clickRectSchema.nullish(),
 });
 export type GuideBlockInput = z.infer<typeof guideBlockInputSchema>;
 

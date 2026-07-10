@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signInSchema } from "@workspace/contracts/auth"
 
 import { Button } from "@workspace/ui/components/button"
@@ -13,7 +13,20 @@ import { Separator } from "@workspace/ui/components/separator"
 import { authClient } from "@/lib/auth-client"
 
 export default function SignInPage() {
+  // useSearchParams requires a Suspense boundary during prerender.
+  return (
+    <React.Suspense>
+      <SignInForm />
+    </React.Suspense>
+  )
+}
+
+function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  // Only allow same-app relative redirects (no open-redirect).
+  const nextParam = searchParams.get("next")
+  const next = nextParam?.startsWith("/") ? nextParam : "/home"
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
@@ -36,14 +49,14 @@ export default function SignInPage() {
       setSubmitting(false)
       return
     }
-    router.push("/home")
+    router.push(next)
   }
 
   async function handleGoogle() {
     setError(null)
     await authClient.signIn.social({
       provider: "google",
-      callbackURL: "/home",
+      callbackURL: next,
     })
   }
 

@@ -127,6 +127,8 @@ guideRouter.put(
           screenshotUrl: block.screenshotKey ?? null, // column stores the key
           elementLabel: block.elementLabel ?? null,
           url: block.url ?? null,
+          // Preserve the click pointer across edits (not user-editable).
+          clickRect: block.clickRect ?? undefined,
         })),
       });
     });

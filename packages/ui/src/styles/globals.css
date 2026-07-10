@@ -87,6 +87,10 @@
     /* Signature motion — the touch ring. */
     --animate-touch-pulse: touch-pulse 1.8s cubic-bezier(0.3, 0, 0.4, 1) infinite;
     --animate-ring-draw: ring-draw 1.2s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+    /* Click-point ripple — a radar ping expanding from the target. */
+    --animate-click-ripple: click-ripple 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+    /* Subtle breathing on the core dot so a still frame still reads "here". */
+    --animate-click-core: click-core 2s ease-in-out infinite;
 
     @keyframes touch-pulse {
         0% {
@@ -100,6 +104,27 @@
         100% {
             transform: scale(1.7);
             opacity: 0;
+        }
+    }
+
+    @keyframes click-ripple {
+        0% {
+            transform: scale(0.5);
+            opacity: 0.6;
+        }
+        100% {
+            transform: scale(3);
+            opacity: 0;
+        }
+    }
+
+    @keyframes click-core {
+        0%,
+        100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(0.82);
         }
     }
 

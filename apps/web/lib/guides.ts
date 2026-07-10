@@ -28,6 +28,8 @@ export type ActiveCapture = {
   createdAt: string
 }
 
+export type ClickRect = { x: number; y: number; w: number; h: number }
+
 export type GuideBlock = {
   id: string
   type: BlockType
@@ -37,6 +39,7 @@ export type GuideBlock = {
   screenshotUrl: string | null
   elementLabel: string | null
   url: string | null
+  clickRect: ClickRect | null
   confidence: number | null
 }
 

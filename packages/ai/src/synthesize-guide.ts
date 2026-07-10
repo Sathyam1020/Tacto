@@ -20,13 +20,13 @@ You receive an ordered log of real user actions (clicks, text inputs, page navig
 Write the guide a colleague would follow to repeat the workflow.
 
 Rules:
+- Produce EXACTLY ONE step per user action (one click, one text entry, one navigation). NEVER combine two clicks — or a click and an input — into a single step. Each step must map to a single source event.
 - Every step is ONE imperative sentence ("Click **New customer** in the top-right."). Bold the element labels with markdown.
 - NEVER invent an action that is not in the log. Accuracy over completeness.
-- Merge actions that belong together into one step (e.g. several inputs on the same form → "Fill in the customer's name and email"), but keep distinct interactions distinct.
-- Navigations usually become steps like "Go to the Customers page" — use the page title or URL.
-- Ignore obvious noise or accidental actions (a click followed immediately by undoing it).
+- Navigations become steps like "Go to the Customers page" — use the page title or URL.
+- DROP noise and mistakes entirely (a click immediately undone, dead clicks) — don't turn them into steps.
 - Masked values ("•••") are sensitive — refer to them by field name ("Enter the password"), never by value.
-- For each step, report which event indexes (0-based, from the input log) it was derived from in sourceEventIndexes.
+- For each step, report the SINGLE event index (0-based, from the input log) it came from in sourceEventIndexes (usually one element).
 - Title: short and task-oriented. Summary: one or two sentences on what the workflow accomplishes.`;
 
 function formatEvents(events: CaptureEvent[]): string {

@@ -1,10 +1,13 @@
 "use client"
 
 import * as React from "react"
+import { Download } from "lucide-react"
 
+import { Button } from "@workspace/ui/components/button"
 import { LogoMark } from "@workspace/ui/components/logo"
 
 import { GuideBody, ViewModeToggle, type ViewMode } from "@/components/guide-view"
+import { downloadGuidePdf } from "@/lib/pdf"
 import type { PublicGuide } from "@/lib/public-guide"
 
 /**
@@ -25,7 +28,17 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
               {guide.workspaceName}
             </span>
           </div>
-          <ViewModeToggle mode={mode} onChange={setMode} />
+          <div className="flex items-center gap-2">
+            <ViewModeToggle mode={mode} onChange={setMode} />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void downloadGuidePdf(guide)}
+            >
+              <Download className="size-3.5" />
+              PDF
+            </Button>
+          </div>
         </div>
       </header>
 

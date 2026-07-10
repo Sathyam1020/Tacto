@@ -74,6 +74,7 @@ export type StepCountAggregateOutputType = {
   url: number
   screenshotUrl: number
   boundingBox: number
+  clickRect: number
   confidence: number
   createdAt: number
   updatedAt: number
@@ -129,6 +130,7 @@ export type StepCountAggregateInputType = {
   url?: true
   screenshotUrl?: true
   boundingBox?: true
+  clickRect?: true
   confidence?: true
   createdAt?: true
   updatedAt?: true
@@ -231,6 +233,7 @@ export type StepGroupByOutputType = {
   url: string | null
   screenshotUrl: string | null
   boundingBox: runtime.JsonValue | null
+  clickRect: runtime.JsonValue | null
   confidence: number | null
   createdAt: Date
   updatedAt: Date
@@ -269,6 +272,7 @@ export type StepWhereInput = {
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
   boundingBox?: Prisma.JsonNullableFilter<"Step">
+  clickRect?: Prisma.JsonNullableFilter<"Step">
   confidence?: Prisma.FloatNullableFilter<"Step"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Step"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Step"> | Date | string
@@ -285,6 +289,7 @@ export type StepOrderByWithRelationInput = {
   url?: Prisma.SortOrderInput | Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   boundingBox?: Prisma.SortOrderInput | Prisma.SortOrder
+  clickRect?: Prisma.SortOrderInput | Prisma.SortOrder
   confidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -304,6 +309,7 @@ export type StepWhereUniqueInput = Prisma.AtLeast<{
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
   boundingBox?: Prisma.JsonNullableFilter<"Step">
+  clickRect?: Prisma.JsonNullableFilter<"Step">
   confidence?: Prisma.FloatNullableFilter<"Step"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Step"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Step"> | Date | string
@@ -320,6 +326,7 @@ export type StepOrderByWithAggregationInput = {
   url?: Prisma.SortOrderInput | Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   boundingBox?: Prisma.SortOrderInput | Prisma.SortOrder
+  clickRect?: Prisma.SortOrderInput | Prisma.SortOrder
   confidence?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -343,6 +350,7 @@ export type StepScalarWhereWithAggregatesInput = {
   url?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableWithAggregatesFilter<"Step"> | string | null
   boundingBox?: Prisma.JsonNullableWithAggregatesFilter<"Step">
+  clickRect?: Prisma.JsonNullableWithAggregatesFilter<"Step">
   confidence?: Prisma.FloatNullableWithAggregatesFilter<"Step"> | number | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Step"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Step"> | Date | string
@@ -358,6 +366,7 @@ export type StepCreateInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -373,6 +382,7 @@ export type StepUncheckedCreateInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -388,6 +398,7 @@ export type StepUpdateInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -403,6 +414,7 @@ export type StepUncheckedUpdateInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -418,6 +430,7 @@ export type StepCreateManyInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -433,6 +446,7 @@ export type StepUpdateManyMutationInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -447,6 +461,7 @@ export type StepUncheckedUpdateManyInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -472,6 +487,7 @@ export type StepCountOrderByAggregateInput = {
   url?: Prisma.SortOrder
   screenshotUrl?: Prisma.SortOrder
   boundingBox?: Prisma.SortOrder
+  clickRect?: Prisma.SortOrder
   confidence?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -571,6 +587,7 @@ export type StepCreateWithoutGuideInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -585,6 +602,7 @@ export type StepUncheckedCreateWithoutGuideInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -628,6 +646,7 @@ export type StepScalarWhereInput = {
   url?: Prisma.StringNullableFilter<"Step"> | string | null
   screenshotUrl?: Prisma.StringNullableFilter<"Step"> | string | null
   boundingBox?: Prisma.JsonNullableFilter<"Step">
+  clickRect?: Prisma.JsonNullableFilter<"Step">
   confidence?: Prisma.FloatNullableFilter<"Step"> | number | null
   createdAt?: Prisma.DateTimeFilter<"Step"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Step"> | Date | string
@@ -643,6 +662,7 @@ export type StepCreateManyGuideInput = {
   url?: string | null
   screenshotUrl?: string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: number | null
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -657,6 +677,7 @@ export type StepUpdateWithoutGuideInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -671,6 +692,7 @@ export type StepUncheckedUpdateWithoutGuideInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -685,6 +707,7 @@ export type StepUncheckedUpdateManyWithoutGuideInput = {
   url?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   screenshotUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   boundingBox?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  clickRect?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   confidence?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -701,6 +724,7 @@ export type StepSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   url?: boolean
   screenshotUrl?: boolean
   boundingBox?: boolean
+  clickRect?: boolean
   confidence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -717,6 +741,7 @@ export type StepSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   url?: boolean
   screenshotUrl?: boolean
   boundingBox?: boolean
+  clickRect?: boolean
   confidence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -733,6 +758,7 @@ export type StepSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   url?: boolean
   screenshotUrl?: boolean
   boundingBox?: boolean
+  clickRect?: boolean
   confidence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -749,13 +775,14 @@ export type StepSelectScalar = {
   url?: boolean
   screenshotUrl?: boolean
   boundingBox?: boolean
+  clickRect?: boolean
   confidence?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   guideId?: boolean
 }
 
-export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "position" | "content" | "elementLabel" | "url" | "screenshotUrl" | "boundingBox" | "confidence" | "createdAt" | "updatedAt" | "guideId", ExtArgs["result"]["step"]>
+export type StepOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "type" | "position" | "content" | "elementLabel" | "url" | "screenshotUrl" | "boundingBox" | "clickRect" | "confidence" | "createdAt" | "updatedAt" | "guideId", ExtArgs["result"]["step"]>
 export type StepInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guide?: boolean | Prisma.GuideDefaultArgs<ExtArgs>
 }
@@ -783,6 +810,10 @@ export type $StepPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * { x, y, w, h } of the interaction target, viewport coordinates.
      */
     boundingBox: runtime.JsonValue | null
+    /**
+     * Normalized { x, y, w, h } (0–1 of the screenshot) — the click pointer.
+     */
+    clickRect: runtime.JsonValue | null
     /**
      * 0–1; below ~0.7 the editor flags the step for review (video imports).
      */
@@ -1222,6 +1253,7 @@ export interface StepFieldRefs {
   readonly url: Prisma.FieldRef<"Step", 'String'>
   readonly screenshotUrl: Prisma.FieldRef<"Step", 'String'>
   readonly boundingBox: Prisma.FieldRef<"Step", 'Json'>
+  readonly clickRect: Prisma.FieldRef<"Step", 'Json'>
   readonly confidence: Prisma.FieldRef<"Step", 'Float'>
   readonly createdAt: Prisma.FieldRef<"Step", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Step", 'DateTime'>

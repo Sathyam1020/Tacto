@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { BarChart3, Info, Pencil, Share2 } from "lucide-react"
+import { BarChart3, Download, Info, Pencil, Share2 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -27,6 +27,7 @@ import { ShareDialog } from "@/components/share-dialog"
 import { authClient } from "@/lib/auth-client"
 import { formatDate } from "@/lib/format"
 import { useGuide } from "@/lib/guides"
+import { downloadGuidePdf } from "@/lib/pdf"
 
 /** Guide viewer — list/interactive modes + navbar action cluster. */
 export default function GuidePage() {
@@ -57,6 +58,12 @@ export default function GuidePage() {
           </IconButton>
           <IconButton label="Guide info" onClick={() => setInfoOpen(true)}>
             <Info className="size-4" />
+          </IconButton>
+          <IconButton
+            label="Download PDF"
+            onClick={() => guide && void downloadGuidePdf(guide)}
+          >
+            <Download className="size-4" />
           </IconButton>
           <Button
             size="sm"

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@workspace/db";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { organization } from "better-auth/plugins";
+import { bearer, organization } from "better-auth/plugins";
 
 import { env } from "../env.js";
 import { generateSlug } from "./slug.js";
@@ -45,7 +45,10 @@ export const auth = betterAuth({
         }
       : {},
 
-  plugins: [organization()],
+  // bearer(): lets the Chrome extension authenticate with
+  // `Authorization: Bearer <sessionToken>` instead of cookies (which can't
+  // cross-origin to an extension). requireAuth's getSession reads it.
+  plugins: [organization(), bearer()],
 
   databaseHooks: {
     user: {

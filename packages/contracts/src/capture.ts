@@ -14,6 +14,21 @@ export const boundingBoxSchema = z.object({
   h: z.number(),
 });
 
+/** Viewport size (CSS px) at capture time — normalizes boundingBox to 0–1. */
+export const viewportSchema = z.object({
+  w: z.number().positive(),
+  h: z.number().positive(),
+});
+
+/** Normalized click rectangle (0–1 of the screenshot) for the pointer. */
+export const clickRectSchema = z.object({
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+});
+export type ClickRect = z.infer<typeof clickRectSchema>;
+
 /** The interaction target, described semantically — never raw DOM. */
 export const eventTargetSchema = z.object({
   /** CSS selector when known (extension); absent for video-derived events. */
@@ -34,6 +49,8 @@ const eventBase = {
   pageTitle: z.string().optional(),
   /** ID of the screenshot taken at this moment (R2 key, later phases). */
   screenshotId: z.string().optional(),
+  /** Viewport at capture — with target.boundingBox, yields the click point. */
+  viewport: viewportSchema.optional(),
   /** 0–1 for inferred events (video); omitted = fully trusted (extension). */
   confidence: z.number().min(0).max(1).optional(),
 };
@@ -99,6 +116,26 @@ export type CreateVideoCaptureInput = z.infer<typeof createVideoCaptureSchema>;
 
 /** Hard product limit — enforced client-side (auto-stop) and by ffprobe. */
 export const MAX_CAPTURE_DURATION_SEC = 300;
+
+/** Extension capture flow: create → presign screenshots → submit events. */
+export const createExtensionCaptureSchema = z.object({
+  title: z.string().trim().max(200).optional(),
+});
+export type CreateExtensionCaptureInput = z.infer<
+  typeof createExtensionCaptureSchema
+>;
+
+export const screenshotUrlsSchema = z.object({
+  count: z.number().int().min(0).max(500),
+});
+
+export const submitCaptureSchema = z.object({
+  events: z
+    .array(captureEventSchema)
+    .min(1, "A capture needs at least one event")
+    .max(2000, "Capture is too large"),
+});
+export type SubmitCaptureInput = z.infer<typeof submitCaptureSchema>;
 
 // ── Queue contract (shared by api producer and worker consumer) ──────────
 

@@ -6,6 +6,26 @@ import { ingestVideo } from "./ingest-video.js";
 import { normalize } from "./normalize.js";
 import { segment } from "./segment.js";
 
+/**
+ * Normalized click rectangle (0–1 of the screenshot) from a source event's
+ * boundingBox + viewport — the data the UI needs to place the click pointer.
+ */
+function clickRect(
+  event: CaptureEvent | undefined
+): { x: number; y: number; w: number; h: number } | undefined {
+  if (!event || event.type === "navigation") return undefined
+  const box = event.target.boundingBox
+  const vp = event.viewport
+  if (!box || !vp || vp.w <= 0 || vp.h <= 0) return undefined
+  const clamp = (n: number) => Math.min(1, Math.max(0, n))
+  return {
+    x: clamp(box.x / vp.w),
+    y: clamp(box.y / vp.h),
+    w: clamp(box.w / vp.w),
+    h: clamp(box.h / vp.h),
+  }
+}
+
 /** Convert the synthesizer's markdown-bold plain text to safe HTML. */
 function markdownToHtml(text: string): string {
   const escaped = text
@@ -67,8 +87,9 @@ export async function processCapture(captureId: string): Promise<void> {
   console.log(
     `[${captureId}] assemble… ("${synthesized.title}", ${synthesized.steps.length} steps)`
   );
-  await prisma.$transaction(async (tx) => {
-    const guide = await tx.guide.create({
+  await prisma.$transaction(
+    async (tx) => {
+      const guide = await tx.guide.create({
       data: {
         title: synthesized.title,
         summary: synthesized.summary,
@@ -96,6 +117,7 @@ export async function processCapture(captureId: string): Promise<void> {
                 sourceEvent && sourceEvent.type !== "navigation"
                   ? (sourceEvent.target.boundingBox ?? undefined)
                   : undefined,
+              clickRect: clickRect(sourceEvent),
               confidence: sourceEvent?.confidence ?? null,
             };
           }),
@@ -103,13 +125,17 @@ export async function processCapture(captureId: string): Promise<void> {
       },
     });
 
-    await tx.capture.update({
-      where: { id: capture.id },
-      data: { status: "READY", errorMessage: null },
-    });
+      await tx.capture.update({
+        where: { id: capture.id },
+        data: { status: "READY", errorMessage: null },
+      });
 
-    return guide;
-  });
+      return guide;
+    },
+    // Neon's pooler can be slow to hand out a connection under load; the
+    // default 2s maxWait was timing out ("Unable to start a transaction").
+    { maxWait: 20_000, timeout: 30_000 }
+  );
 
   console.log(`[${captureId}] done — capture READY`);
 }

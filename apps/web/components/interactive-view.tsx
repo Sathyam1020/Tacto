@@ -3,29 +3,29 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button"
-import { StepMarker } from "@workspace/ui/components/step-marker"
+import { cn } from "@workspace/ui/lib/utils"
 
 import { RichText } from "@/components/rich-text"
+import { ScreenshotFrame } from "@/components/screenshot-frame"
 import type { GuideBlock } from "@/lib/guides"
 
 /**
- * Interactive walkthrough — one step at a time, big screenshot + instruction,
- * next/prev with arrow keys. Only STEP blocks participate (annotations are a
- * list-view concept). Viewing only; hotspot editing comes later.
+ * Interactive walkthrough — one STEP at a time: the screenshot with the
+ * target spotlit, the pointer, a slight zoom, and an instruction callout
+ * near the pointer. Arrow keys navigate. (Headings/tips/alerts are a
+ * list-view concept and don't appear here.)
  */
 export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
-  const steps = React.useMemo(
+  const slides = React.useMemo(
     () => blocks.filter((b) => b.type === "STEP"),
     [blocks]
   )
   const [index, setIndex] = React.useState(0)
 
   const go = React.useCallback(
-    (delta: number) => {
-      setIndex((i) => Math.min(Math.max(i + delta, 0), steps.length - 1))
-    },
-    [steps.length]
+    (delta: number) =>
+      setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1)),
+    [slides.length]
   )
 
   React.useEffect(() => {
@@ -37,7 +37,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     return () => window.removeEventListener("keydown", onKey)
   }, [go])
 
-  if (steps.length === 0) {
+  if (slides.length === 0) {
     return (
       <p className="text-muted-foreground py-24 text-center font-serif text-lg">
         This guide has no steps to walk through yet.
@@ -45,18 +45,75 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     )
   }
 
-  const step = steps[index]!
+  const slide = slides[index]!
   const atStart = index === 0
-  const atEnd = index === steps.length - 1
+  const atEnd = index === slides.length - 1
+  const hasShot = !!slide.screenshotUrl
+  const rect = hasShot ? slide.clickRect : null
+
+  // Float the instruction callout near the pointer, opposite side, clamped.
+  const cx = rect ? (rect.x + rect.w / 2) * 100 : 50
+  const cy = rect ? (rect.y + rect.h / 2) * 100 : 50
+  const onRight = cx <= 55
+  const clamp = (n: number, lo: number, hi: number) =>
+    Math.min(hi, Math.max(lo, n))
+  const calloutStyle: React.CSSProperties = {
+    top: `${clamp(cy, 16, 84)}%`,
+    transform: "translateY(-50%)",
+    ...(onRight
+      ? { left: `calc(${clamp(cx, 2, 55)}% + 26px)` }
+      : { right: `calc(${clamp(100 - cx, 2, 55)}% + 26px)` }),
+  }
 
   return (
-    <div className="flex flex-col items-center">
-      {/* Progress dots */}
-      <div className="mb-6 flex flex-wrap justify-center gap-1.5">
-        {steps.map((s, i) => (
+    <div className="mx-auto max-w-4xl">
+      <div className="relative">
+        {hasShot ? (
+          <>
+            <ScreenshotFrame
+              src={slide.screenshotUrl!}
+              clickRect={rect}
+              spotlight
+              zoom={rect ? 1.1 : undefined}
+            />
+            <div
+              className="bg-card absolute z-10 w-56 max-w-[70%] rounded-lg border p-3 shadow-xl"
+              style={calloutStyle}
+            >
+              <RichText html={slide.content} className="text-[13px] leading-snug" />
+            </div>
+          </>
+        ) : (
+          <div className="bg-card flex min-h-[320px] items-center justify-center rounded-xl border p-10">
+            <RichText
+              html={slide.content}
+              className="max-w-lg text-center text-xl"
+            />
+          </div>
+        )}
+
+        <EdgeChevron side="left" onClick={() => go(-1)} disabled={atStart} />
+        <EdgeChevron side="right" onClick={() => go(1)} disabled={atEnd} />
+      </div>
+
+      {/* Controls */}
+      <div className="mt-5 flex items-center justify-center gap-4">
+        <NavButton onClick={() => go(-1)} disabled={atStart} label="Previous">
+          <ChevronLeft className="size-4" />
+        </NavButton>
+        <span className="text-muted-foreground font-mono text-xs tabular-nums">
+          {index + 1} / {slides.length}
+        </span>
+        <NavButton onClick={() => go(1)} disabled={atEnd} label="Next">
+          <ChevronRight className="size-4" />
+        </NavButton>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
+        {slides.map((s, i) => (
           <button
             key={s.id}
-            aria-label={`Go to step ${i + 1}`}
+            aria-label={`Go to ${i + 1}`}
             onClick={() => setIndex(i)}
             className={
               i === index
@@ -66,39 +123,57 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
           />
         ))}
       </div>
-
-      {/* Screenshot */}
-      {step.screenshotUrl ? (
-        <div className="w-full overflow-hidden rounded-xl border">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={step.screenshotUrl} alt="" className="w-full" />
-        </div>
-      ) : (
-        <div className="bg-muted flex aspect-[16/9] w-full items-center justify-center rounded-xl border">
-          <span className="text-muted-foreground text-sm">No screenshot</span>
-        </div>
-      )}
-
-      {/* Instruction */}
-      <div className="mt-6 flex w-full items-start gap-4">
-        <StepMarker step={index + 1} size="lg" state="current" className="mt-0.5" />
-        <RichText html={step.content} className="flex-1 text-[17px]" />
-      </div>
-
-      {/* Controls */}
-      <div className="mt-8 flex w-full items-center justify-between">
-        <Button variant="outline" onClick={() => go(-1)} disabled={atStart}>
-          <ChevronLeft className="size-4" />
-          Previous
-        </Button>
-        <span className="text-muted-foreground font-mono text-xs tabular-nums">
-          {index + 1} / {steps.length}
-        </span>
-        <Button onClick={() => go(1)} disabled={atEnd}>
-          Next
-          <ChevronRight className="size-4" />
-        </Button>
-      </div>
     </div>
+  )
+}
+
+function NavButton({
+  onClick,
+  disabled,
+  label,
+  children,
+}: {
+  onClick: () => void
+  disabled: boolean
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="hover:bg-muted flex size-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-30"
+    >
+      {children}
+    </button>
+  )
+}
+
+function EdgeChevron({
+  side,
+  onClick,
+  disabled,
+}: {
+  side: "left" | "right"
+  onClick: () => void
+  disabled: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={side === "left" ? "Previous" : "Next"}
+      className={cn(
+        "bg-card/90 absolute top-1/2 z-20 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-md backdrop-blur transition-opacity disabled:opacity-0",
+        side === "left" ? "-left-4" : "-right-4"
+      )}
+    >
+      {side === "left" ? (
+        <ChevronLeft className="size-5" />
+      ) : (
+        <ChevronRight className="size-5" />
+      )}
+    </button>
   )
 }

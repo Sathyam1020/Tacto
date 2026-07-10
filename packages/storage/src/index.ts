@@ -67,7 +67,7 @@ export async function presignPut(
 /** Presigned read URL — for serving screenshots/video to signed-in users. */
 export async function presignGet(
   key: string,
-  expiresInSeconds = 3600
+  expiresInSeconds = 86_400
 ): Promise<string> {
   const { client, bucket } = getClient();
   return getSignedUrl(

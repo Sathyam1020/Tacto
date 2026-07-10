@@ -239,6 +239,8 @@ model Step {
   screenshotUrl String?
   /// { x, y, w, h } of the interaction target, viewport coordinates.
   boundingBox   Json?
+  /// Normalized { x, y, w, h } (0–1 of the screenshot) — the click pointer.
+  clickRect     Json?
   /// 0–1; below ~0.7 the editor flags the step for review (video imports).
   confidence    Float?
   createdAt     DateTime  @default(now())
