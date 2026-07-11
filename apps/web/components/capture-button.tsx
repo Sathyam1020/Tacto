@@ -77,7 +77,7 @@ export function CaptureButton({
   return (
     <>
       {variant === "card" ? (
-        <button
+        <Button
           onClick={openPicker}
           className="group/add flex h-full min-h-[230px] w-full flex-col items-center justify-center gap-3 rounded-[14px] border border-dashed border-[var(--l-hairline-strong)] bg-[var(--l-placeholder)] text-muted-foreground transition-colors hover:border-[var(--l-hairline-strong)] hover:bg-[var(--l-placeholder-hover)] hover:text-foreground"
         >
@@ -88,9 +88,9 @@ export function CaptureButton({
           <span className="text-[11px] text-muted-foreground">
             Record a workflow to add a guide
           </span>
-        </button>
+        </Button>
       ) : (
-        <Button size="sm" onClick={openPicker}>
+        <Button onClick={openPicker}>
           <Video className="size-4" />
           New capture
         </Button>
@@ -115,10 +115,10 @@ export function CaptureButton({
             </div>
           )}
 
-          {error && <p className="text-signal text-sm">{error}</p>}
+          {error && <p className="text-sm text-signal">{error}</p>}
 
           {tabs && tabs.length === 0 && (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               No other tabs are open. Open the page you want to document, then
               try again.
             </p>
@@ -131,7 +131,7 @@ export function CaptureButton({
                   key={tab.id}
                   onClick={() => pick(tab)}
                   disabled={startingId !== null}
-                  className="hover:border-viridian/40 hover:bg-muted flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-50"
+                  className="flex items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors hover:border-viridian/40 hover:bg-muted disabled:opacity-50"
                 >
                   {tab.favIconUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -141,13 +141,13 @@ export function CaptureButton({
                       className="size-4 shrink-0 rounded-sm"
                     />
                   ) : (
-                    <span className="bg-muted size-4 shrink-0 rounded-sm" />
+                    <span className="size-4 shrink-0 rounded-sm bg-muted" />
                   )}
                   <span className="min-w-0 flex-1 truncate text-sm">
                     {tab.title}
                   </span>
                   {startingId === tab.id && (
-                    <span className="text-muted-foreground font-mono text-xs">
+                    <span className="font-mono text-xs text-muted-foreground">
                       starting…
                     </span>
                   )}
@@ -159,8 +159,8 @@ export function CaptureButton({
       </Dialog>
 
       {startedIn && (
-        <div className="bg-ink text-paper fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full px-4 py-2 text-sm shadow-lg">
-          <span className="bg-signal size-2 animate-pulse rounded-full" />
+        <div className="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2.5 rounded-full bg-ink px-4 py-2 text-sm text-paper shadow-lg">
+          <span className="size-2 animate-pulse rounded-full bg-signal" />
           Recording started in “{startedIn}”
         </div>
       )}

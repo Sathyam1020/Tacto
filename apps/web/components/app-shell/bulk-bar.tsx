@@ -111,6 +111,11 @@ export function BulkBar({
 
   const label = `${count} guide${count === 1 ? "" : "s"}`
 
+  // Explicit hover / open / pressed states — the ghost default is too faint on
+  // the lifted bar surface.
+  const btnCls =
+    "hover:bg-[var(--l-hairline-strong)] hover:text-foreground active:scale-90 data-[popup-open]:bg-[var(--l-hairline-strong)] data-[popup-open]:text-foreground"
+
   return (
     <>
       <m.div
@@ -127,7 +132,7 @@ export function BulkBar({
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="ghost" size="sm" disabled={busy} />}
+            render={<Button variant="ghost" size="sm" disabled={busy} className={btnCls} />}
           >
             <FolderInput className="size-4" />
             <span className="max-sm:hidden">Move to folder</span>
@@ -157,7 +162,7 @@ export function BulkBar({
         {otherWorkspaces.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger
-              render={<Button variant="ghost" size="sm" disabled={busy} />}
+              render={<Button variant="ghost" size="sm" disabled={busy} className={btnCls} />}
             >
               <FolderInput className="size-4" />
               <span className="max-sm:hidden">Move to workspace</span>
@@ -190,7 +195,7 @@ export function BulkBar({
           size="sm"
           disabled={busy}
           onClick={() => setConfirmOpen(true)}
-          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="text-destructive hover:bg-destructive/15 hover:text-destructive active:scale-90"
         >
           <Trash2 className="size-4" />
           <span className="max-sm:hidden">Delete</span>
@@ -203,6 +208,7 @@ export function BulkBar({
           aria-label="Clear selection"
           onClick={onClear}
           disabled={busy}
+          className={btnCls}
         >
           <X className="size-4" />
         </Button>

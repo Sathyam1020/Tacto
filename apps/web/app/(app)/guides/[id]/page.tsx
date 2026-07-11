@@ -24,7 +24,11 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 
-import { GuideBody, ViewModeToggle, type ViewMode } from "@/components/guide-view"
+import {
+  GuideBody,
+  ViewModeToggle,
+  type ViewMode,
+} from "@/components/guide-view"
 import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
 import { authClient } from "@/lib/auth-client"
@@ -37,10 +41,11 @@ export default function GuidePage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const { data: activeWorkspace } = authClient.useActiveOrganization()
-  const { data: guide, isPending, isError } = useGuide(
-    activeWorkspace?.id,
-    params.id
-  )
+  const {
+    data: guide,
+    isPending,
+    isError,
+  } = useGuide(activeWorkspace?.id, params.id)
 
   const [mode, setMode] = React.useState<ViewMode>("list")
   const [shareOpen, setShareOpen] = React.useState(false)
@@ -53,10 +58,7 @@ export default function GuidePage() {
       actions: guide ? (
         <div className="flex items-center gap-2">
           <ViewModeToggle mode={mode} onChange={setMode} />
-          <IconButton
-            label="Analytics"
-            onClick={() => setAnalyticsOpen(true)}
-          >
+          <IconButton label="Analytics" onClick={() => setAnalyticsOpen(true)}>
             <BarChart3 className="size-4" />
           </IconButton>
           <IconButton label="Guide info" onClick={() => setInfoOpen(true)}>
@@ -101,12 +103,12 @@ export default function GuidePage() {
     return (
       <div className="mx-auto max-w-2xl pt-20 text-center">
         <p className="font-serif text-2xl">This guide doesn&apos;t exist.</p>
-        <p className="text-muted-foreground mt-2 text-sm">
+        <p className="mt-2 text-sm text-muted-foreground">
           It may have been deleted, or it belongs to another workspace.
         </p>
         <Link
           href="/home"
-          className="text-viridian mt-6 inline-block text-sm hover:underline"
+          className="mt-6 inline-block text-sm text-viridian hover:underline"
         >
           Back to home
         </Link>
@@ -119,7 +121,7 @@ export default function GuidePage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-start justify-between gap-4">
-        <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
+        <h1 className="font-serif text-4xl leading-tight font-medium tracking-tight text-balance">
           {guide.title}
         </h1>
         <Badge
@@ -130,17 +132,17 @@ export default function GuidePage() {
         </Badge>
       </div>
       {guide.summary && (
-        <p className="text-muted-foreground mt-4 text-lg leading-relaxed">
+        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
           {guide.summary}
         </p>
       )}
       {guide.captureSource === "VIDEO_UPLOAD" && (
-        <p className="text-muted-foreground mt-4 rounded-lg border px-4 py-3 text-sm">
+        <p className="mt-4 rounded-lg border px-4 py-3 text-sm text-muted-foreground">
           Draft — generated from your recording. Review the steps before
           sharing.
         </p>
       )}
-      <p className="text-muted-foreground mt-4 border-b pb-6 font-mono text-xs">
+      <p className="mt-4 border-b pb-6 font-mono text-xs text-muted-foreground">
         {stepCount} steps · captured {formatDate(guide.createdAt)}
       </p>
 
@@ -148,15 +150,11 @@ export default function GuidePage() {
         <GuideBody blocks={guide.blocks} mode={mode} />
       </div>
 
-      <div className="text-muted-foreground mt-16 border-t pt-6 font-mono text-xs">
+      <div className="mt-16 border-t pt-6 font-mono text-xs text-muted-foreground">
         captured by hand · written by machine
       </div>
 
-      <ShareDialog
-        guide={guide}
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-      />
+      <ShareDialog guide={guide} open={shareOpen} onOpenChange={setShareOpen} />
 
       {/* Analytics */}
       <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
@@ -175,10 +173,7 @@ export default function GuidePage() {
             />
             <Row label="Steps" value={String(stepCount)} />
             {guide.publishedAt && (
-              <Row
-                label="Published"
-                value={formatDate(guide.publishedAt)}
-              />
+              <Row label="Published" value={formatDate(guide.publishedAt)} />
             )}
           </div>
         </DialogContent>
@@ -225,9 +220,7 @@ function IconButton({
   return (
     <Tooltip>
       <TooltipTrigger
-        render={
-          <Button size="icon-sm" variant="outline" aria-label={label} />
-        }
+        render={<Button size="icon-sm" variant="outline" aria-label={label} />}
         onClick={onClick}
       >
         {children}

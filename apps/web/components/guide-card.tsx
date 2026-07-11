@@ -158,10 +158,13 @@ function Chip({
     <span
       className={cn(
         "inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-[11px] font-medium ring-1 ring-inset",
-        colorClass ?? "bg-[var(--l-lift)] text-[var(--l-ink-subtle)] ring-[var(--l-hairline)]"
+        colorClass ??
+          "bg-[var(--l-lift)] text-[var(--l-ink-subtle)] ring-[var(--l-hairline)]"
       )}
     >
-      <span className={colorClass ? undefined : "text-[var(--l-ink-tertiary)]"}>{icon}</span>
+      <span className={colorClass ? undefined : "text-[var(--l-ink-tertiary)]"}>
+        {icon}
+      </span>
       {children}
     </span>
   )
@@ -460,7 +463,9 @@ export function GuideCard({
                   <div
                     className={cn(
                       "absolute inset-0 transition-opacity duration-150",
-                      selected ? "opacity-0" : "opacity-100 group-hover:opacity-0"
+                      selected
+                        ? "opacity-0"
+                        : "opacity-100 group-hover:opacity-0"
                     )}
                   >
                     <StatusBadge status={guide.status} />
@@ -502,24 +507,27 @@ export function GuideCard({
           </Chip>
           <Chip icon={<Clock className="size-3" />}>~{minutes} min</Chip>
           <Chip icon={<Eye className="size-3" />}>{fmtViews(views)} views</Chip>
-          {/* Completion % isn't tracked yet — dimmed empty state, same slot. */}
-          <Chip icon={<CircleCheck className="size-3" />}>
-            <span className="opacity-45">—</span>
-          </Chip>
         </div>
 
         {/* footer: creator + updated + CTA */}
         <div className="mt-3 flex items-center justify-between border-t border-[var(--l-hairline)] pt-2.5">
           <div className="flex items-center gap-2.5">
-            <span
-              title={guide.author.name}
-              className={cn(
-                "flex size-6 items-center justify-center rounded-full text-[9px] font-semibold text-white ring-2 ring-[var(--l-card)] transition-transform duration-300 group-hover:scale-[1.06]",
-                authorColor
-              )}
-            >
-              {authorInitials}
-            </span>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span
+                    onClick={() => router.push(`/guides/${guide.id}`)}
+                    className={cn(
+                      "relative z-20 flex size-6 cursor-pointer items-center justify-center rounded-full text-[9px] font-semibold text-white ring-2 ring-[var(--l-card)] transition-transform duration-300 group-hover:scale-[1.06]",
+                      authorColor
+                    )}
+                  />
+                }
+              >
+                {authorInitials}
+              </TooltipTrigger>
+              <TooltipContent side="top">{guide.author.name}</TooltipContent>
+            </Tooltip>
             <span className="text-[11px] text-muted-foreground">
               {formatDate(guide.updatedAt)}
             </span>
@@ -587,7 +595,7 @@ export function GuideCard({
         <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
           <DropdownMenuTrigger
             aria-label="More actions"
-            className="flex size-7 items-center justify-center rounded-lg text-[var(--l-ink-subtle)] outline-none transition-colors hover:bg-[var(--l-hairline)] hover:text-[var(--l-ink)] data-[popup-open]:bg-[var(--l-hairline)] data-[popup-open]:text-[var(--l-ink)]"
+            className="flex size-7 items-center justify-center rounded-lg text-[var(--l-ink-subtle)] transition-colors outline-none hover:bg-[var(--l-hairline)] hover:text-[var(--l-ink)] data-[popup-open]:bg-[var(--l-hairline)] data-[popup-open]:text-[var(--l-ink)]"
           >
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
