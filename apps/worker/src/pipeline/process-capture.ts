@@ -4,7 +4,7 @@ import { ensureDefaultFolder, prisma } from "@workspace/db";
 
 import { ingestVideo } from "./ingest-video.js";
 import { normalize } from "./normalize.js";
-import { segment } from "./segment.js";
+import { compileInteractions } from "./segment.js";
 import { selectFrame } from "./select-frames.js";
 
 /**
@@ -90,13 +90,13 @@ export async function processCapture(captureId: string): Promise<void> {
     return;
   }
 
-  console.log(`[${captureId}] segment… (${events.length} events)`);
-  const segments = segment(events);
+  console.log(`[${captureId}] compile interactions… (${events.length} events)`);
+  const interactions = compileInteractions(events);
 
   console.log(
-    `[${captureId}] synthesize… (${segments.length} segments, model via env)`
+    `[${captureId}] synthesize… (${interactions.length} interactions, model via env)`
   );
-  const synthesized = await synthesizeGuide(events, {
+  const synthesized = await synthesizeGuide(events, interactions, {
     captureTitle: capture.title ?? undefined,
   });
 
@@ -132,12 +132,14 @@ export async function processCapture(captureId: string): Promise<void> {
         folderId,
         blocks: {
           create: synthesized.steps.map((step, index) => {
-            // Trace the step back to its source events for element metadata.
-            const firstSourceIndex = step.sourceEventIndexes[0];
-            const sourceEvent =
-              firstSourceIndex !== undefined
-                ? events[firstSourceIndex]
-                : undefined;
+            // Trace the step back through its interaction to the primary source
+            // event for element metadata + frame selection.
+            const firstIx = step.sourceIndexes[0];
+            const interaction =
+              firstIx !== undefined ? interactions[firstIx] : undefined;
+            const sourceEvent = interaction
+              ? events[interaction.primaryEventIndex]
+              : undefined;
             // Deterministic frame selection (M4): choose the instructional
             // screenshot and whether a pointer belongs on it. A pointer only
             // makes sense on a "before" frame where the target still exists.

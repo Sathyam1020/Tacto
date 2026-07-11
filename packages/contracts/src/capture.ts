@@ -121,6 +121,27 @@ export type ClickEvent = z.infer<typeof clickEventSchema>;
 export type InputEvent = z.infer<typeof inputEventSchema>;
 export type NavigationEvent = z.infer<typeof navigationEventSchema>;
 
+/**
+ * A compiled higher-level interaction — the intermediate representation between
+ * raw events and guide steps. The Interaction Compiler (worker) groups the
+ * normalized event log into interactions; guide synthesis writes one step per
+ * interaction. LOSSLESS: an interaction *references* its member events by index
+ * (never deletes them), so replay/analytics/AI keep the full history while
+ * guide generation sees the collapsed, human-meaningful view.
+ */
+export type Interaction = {
+  /** Indexes into the normalized event log that make up this interaction. */
+  eventIndexes: number[];
+  /** The member event that best represents it (screenshot/frame + label source). */
+  primaryEventIndex: number;
+  /**
+   * A same-origin navigation folded in as this interaction's consequence (e.g.
+   * a click that routed to a new page). The nav event is preserved in
+   * `eventIndexes`; this just records that the fold happened.
+   */
+  absorbedNavigation?: { url: string; pageTitle?: string };
+};
+
 // ── API payloads ─────────────────────────────────────────────────────────
 
 export const captureSourceSchema = z.enum([
@@ -198,9 +219,11 @@ export const synthesizedStepSchema = z.object({
     .nullable()
     .describe("Visible label of the UI element acted on, or null"),
   url: z.string().nullable().describe("Page URL this step happens on, or null"),
-  sourceEventIndexes: z
+  sourceIndexes: z
     .array(z.number())
-    .describe("Indexes into the input event log this step was derived from"),
+    .describe(
+      "Indexes into the numbered INTERACTION list this step was derived from (usually one)"
+    ),
 });
 
 export const synthesizedGuideSchema = z.object({
