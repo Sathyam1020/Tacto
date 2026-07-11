@@ -34,6 +34,18 @@ export function normalize(rawEvents: unknown): CaptureEvent[] {
       continue;
     }
 
+    // Drop an accidental double-fire: the same element clicked twice in quick
+    // succession (double-click, event re-dispatch) is one step, not two.
+    if (
+      event.type === "click" &&
+      previous?.type === "click" &&
+      previous.target.selector === event.target.selector &&
+      previous.target.text === event.target.text &&
+      event.timestamp - previous.timestamp < 700
+    ) {
+      continue;
+    }
+
     cleaned.push(event);
   }
 

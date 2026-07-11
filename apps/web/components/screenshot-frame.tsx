@@ -9,36 +9,39 @@ import type { ClickRect } from "@/lib/guides"
 
 /**
  * A captured screenshot in a subtle browser frame, with an animated click
- * pointer at the target and an optional spotlight. With `controls`, it gains
- * bottom-right zoom controls and drag-to-pan (the pointer stays fixed-size
- * and locked to its target). Shared by the list view and the walkthrough.
+ * pointer at the target. `highlight` draws a soft focus ring around the target
+ * (the walkthrough — no heavy dimming). `onAdvance` makes the pointer a
+ * clickable hotspot. `chromeActions` renders controls in the chrome bar. With
+ * `controls`, it gains zoom + drag-to-pan instead. Shared by list + walkthrough.
  */
 export function ScreenshotFrame({
   src,
   clickRect,
-  spotlight = false,
+  highlight = false,
   chrome = true,
   zoom: autoZoom,
   controls = false,
+  onAdvance,
+  chromeActions,
   className,
 }: {
   src: string
   clickRect?: ClickRect | null
-  spotlight?: boolean
+  /** Soft focus ring around the target (walkthrough). */
+  highlight?: boolean
   chrome?: boolean
   /** Fixed zoom toward the pointer (walkthrough). Ignored when `controls`. */
   zoom?: number
   /** Show zoom controls + enable drag-to-pan. */
   controls?: boolean
+  /** Clicking the pointer / target advances the walkthrough. */
+  onAdvance?: () => void
+  /** Controls rendered on the right of the chrome bar (walkthrough). */
+  chromeActions?: React.ReactNode
   className?: string
 }) {
   const cx = clickRect ? (clickRect.x + clickRect.w / 2) * 100 : null
   const cy = clickRect ? (clickRect.y + clickRect.h / 2) * 100 : null
-
-  const Pointer =
-    cx !== null && cy !== null ? (
-      <Marker leftPct={cx} topPct={cy} counterScale={1} />
-    ) : null
 
   if (controls) {
     return (
@@ -60,14 +63,30 @@ export function ScreenshotFrame({
 
   return (
     <div className={cn("bg-card overflow-hidden rounded-xl border", className)}>
-      {chrome && <ChromeBar />}
+      {chrome && <ChromeBar actions={chromeActions} />}
       <div className="relative overflow-hidden">
         <div style={zoomStyle}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt="" className="block w-full" />
-          {spotlight && clickRect && <Spotlight rect={clickRect} />}
+          {highlight && clickRect && <Highlight rect={clickRect} />}
+          {/* Clickable hotspot over the target — advances the walkthrough. */}
+          {onAdvance && clickRect && (
+            <button
+              aria-label="Next step"
+              onClick={onAdvance}
+              className="absolute cursor-pointer"
+              style={{
+                left: `${Math.max(0, (clickRect.x - 0.02) * 100)}%`,
+                top: `${Math.max(0, (clickRect.y - 0.02) * 100)}%`,
+                width: `${(clickRect.w + 0.04) * 100}%`,
+                height: `${(clickRect.h + 0.04) * 100}%`,
+              }}
+            />
+          )}
         </div>
-        {Pointer}
+        {cx !== null && cy !== null && (
+          <Marker leftPct={cx} topPct={cy} counterScale={1} />
+        )}
       </div>
     </div>
   )
@@ -242,27 +261,34 @@ function ZoomableFrame({
   )
 }
 
-function ChromeBar() {
+function ChromeBar({ actions }: { actions?: React.ReactNode }) {
   return (
     <div className="flex items-center gap-1.5 border-b px-3 py-2.5">
       <span className="bg-line-2 size-2 rounded-full" />
       <span className="bg-line-2 size-2 rounded-full" />
       <span className="bg-line-2 size-2 rounded-full" />
       <span className="bg-sheet ml-2 h-4 flex-1 rounded-full border" />
+      {actions && <div className="flex items-center gap-0.5 pl-1">{actions}</div>}
     </div>
   )
 }
 
-function Spotlight({ rect }: { rect: ClickRect }) {
+/**
+ * A soft focus ring around the click target — the walkthrough's "look here"
+ * without dimming the rest of the screen (Guidejar-style, not a dark spotlight).
+ */
+function Highlight({ rect }: { rect: ClickRect }) {
+  const pad = 0.012
   return (
     <div
-      className="pointer-events-none absolute rounded-lg"
+      className="pointer-events-none absolute rounded-md"
       style={{
-        left: `${Math.max(0, (rect.x - 0.02) * 100)}%`,
-        top: `${Math.max(0, (rect.y - 0.02) * 100)}%`,
-        width: `${(rect.w + 0.04) * 100}%`,
-        height: `${(rect.h + 0.04) * 100}%`,
-        boxShadow: "0 0 0 9999px rgba(20, 22, 20, 0.5)",
+        left: `${Math.max(0, (rect.x - pad) * 100)}%`,
+        top: `${Math.max(0, (rect.y - pad) * 100)}%`,
+        width: `${(rect.w + pad * 2) * 100}%`,
+        height: `${(rect.h + pad * 2) * 100}%`,
+        boxShadow:
+          "0 0 0 2px var(--primary), 0 0 0 6px color-mix(in srgb, var(--primary) 18%, transparent)",
       }}
     />
   )

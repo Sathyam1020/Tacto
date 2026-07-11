@@ -14,7 +14,12 @@ import {
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
 import { api } from "@/lib/api"
-import { listTabs, startOnTab, type BrowserTab } from "@/lib/extension"
+import {
+  ExtensionError,
+  listTabs,
+  startOnTab,
+  type BrowserTab,
+} from "@/lib/extension"
 
 /**
  * Navbar Capture button — opens a tab picker (tabs come from the extension),
@@ -35,18 +40,34 @@ export function CaptureButton({
   const [error, setError] = React.useState<string | null>(null)
   const [startingId, setStartingId] = React.useState<number | null>(null)
   const [startedIn, setStartedIn] = React.useState<string | null>(null)
+  const [needsReload, setNeedsReload] = React.useState(false)
+
+  /** A severed bridge is only fixed by reloading the page; say so explicitly. */
+  function reportExtensionError(e: unknown, fallback: string) {
+    if (e instanceof ExtensionError && e.reason === "severed") {
+      setNeedsReload(true)
+      setError("Tacto lost its connection. Reload this page and try again.")
+    } else {
+      setNeedsReload(false)
+      setError(fallback)
+    }
+  }
 
   async function openPicker() {
     setOpen(true)
     setTabs(null)
     setError(null)
+    setNeedsReload(false)
     setLoading(true)
     try {
       const list = await listTabs()
       // Don't offer the Tacto tab itself.
       setTabs(list.filter((t) => !t.url.startsWith(window.location.origin)))
-    } catch {
-      setError("Couldn't reach the Tacto extension. Is it connected?")
+    } catch (e) {
+      reportExtensionError(
+        e,
+        "Couldn't reach the Tacto extension. Make sure it's installed and connected."
+      )
     } finally {
       setLoading(false)
     }
@@ -67,8 +88,8 @@ export function CaptureButton({
       setOpen(false)
       setStartedIn(tab.title)
       window.setTimeout(() => setStartedIn(null), 4000)
-    } catch {
-      setError("Couldn't start recording on that tab.")
+    } catch (e) {
+      reportExtensionError(e, "Couldn't start recording on that tab. Try again.")
     } finally {
       setStartingId(null)
     }
@@ -115,7 +136,21 @@ export function CaptureButton({
             </div>
           )}
 
-          {error && <p className="text-sm text-signal">{error}</p>}
+          {error && (
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm text-signal">{error}</p>
+              {needsReload && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => window.location.reload()}
+                  className="shrink-0"
+                >
+                  Reload
+                </Button>
+              )}
+            </div>
+          )}
 
           {tabs && tabs.length === 0 && (
             <p className="text-sm text-muted-foreground">

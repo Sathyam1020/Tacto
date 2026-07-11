@@ -44,25 +44,57 @@ export function cssSelector(el: Element): string {
   return parts.join(" > ")
 }
 
-/** Human-visible label: aria-label > text > placeholder > title > alt > name. */
+/** Resolve aria-labelledby to the concatenated text of its referenced nodes. */
+function ariaLabelledBy(el: Element): string | undefined {
+  const ids = el.getAttribute("aria-labelledby")
+  if (!ids) return undefined
+  const text = ids
+    .split(/\s+/)
+    .map((id) => document.getElementById(id)?.textContent?.trim() ?? "")
+    .filter(Boolean)
+    .join(" ")
+    .trim()
+  return text || undefined
+}
+
+/**
+ * Human-visible label, most-specific first. Falls all the way back to a
+ * role-based name ("button", "link") so an icon-only control is NEVER left
+ * label-less — a blank label used to make the capture engine silently drop
+ * the whole click.
+ */
 export function elementLabel(el: Element): string {
   const aria = el.getAttribute("aria-label")
   if (aria?.trim()) return aria.trim()
 
+  const labelled = ariaLabelledBy(el)
+  if (labelled) return labelled
+
   const text = (el as HTMLElement).innerText?.trim()
   if (text && text.length <= 80) return text
 
-  const attrs = ["placeholder", "title", "alt", "name", "value"]
+  const attrs = ["placeholder", "title", "alt", "name", "data-tooltip", "data-title", "value"]
   for (const a of attrs) {
     const v = el.getAttribute(a)
     if (v?.trim()) return v.trim()
   }
   // Associated <label> for form controls.
   if (el.id) {
-    const label = document.querySelector(`label[for="${el.id}"]`)
+    const label = document.querySelector(`label[for="${CSS.escape(el.id)}"]`)
     if (label?.textContent?.trim()) return label.textContent.trim()
   }
-  return text?.slice(0, 80) ?? el.tagName.toLowerCase()
+  // Icon-only controls: borrow a name from a child image or inline SVG.
+  const imgAlt = el.querySelector("img[alt]")?.getAttribute("alt")?.trim()
+  if (imgAlt) return imgAlt
+  const svg = el.querySelector("svg")
+  const svgLabel =
+    svg?.getAttribute("aria-label")?.trim() ||
+    svg?.querySelector("title")?.textContent?.trim()
+  if (svgLabel) return svgLabel
+
+  // Last resort: a longer text run, else a generic role name — anything but "".
+  if (text) return text.slice(0, 80)
+  return elementRole(el)
 }
 
 export function elementRole(el: Element): string {

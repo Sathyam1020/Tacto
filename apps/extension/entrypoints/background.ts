@@ -26,7 +26,9 @@ export default defineBackground(() => {
   let recordingFolderId: string | null = null
   let events: RecordedEvent[] = []
   let shots: string[] = []
-  let pendingShot: Promise<string | null> | null = null
+  // The pre-click screenshot, stamped so a stale one (pointerdown that never
+  // became a recorded click) can't be paired with a later, unrelated click.
+  let pendingShot: { promise: Promise<string | null>; at: number } | null = null
   let lastCaptureUrl: string | null = null
   let error: string | null = null
 
@@ -53,18 +55,41 @@ export default defineBackground(() => {
     return chrome.tabs.sendMessage(tabId, message).catch(() => undefined)
   }
 
-  /** Capture the visible tab WITHOUT the recording pill (hide → shot → show). */
-  async function captureShot(): Promise<string | null> {
+  /**
+   * captureVisibleTab is rate-limited by Chrome (a few calls/sec); under rapid
+   * clicking some calls throw and the step would lose its screenshot. Retry a
+   * couple of times with backoff so a throttled frame recovers instead of
+   * dropping.
+   */
+  async function captureVisible(windowId: number): Promise<string | null> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        return await chrome.tabs.captureVisibleTab(windowId, { format: "png" })
+      } catch {
+        if (attempt === 2) return null
+        await new Promise((r) => setTimeout(r, 300 * (attempt + 1)))
+      }
+    }
+    return null
+  }
+
+  /**
+   * Capture the visible tab WITHOUT the recording pill. On the pre-click path
+   * the content script has already hidden the pill synchronously, so we pass
+   * `pillHidden` to skip the hide round-trip — that round-trip is exactly what
+   * used to let a click's effect paint before the frame was grabbed.
+   */
+  async function captureShot(pillHidden = false): Promise<string | null> {
     if (recordingWindowId === null || recordingTabId === null) return null
     try {
-      // Wait for the pill to be painted-hidden before capturing.
-      await sendToTab(recordingTabId, { type: "PILL", visible: false })
-      return await chrome.tabs.captureVisibleTab(recordingWindowId, {
-        format: "png",
-      })
+      if (!pillHidden) {
+        await sendToTab(recordingTabId, { type: "PILL", visible: false })
+      }
+      return await captureVisible(recordingWindowId)
     } catch {
       return null
     } finally {
+      // Always restore — covers both our hide and the content script's.
       void sendToTab(recordingTabId, { type: "PILL", visible: true })
     }
   }
@@ -258,7 +283,8 @@ export default defineBackground(() => {
 
         case "PRE_ACTION": {
           if (recording && sender.tab?.id === recordingTabId) {
-            pendingShot = captureShot()
+            // Content script already hid the pill synchronously → capture now.
+            pendingShot = { promise: captureShot(true), at: Date.now() }
           }
           return false
         }
@@ -269,7 +295,10 @@ export default defineBackground(() => {
           void (async () => {
             let dataUrl: string | null = null
             if (message.shot === "pending") {
-              dataUrl = pendingShot ? await pendingShot : await captureShot()
+              // Use the pre-click shot only if it's fresh; a stale one belongs
+              // to a pointerdown that never produced this click.
+              const fresh = pendingShot && Date.now() - pendingShot.at < 1500
+              dataUrl = fresh ? await pendingShot!.promise : await captureShot()
               pendingShot = null
             } else if (message.shot === "now") {
               dataUrl = await captureShot()

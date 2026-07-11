@@ -33,29 +33,49 @@ function post(message: Record<string, unknown>) {
   )
 }
 
-/** One request/response round-trip to the extension, matched by nonce. */
+/** Thrown when the bridge relays a failure (vs. no response at all). */
+export class ExtensionError extends Error {
+  /** "severed" → the page needs a reload; "unreachable" → transient. */
+  constructor(public reason: "severed" | "unreachable" | "timeout") {
+    super(reason)
+    this.name = "ExtensionError"
+  }
+}
+
+/**
+ * One request/response round-trip to the extension, matched by nonce. The
+ * bridge retries a cold service worker on its side; we give it a generous
+ * window and accept an explicit `error` reply so a severed/unreachable bridge
+ * surfaces a clear reason instead of a silent timeout.
+ */
 function request<T>(
   type: string,
   responseType: string,
   extract: (data: Record<string, unknown>) => T,
-  timeoutMs = 4000
+  payload: Record<string, unknown> = {},
+  timeoutMs = 9000
 ): Promise<T> {
   return new Promise((resolve, reject) => {
     const nonce = nextNonce()
     const timer = setTimeout(() => {
       cleanup()
-      reject(new Error("The Tacto extension didn't respond"))
+      reject(new ExtensionError("timeout"))
     }, timeoutMs)
     function onMessage(event: MessageEvent) {
       if (event.source !== window || event.origin !== window.location.origin)
         return
       const data = event.data as Record<string, unknown> | undefined
-      if (
-        data?.source !== "tacto-ext" ||
-        data.type !== responseType ||
-        data.nonce !== nonce
-      )
+      if (data?.source !== "tacto-ext" || data.nonce !== nonce) return
+      if (data.type === "error") {
+        cleanup()
+        reject(
+          new ExtensionError(
+            data.reason === "severed" ? "severed" : "unreachable"
+          )
+        )
         return
+      }
+      if (data.type !== responseType) return
       cleanup()
       resolve(extract(data))
     }
@@ -64,7 +84,7 @@ function request<T>(
       window.removeEventListener("message", onMessage)
     }
     window.addEventListener("message", onMessage)
-    post({ type, nonce })
+    post({ type, nonce, ...payload })
   })
 }
 
@@ -76,27 +96,9 @@ export function startOnTab(
   tabId: number,
   folderId?: string | null
 ): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const nonce = nextNonce()
-    const timer = setTimeout(() => {
-      cleanup()
-      reject(new Error("Couldn't start recording"))
-    }, 4000)
-    function onMessage(event: MessageEvent) {
-      if (event.source !== window || event.origin !== window.location.origin)
-        return
-      const data = event.data as Record<string, unknown> | undefined
-      if (data?.source !== "tacto-ext" || data.type !== "started" || data.nonce !== nonce)
-        return
-      cleanup()
-      resolve()
-    }
-    function cleanup() {
-      clearTimeout(timer)
-      window.removeEventListener("message", onMessage)
-    }
-    window.addEventListener("message", onMessage)
-    post({ type: "start-on-tab", tabId, folderId: folderId ?? null, nonce })
+  return request<void>("start-on-tab", "started", () => undefined, {
+    tabId,
+    folderId: folderId ?? null,
   })
 }
 

@@ -21,10 +21,11 @@ Write the guide a colleague would follow to repeat the workflow.
 
 Rules:
 - Produce EXACTLY ONE step per user action (one click, one text entry, one navigation). NEVER combine two clicks — or a click and an input — into a single step. Each step must map to a single source event.
+- Keep EVERY real action. Do not merge, summarize, or omit steps. When in doubt, keep it — a slightly redundant step is far better than a missing one.
 - Every step is ONE imperative sentence ("Click **New customer** in the top-right."). Bold the element labels with markdown.
 - NEVER invent an action that is not in the log. Accuracy over completeness.
-- Navigations become steps like "Go to the Customers page" — use the page title or URL.
-- DROP noise and mistakes entirely (a click immediately undone, dead clicks) — don't turn them into steps.
+- Navigations become steps like "Go to the **Customers** page" — use the page TITLE or a short page name. NEVER paste a long or query-string URL into the instruction; refer to the page by its name.
+- Only drop an action that is CLEARLY noise: a click immediately undone, or an obvious dead click with no effect. Never drop an action just because it seems minor.
 - Masked values ("•••") are sensitive — refer to them by field name ("Enter the password"), never by value.
 - For each step, report the SINGLE event index (0-based, from the input log) it came from in sourceEventIndexes (usually one element).
 - Title: short and task-oriented. Summary: one or two sentences on what the workflow accomplishes.`;

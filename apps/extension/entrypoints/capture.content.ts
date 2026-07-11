@@ -4,6 +4,7 @@ import type {
   NavigationEvent,
 } from "@workspace/contracts/capture"
 
+import { safeSendMessage } from "@/lib/runtime"
 import { describeElement, maskValue } from "@/lib/selector"
 import type { RecordedEvent } from "@/lib/types"
 
@@ -32,7 +33,7 @@ export default defineContentScript({
     }
 
     function send(event: RecordedEvent, shot: "pending" | "now" | "none") {
-      void chrome.runtime.sendMessage({ type: "RECORD_EVENT", event, shot })
+      void safeSendMessage({ type: "RECORD_EVENT", event, shot })
     }
 
     function recordNavigation() {
@@ -45,31 +46,45 @@ export default defineContentScript({
       send(event, "now")
     }
 
-    function interactiveTarget(el: Element): Element {
-      return (
-        el.closest(
-          "a, button, [role=button], input, select, textarea, [role=menuitem], [role=tab], [role=option], summary, label"
-        ) ?? el
-      )
+    const INTERACTIVE_SELECTOR =
+      "a, button, [role=button], input, select, textarea, [role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [role=tab], [role=option], [role=switch], [role=checkbox], [role=radio], [role=link], summary, label, [onclick], [tabindex]"
+
+    /** Nearest genuinely-interactive ancestor, or null for dead page chrome. */
+    function interactiveTarget(el: Element): Element | null {
+      return el.closest(INTERACTIVE_SELECTOR)
     }
 
-    function onMouseDown(e: MouseEvent) {
+    /** Toggle our recording pill's visibility synchronously (no round-trip). */
+    function setPillHidden(hidden: boolean) {
+      const pill = document.getElementById(PILL_ID)
+      if (pill) pill.style.visibility = hidden ? "hidden" : "visible"
+    }
+
+    function onPointerDown(e: PointerEvent) {
       if (!recording) return
       // Clicking our own pill must NOT trigger a screenshot — the capture
       // hides the pill mid-click, which would swallow the Stop button click.
       const target = e.target as Element | null
       if (target?.closest(`#${PILL_ID}`)) return
-      // Ask the background to grab the pre-click screenshot now.
-      void chrome.runtime.sendMessage({ type: "PRE_ACTION" })
+      // Hide the pill NOW, synchronously, so the imminent pre-click capture
+      // never includes it — and so the background can grab the frame WITHOUT a
+      // hide round-trip that would otherwise let the click's effect paint first.
+      setPillHidden(true)
+      // Grab the pre-click screenshot immediately (pill already hidden).
+      void safeSendMessage({ type: "PRE_ACTION" })
     }
 
     function onClick(e: MouseEvent) {
       if (!recording) return
       const raw = e.target as Element | null
       if (!raw || raw.closest(`#${PILL_ID}`)) return
-      const el = interactiveTarget(raw)
+      const interactiveEl = interactiveTarget(raw)
+      const el = interactiveEl ?? raw
       const info = describeElement(el)
-      if (!info.text.trim()) return // no label → no signal
+      // Keep every genuine interactive click (even icon-only). Only drop a
+      // truly non-interactive AND unlabeled click — that's a dead click on
+      // page background, no instruction to write.
+      if (!interactiveEl && !info.text.trim()) return
       const event: ClickEvent = {
         type: "click",
         timestamp: Date.now(),
@@ -126,7 +141,7 @@ export default defineContentScript({
     function activate(emitNav: boolean) {
       if (recording) return
       recording = true
-      document.addEventListener("mousedown", onMouseDown, true)
+      document.addEventListener("pointerdown", onPointerDown, true)
       document.addEventListener("click", onClick, true)
       document.addEventListener("focusout", onFocusOut, true)
       urlTimer = setInterval(checkUrl, 800)
@@ -137,7 +152,7 @@ export default defineContentScript({
 
     function deactivate() {
       recording = false
-      document.removeEventListener("mousedown", onMouseDown, true)
+      document.removeEventListener("pointerdown", onPointerDown, true)
       document.removeEventListener("click", onClick, true)
       document.removeEventListener("focusout", onFocusOut, true)
       if (urlTimer) clearInterval(urlTimer)
@@ -172,7 +187,7 @@ export default defineContentScript({
       stop.textContent = "Stop"
       stop.setAttribute("style", "margin-left:4px;padding:4px 10px;border:0;border-radius:999px;background:#E5484D;color:#fff;font:600 12px ui-sans-serif,system-ui;cursor:pointer")
       stop.addEventListener("click", () => {
-        void chrome.runtime.sendMessage({ type: "STOP" })
+        void safeSendMessage({ type: "STOP" })
       })
       const style = document.createElement("style")
       style.textContent = "@keyframes __tacto_pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}"
@@ -185,12 +200,11 @@ export default defineContentScript({
     }
 
     // On (re)load, ask the background whether this tab is being recorded.
-    chrome.runtime
-      .sendMessage({ type: "GET_RECORDING" })
-      .then((r?: { recording?: boolean }) => {
-        if (r?.recording) activate(true) // arrived via navigation → nav step
-      })
-      .catch(() => {})
+    void safeSendMessage<{ recording?: boolean }>({
+      type: "GET_RECORDING",
+    }).then((r) => {
+      if (r?.recording) activate(true) // arrived via navigation → nav step
+    })
 
     chrome.runtime.onMessage.addListener(
       (
