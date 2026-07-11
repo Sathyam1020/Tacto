@@ -140,10 +140,13 @@ export async function processCapture(captureId: string): Promise<void> {
             const sourceEvent = interaction
               ? events[interaction.primaryEventIndex]
               : undefined;
-            // Deterministic frame selection (M4): choose the instructional
-            // screenshot and whether a pointer belongs on it. A pointer only
-            // makes sense on a "before" frame where the target still exists.
-            const choice = sourceEvent ? selectFrame(sourceEvent) : undefined;
+            // Instruction-frame selection: choose the screenshot and whether a
+            // pointer belongs on it, by instructional intent. The terminal step
+            // may show a completed-state (overlay) result instead of the control.
+            const isTerminal = index === synthesized.steps.length - 1;
+            const choice = sourceEvent
+              ? selectFrame(sourceEvent, { isTerminal })
+              : undefined;
             const showPointer = choice?.showPointer ?? false;
             return {
               type: "STEP" as const,

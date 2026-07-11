@@ -61,8 +61,13 @@ const cases: {
     expect: { count: 1, primaries: [0], absorbedAt: [] },
   },
   {
-    name: "click → nav → nav → only the first nav folds in",
+    name: "click → nav → nav (same origin run) → both fold into the click",
     events: [click(A), nav(B), nav(A)],
+    expect: { count: 1, primaries: [0], absorbedAt: [0] },
+  },
+  {
+    name: "click → nav (same) → nav (cross-origin) → only same-origin folds",
+    events: [click(A), nav(B), nav(EXT)],
     expect: { count: 2, primaries: [0, 2], absorbedAt: [0] },
   },
   {

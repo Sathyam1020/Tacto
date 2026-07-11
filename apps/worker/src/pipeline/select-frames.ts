@@ -1,7 +1,7 @@
 import type { CaptureEvent } from "@workspace/contracts/capture";
 
 /**
- * The resolved frame for one event: which screenshot to show, and whether a
+ * The resolved frame for one step: which screenshot to show, and whether a
  * click pointer belongs on it.
  */
 export type FrameChoice = {
@@ -10,53 +10,58 @@ export type FrameChoice = {
 };
 
 /**
- * Deterministic frame selector (M4). Given an event's candidate frames
- * (before/after) + factual settle observations, choose the most INSTRUCTIONAL
- * screenshot and whether to draw a click pointer on it.
+ * Instruction-frame selection. The question is NOT "what event type is this?"
+ * but "what visual helps the reader perform this instruction?". We map each
+ * interaction to a frame INTENT, then to a frame:
  *
- * Pure, ordered rules — first match wins. NO LLM, NO vision. This is one of the
- * most-tested modules in the recorder: every heuristic change must add/adjust a
- * fixture and review the decision snapshot. Extend by inserting a rule above the
- * fallback.
+ *   LocateControl  (a click)        → before + pointer   — show WHERE to act
+ *   ShowTypedValue (an input)       → after              — show the value entered
+ *   ShowDestination (a navigation)  → after              — show the page reached
+ *   ShowResult (terminal + result)  → after              — show the completed state
  *
- * Rules:
- *   navigation                     → after ?? before ; pointer off (a destination)
- *   input                          → after ?? before ; pointer on  (shows the value)
- *   click & overlay appeared       → after           ; pointer off (modal/menu result)
- *   click & url changed            → before           ; pointer on  (nav step shows result)
- *   click & after exists (mutated) → after            ; pointer off (the result)
- *   click (nothing changed)        → before           ; pointer on  (where to click)
- *   fallback                       → before ?? after  ; pointer if a target box exists
+ * "click → before" is today's DEFAULT policy, not the final design: the long-term
+ * job is answering the intent question above, and this is structured so richer
+ * intents can be added without an event-type rewrite.
+ *
+ * Terminal ShowResult is gated on a STRUCTURAL signal only — an overlay
+ * (dialog/menu/tooltip) appeared on the last step. No text/keyword heuristics.
+ * FUTURE: a richer "meaningful completed state" detector (toast roles, focus
+ * changes) — left out until it can be done deterministically.
+ *
+ * Pure, ordered, fixture-tested. NO LLM, NO vision, NO keyword matching.
  */
-export function selectFrame(event: CaptureEvent): FrameChoice {
+export function selectFrame(
+  event: CaptureEvent,
+  opts?: { isTerminal?: boolean }
+): FrameChoice {
   const before = event.frames?.before;
   const after = event.frames?.after;
   const legacy = event.screenshotId; // single-frame captures / video imports
-  const settle = event.settle;
   const hasBox =
     event.type !== "navigation" &&
     !!event.target.boundingBox &&
     !!event.viewport;
 
+  // ShowDestination — a navigation's destination (never a pointer).
   if (event.type === "navigation") {
     return { screenshotId: after ?? before ?? legacy, showPointer: false };
   }
 
+  // ShowTypedValue — the field with the value entered.
   if (event.type === "input") {
     return { screenshotId: after ?? before ?? legacy, showPointer: hasBox };
   }
 
-  // event.type === "click"
-  if (settle?.overlayAppeared && after) {
+  // ShowResult — ONLY on the terminal step, ONLY when an overlay appeared (a
+  // structural completion signal). "Click Publish" as the last step can show the
+  // success dialog; a mid-flow click never does.
+  if (opts?.isTerminal && after && event.settle?.overlayAppeared) {
     return { screenshotId: after, showPointer: false };
   }
-  if (settle?.urlChanged) {
-    // Keep "where you clicked"; the navigation step shows the destination.
-    if (before) return { screenshotId: before, showPointer: hasBox };
-    return { screenshotId: after ?? legacy, showPointer: false };
-  }
-  if (after) {
-    return { screenshotId: after, showPointer: false };
-  }
-  return { screenshotId: before ?? legacy, showPointer: hasBox };
+
+  // LocateControl — the default for every click: show the control + pointer.
+  // A legacy single-frame capture IS the control frame, so it gets the pointer.
+  const control = before ?? legacy;
+  if (control) return { screenshotId: control, showPointer: hasBox };
+  return { screenshotId: after, showPointer: false };
 }

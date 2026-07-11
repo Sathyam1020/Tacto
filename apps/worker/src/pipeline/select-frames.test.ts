@@ -5,12 +5,10 @@ import type { CaptureEvent } from "@workspace/contracts/capture";
 import { selectFrame } from "./select-frames.js";
 
 /**
- * Frame-selector regression suite. The selector is the most safety-critical
- * heuristic in the recorder: every rule change must add/adjust a fixture here
- * and keep the whole suite green. Run: `npx tsx src/pipeline/select-frames.test.ts`.
- *
- * Dependency-free on purpose (Node's assert + tsx) so it runs anywhere without
- * pulling in a test framework.
+ * Instruction-frame selector regression suite. The selector is the most
+ * safety-critical heuristic in the pipeline: every rule change must add/adjust a
+ * fixture here and keep the whole suite green.
+ * Run: `npx tsx src/pipeline/select-frames.test.ts`.
  */
 
 const BOX = { x: 100, y: 100, w: 120, h: 40 };
@@ -49,44 +47,36 @@ function nav(over: Partial<CaptureEvent> = {}): CaptureEvent {
 const cases: {
   name: string;
   event: CaptureEvent;
+  terminal?: boolean;
   frame: string | undefined;
   pointer: boolean;
 }[] = [
   {
-    name: "plain click, no DOM mutation → before, pointer on",
+    name: "plain click, no mutation → before, pointer",
     event: click({ frames: { before: "B" }, settle: { mutated: false } }),
     frame: "B",
     pointer: true,
   },
   {
-    name: "click opens dropdown/menu (overlay) → after, pointer off",
+    name: "mid-flow click opens overlay → before (default), pointer",
     event: click({
       frames: { before: "B", after: "A" },
       settle: { mutated: true, overlayAppeared: true },
     }),
-    frame: "A",
-    pointer: false,
+    frame: "B",
+    pointer: true,
   },
   {
-    name: "click opens modal (overlay) → after, pointer off",
-    event: click({
-      frames: { before: "B", after: "A" },
-      settle: { mutated: true, overlayAppeared: true },
-    }),
-    frame: "A",
-    pointer: false,
-  },
-  {
-    name: "click causes generic content change → after, pointer off",
+    name: "mid-flow click generic mutation → before, pointer",
     event: click({
       frames: { before: "B", after: "A" },
       settle: { mutated: true },
     }),
-    frame: "A",
-    pointer: false,
+    frame: "B",
+    pointer: true,
   },
   {
-    name: "click that navigates → before (nav step shows result), pointer on",
+    name: "click that navigates → before, pointer",
     event: click({
       frames: { before: "B", after: "A" },
       settle: { mutated: true, urlChanged: true },
@@ -95,7 +85,27 @@ const cases: {
     pointer: true,
   },
   {
-    name: "text input → after (shows typed value), pointer on",
+    name: "TERMINAL click + overlay appeared → after (result), no pointer",
+    event: click({
+      frames: { before: "B", after: "A" },
+      settle: { mutated: true, overlayAppeared: true },
+    }),
+    terminal: true,
+    frame: "A",
+    pointer: false,
+  },
+  {
+    name: "TERMINAL click, mutated but NO overlay → before (structural gate)",
+    event: click({
+      frames: { before: "B", after: "A" },
+      settle: { mutated: true },
+    }),
+    terminal: true,
+    frame: "B",
+    pointer: true,
+  },
+  {
+    name: "text input → after (typed value), pointer",
     event: input({
       frames: { before: "B", after: "A" },
       settle: { mutated: true },
@@ -104,37 +114,37 @@ const cases: {
     pointer: true,
   },
   {
-    name: "input with no after → before, pointer on",
+    name: "input with no after → before, pointer",
     event: input({ frames: { before: "B" } }),
     frame: "B",
     pointer: true,
   },
   {
-    name: "navigation → after (destination), pointer off",
+    name: "navigation → after (destination), no pointer",
     event: nav({ frames: { before: "B", after: "A" }, settle: { mutated: true } }),
     frame: "A",
     pointer: false,
   },
   {
-    name: "navigation with only before → before, pointer off",
+    name: "navigation with only before → before, no pointer",
     event: nav({ frames: { before: "B" } }),
     frame: "B",
     pointer: false,
   },
   {
-    name: "after-capture failed (mutated but no after key) → before, pointer on",
+    name: "after-capture failed (mutated, no after key) → before, pointer",
     event: click({ frames: { before: "B" }, settle: { mutated: true } }),
     frame: "B",
     pointer: true,
   },
   {
-    name: "legacy single-frame capture (screenshotId only) → that key, pointer on",
+    name: "legacy single-frame (screenshotId only) → that key, pointer",
     event: click({ screenshotId: "LEGACY" }),
     frame: "LEGACY",
     pointer: true,
   },
   {
-    name: "click with no box (unlabeled target) → before, pointer off",
+    name: "click with no box (unlabeled target) → before, no pointer",
     event: {
       type: "click",
       timestamp: 0,
@@ -150,7 +160,7 @@ const cases: {
 
 let failures = 0;
 for (const c of cases) {
-  const got = selectFrame(c.event);
+  const got = selectFrame(c.event, { isTerminal: c.terminal });
   try {
     assert.equal(got.screenshotId, c.frame, `${c.name} — frame`);
     assert.equal(got.showPointer, c.pointer, `${c.name} — pointer`);

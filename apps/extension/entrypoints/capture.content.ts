@@ -6,7 +6,12 @@ import type {
 } from "@workspace/contracts/capture"
 
 import { safeSendMessage } from "@/lib/runtime"
-import { describeElement, maskValue } from "@/lib/selector"
+import {
+  describeClick,
+  describeElement,
+  maskValue,
+  type ElementInfo,
+} from "@/lib/selector"
 import type { RecordedEvent } from "@/lib/types"
 
 const PILL_ID = "__tacto_recording_pill__"
@@ -44,6 +49,11 @@ export default defineContentScript({
     // A pointerdown reserves a seq for the click that follows, so the pre-click
     // frame pairs with that exact click.
     let pendingSeq: number | null = null
+    // The click target resolved at pointerdown (from the pointer coordinates in
+    // the pre-action DOM), reused on the click that follows.
+    let pendingClick:
+      | { info: ElementInfo; confidence: number; drop: boolean }
+      | null = null
 
     function viewport() {
       return { w: window.innerWidth, h: window.innerHeight }
@@ -140,11 +150,33 @@ export default defineContentScript({
     }
 
     const INTERACTIVE_SELECTOR =
-      "a, button, [role=button], input, select, textarea, [role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [role=tab], [role=option], [role=switch], [role=checkbox], [role=radio], [role=link], summary, label, [onclick], [tabindex]"
+      "a, button, [role=button], input, select, textarea, [role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [role=tab], [role=option], [role=switch], [role=checkbox], [role=radio], [role=link], [aria-haspopup], summary, label, [onclick], [tabindex]"
 
     /** Nearest genuinely-interactive ancestor, or null for dead page chrome. */
     function interactiveTarget(el: Element): Element | null {
       return el.closest(INTERACTIVE_SELECTOR)
+    }
+
+    /**
+     * Resolve + describe the element a click actually landed on, from a hit-test
+     * element. Uses the existing interactive resolver (so href-less SPA links
+     * still work), adds a capture-time confidence, and flags a click that
+     * resolved to <body>/<html> or an unlabeled non-control as droppable — the
+     * signature of a framework retargeting the click (portal menus → <body>).
+     */
+    function resolveClickInfo(hit: Element): {
+      info: ElementInfo
+      confidence: number
+      drop: boolean
+    } {
+      const interactive = interactiveTarget(hit)
+      const el = interactive ?? hit
+      const structural = el.tagName === "BODY" || el.tagName === "HTML"
+      const { info, confidence, isGeneric } = describeClick(el)
+      // Drop retargeted/dead clicks: structural containers, or an unlabeled
+      // non-control (matches the old "no interactive + no label" guard).
+      const drop = structural || (!interactive && isGeneric)
+      return { info, confidence, drop }
     }
 
     /**
@@ -165,6 +197,11 @@ export default defineContentScript({
       // hides the pill mid-click, which would swallow the Stop button click.
       const target = e.target as Element | null
       if (target?.closest(`#${PILL_ID}`)) return
+      // Resolve the REAL element under the cursor now, in the pre-action DOM,
+      // from the pointer coordinates — the reliable source of truth even when a
+      // framework retargets the click event to <body> (portal menus etc.).
+      const hit = document.elementFromPoint(e.clientX, e.clientY) ?? target
+      pendingClick = hit ? resolveClickInfo(hit) : null
       // Hide the pill NOW, synchronously, so the imminent pre-click capture
       // never includes it — and so the background can grab the frame WITHOUT a
       // hide round-trip that would otherwise let the click's effect paint first.
@@ -179,29 +216,28 @@ export default defineContentScript({
       if (!recording) return
       const raw = e.target as Element | null
       if (!raw || raw.closest(`#${PILL_ID}`)) return
-      const interactiveEl = interactiveTarget(raw)
-      const el = interactiveEl ?? raw
-      const info = describeElement(el)
-      // Keep every genuine interactive click (even icon-only). Only drop a
-      // truly non-interactive AND unlabeled click — that's a dead click on
-      // page background, no instruction to write.
-      if (!interactiveEl && !info.text.trim()) {
-        pendingSeq = null // reserved a seq on pointerdown but not recording this
-        return
-      }
+      // Prefer the target resolved at pointerdown (pointer-as-truth, pre-action);
+      // otherwise resolve the click point now.
+      const resolved =
+        pendingClick ??
+        resolveClickInfo(document.elementFromPoint(e.clientX, e.clientY) ?? raw)
+      const hadPre = pendingSeq !== null
+      const seq = pendingSeq ?? nextSeq()
+      pendingSeq = null
+      pendingClick = null
+      // A retargeted / structural / unlabeled dead click is not a real step.
+      if (resolved.drop) return
       const event: ClickEvent = {
         type: "click",
         timestamp: Date.now(),
         url: location.href,
         pageTitle: document.title,
         viewport: viewport(),
-        target: info,
+        target: resolved.info,
+        confidence: resolved.confidence,
       }
       // Use the pre-click frame reserved on pointerdown; if there was none
       // (synthetic click), fall back to capturing "now".
-      const hadPre = pendingSeq !== null
-      const seq = pendingSeq ?? nextSeq()
-      pendingSeq = null
       record(event, seq, hadPre ? "pending" : "now")
     }
 

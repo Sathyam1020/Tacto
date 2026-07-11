@@ -131,12 +131,17 @@ function nearbyContext(el: Element): string | undefined {
   return undefined
 }
 
+/** Collapse internal whitespace/newlines so a label reads as one clean line. */
+function clean(s: string): string {
+  return s.replace(/\s+/g, " ").trim()
+}
+
 export function describeElement(el: Element): ElementInfo {
   const rect = el.getBoundingClientRect()
   return {
     selector: cssSelector(el),
     role: elementRole(el),
-    text: elementLabel(el),
+    text: clean(elementLabel(el)),
     nearbyContext: nearbyContext(el),
     boundingBox: {
       x: Math.round(rect.x),
@@ -145,6 +150,59 @@ export function describeElement(el: Element): ElementInfo {
       h: Math.round(rect.height),
     },
   }
+}
+
+// Interactive controls that carry a strong accessibility signal — used ONLY to
+// score capture-time confidence (never to decide resolution/drop, so href-less
+// SPA links are unaffected).
+const STRONG_INTERACTIVE =
+  "a, button, input, select, textarea, summary, [role=button], [role=menuitem], [role=menuitemcheckbox], [role=menuitemradio], [role=tab], [role=option], [role=switch], [role=checkbox], [role=radio], [role=link], [aria-haspopup]"
+
+/** Structural viewport position of a box — pure geometry, no semantics. */
+function positionPhrase(box: {
+  x: number
+  y: number
+  w: number
+  h: number
+}): string {
+  const cx = (box.x + box.w / 2) / window.innerWidth
+  const cy = (box.y + box.h / 2) / window.innerHeight
+  const v = cy < 0.33 ? "top" : cy > 0.66 ? "bottom" : "middle"
+  const h = cx < 0.33 ? "left" : cx > 0.66 ? "right" : "center"
+  if (v === "middle" && h === "center") return "in the center"
+  if (v === "middle") return `on the ${h}`
+  if (h === "center") return `at the ${v}`
+  return `in the ${v}-${h}`
+}
+
+/**
+ * Describe a clicked element with a capture-time confidence (structural signals
+ * ONLY — is it a native/ARIA control? did the label fall back to a bare role?).
+ * An icon-only control with no accessible name gets a geometry-based generic
+ * ("button in the top-right") instead of a bare "button", and a low confidence
+ * so synthesis phrases it carefully rather than inventing a name. `isGeneric`
+ * lets the caller drop a dead click on an unlabeled non-control.
+ */
+export function describeClick(el: Element): {
+  info: ElementInfo
+  confidence: number
+  isGeneric: boolean
+} {
+  const info = describeElement(el)
+  const isNative = el.matches(STRONG_INTERACTIVE)
+  // elementLabel returns the role noun as its last resort → a generic fallback.
+  const isGeneric = info.text === elementRole(el)
+  if (isGeneric) {
+    info.text = `${info.text} ${positionPhrase(info.boundingBox)}`
+  }
+  const confidence = isNative
+    ? isGeneric
+      ? 0.4
+      : 0.9
+    : isGeneric
+      ? 0.2
+      : 0.6
+  return { info, confidence, isGeneric }
 }
 
 /** Password / secret fields must never leave the page as plaintext. */

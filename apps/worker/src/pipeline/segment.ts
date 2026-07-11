@@ -14,10 +14,14 @@ import type { CaptureEvent, Interaction } from "@workspace/contracts/capture";
  * intent. Semantic phrasing ("this is a search") stays in the LLM tier.
  *
  * Rules:
- *  • navigation-absorb — a SAME-ORIGIN navigation immediately following a click
- *    is that click's consequence (you clicked, you landed there); fold it into
- *    the click's interaction. Cross-origin navigations (OAuth, external links)
- *    are a context switch the reader should know about → their own interaction.
+ *  • navigation-absorb — a RUN of consecutive SAME-ORIGIN navigations following
+ *    a click is that click's consequence (you clicked; a redirect chain landed
+ *    you there): fold the whole run into the click's interaction. Cross-origin
+ *    navigations (OAuth, external links) are a context switch the reader should
+ *    know about → their own interaction.
+ *    FUTURE: stop absorbing at a navigation that introduces a NEW user decision
+ *    (2FA, payment-failed, consent) — not deterministically detectable yet, so
+ *    same-origin + consecutive + click-caused is the approximation for now.
  */
 
 /** Same web origin? Invalid URLs never match (safe default: don't absorb). */
@@ -36,12 +40,13 @@ export function compileInteractions(events: CaptureEvent[]): Interaction[] {
     const prev = interactions[interactions.length - 1];
     const prevEvent = prev ? events[prev.primaryEventIndex] : undefined;
 
-    // navigation-absorb: same-origin nav right after a click → the click's result.
+    // navigation-absorb: a run of same-origin navs right after a click are all
+    // that click's consequence (redirect chain). Fold each into the click; the
+    // recorded destination is the LAST hop the run reached.
     if (
       event.type === "navigation" &&
       prev &&
       prevEvent?.type === "click" &&
-      !prev.absorbedNavigation && // fold at most one nav per click
       sameOrigin(prevEvent.url, event.url)
     ) {
       prev.eventIndexes.push(index);

@@ -22,9 +22,10 @@ const SYSTEM_PROMPT = `You are Tacto, an expert technical writer who turns a rec
 You receive an ordered list of INTERACTIONS — meaningful user actions already distilled from raw browser events (a click and the page it navigated to are one interaction, not two). Each interaction includes the element's visible label and page context. Write the guide a colleague would follow to repeat the workflow.
 
 Rules:
-- Write ONE clear step per interaction, in order. You MAY merge two ADJACENT interactions into a single sentence when they form one natural task — e.g. entering a search term and clicking the result → "Search for **John** and open his profile." Never drop a distinct action, and never combine unrelated interactions.
+- Write EXACTLY ONE step per interaction, in order — one interaction is one step is one screenshot. NEVER merge interactions or combine multiple actions ("do X and then Y") into a single step; each step is one action.
 - Each step is a short imperative sentence. Bold the element labels with markdown ("Click **New customer** in the top-right.").
-- Write for the READER doing the task, describing the flow — not a literal transcript of events. Prefer intent: a click that opens a page becomes "Open the **Pricing** page", a click that opens a dialog becomes "Open **Settings**".
+- Write for the READER doing the task, describing the flow — not a literal transcript of events. You may choose the VERB by intent (a click that opens a page → "Open the **Pricing** page"), but the ELEMENT'S IDENTITY must come only from the captured label. Never rename, substitute, or invent a different element, and never take the identity from surrounding page context.
+- If a label is marked [low-confidence], or is a bare/generic description, keep the instruction generic ("Click the icon button in the top-right") rather than inventing a specific name. Accuracy over polish.
 - An interaction annotated "→ navigates to X" already includes that navigation — do NOT add a separate "Go to X" step for it.
 - NEVER invent an action that is not in the list. Accuracy over polish.
 - Masked values ("•••") are sensitive — refer to them by field name ("Enter the password"), never by value.
@@ -33,10 +34,18 @@ Rules:
 
 function describeEvent(event: CaptureEvent): string {
   switch (event.type) {
-    case "click":
-      return `CLICK "${event.target.text}" (${event.target.role ?? "element"})${
-        event.target.nearbyContext ? ` in ${event.target.nearbyContext}` : ""
-      } — on ${event.pageTitle ?? event.url}`;
+    case "click": {
+      const ctx = event.target.nearbyContext
+        ? ` in ${event.target.nearbyContext}`
+        : "";
+      const low =
+        event.confidence != null && event.confidence < 0.5
+          ? " [low-confidence]"
+          : "";
+      return `CLICK "${event.target.text}" (${
+        event.target.role ?? "element"
+      })${ctx} — on ${event.pageTitle ?? event.url}${low}`;
+    }
     case "input":
       return `INPUT "${event.value}" into "${event.target.text}" (${
         event.target.role ?? "field"
