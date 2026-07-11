@@ -42,13 +42,49 @@ export const eventTargetSchema = z.object({
   nearbyContext: z.string().optional(),
 });
 
+/**
+ * Candidate screenshots for one event. `before` = the pre-interaction frame
+ * ("where to act"); `after` = the post-settle frame ("what happened"), present
+ * only when the interaction changed the DOM. The frame-selection stage resolves
+ * these down to a single `screenshotId`.
+ */
+export const framesSchema = z.object({
+  before: z.string().optional(),
+  after: z.string().optional(),
+});
+export type Frames = z.infer<typeof framesSchema>;
+
+/**
+ * Factual DOM-settle observations recorded by the content script — NOT
+ * decisions. The deterministic selector interprets these; the recorder never
+ * chooses a frame itself.
+ */
+export const settleSchema = z.object({
+  /** Did any non-pill DOM mutation occur in the settle window? */
+  mutated: z.boolean(),
+  /** A dialog/menu/listbox/tooltip node appeared (modal-ish result). */
+  overlayAppeared: z.boolean().optional(),
+  /** The URL changed during the settle window. */
+  urlChanged: z.boolean().optional(),
+});
+export type Settle = z.infer<typeof settleSchema>;
+
 const eventBase = {
   /** ms — epoch for live captures, offset-into-video for imports. */
   timestamp: z.number(),
   url: z.string(),
   pageTitle: z.string().optional(),
-  /** ID of the screenshot taken at this moment (R2 key, later phases). */
+  /**
+   * The RESOLVED screenshot for this event (R2 key). Written by the recorder
+   * for legacy single-frame captures, and (re)written by the worker's frame
+   * selector for multi-frame captures. The sole field the renderer/assembler
+   * reads — keeping it means zero downstream change + backward compatibility.
+   */
   screenshotId: z.string().optional(),
+  /** Candidate frames (before/after). Absent on legacy single-frame captures. */
+  frames: framesSchema.optional(),
+  /** DOM-settle facts (fuel for the deterministic selector). */
+  settle: settleSchema.optional(),
   /** Viewport at capture — with target.boundingBox, yields the click point. */
   viewport: viewportSchema.optional(),
   /** 0–1 for inferred events (video); omitted = fully trusted (extension). */

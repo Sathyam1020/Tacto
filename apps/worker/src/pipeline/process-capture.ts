@@ -5,6 +5,7 @@ import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { ingestVideo } from "./ingest-video.js";
 import { normalize } from "./normalize.js";
 import { segment } from "./segment.js";
+import { selectFrame } from "./select-frames.js";
 
 /**
  * Normalized click rectangle (0–1 of the screenshot) from a source event's
@@ -137,6 +138,11 @@ export async function processCapture(captureId: string): Promise<void> {
               firstSourceIndex !== undefined
                 ? events[firstSourceIndex]
                 : undefined;
+            // Deterministic frame selection (M4): choose the instructional
+            // screenshot and whether a pointer belongs on it. A pointer only
+            // makes sense on a "before" frame where the target still exists.
+            const choice = sourceEvent ? selectFrame(sourceEvent) : undefined;
+            const showPointer = choice?.showPointer ?? false;
             return {
               type: "STEP" as const,
               position: index + 1,
@@ -145,12 +151,15 @@ export async function processCapture(captureId: string): Promise<void> {
               elementLabel: step.elementLabel ?? null,
               url: step.url ?? sourceEvent?.url ?? null,
               // screenshotId is an R2 key; the API presigns it at read time.
-              screenshotUrl: sourceEvent?.screenshotId ?? null,
+              screenshotUrl:
+                choice?.screenshotId ?? sourceEvent?.screenshotId ?? null,
               boundingBox:
-                sourceEvent && sourceEvent.type !== "navigation"
+                showPointer &&
+                sourceEvent &&
+                sourceEvent.type !== "navigation"
                   ? (sourceEvent.target.boundingBox ?? undefined)
                   : undefined,
-              clickRect: clickRect(sourceEvent),
+              clickRect: showPointer ? clickRect(sourceEvent) : undefined,
               confidence: sourceEvent?.confidence ?? null,
             };
           }),

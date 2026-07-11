@@ -29,12 +29,16 @@ export const captureRouter: Router = Router();
 function eventsHaveScreenshot(events: unknown): boolean {
   return (
     Array.isArray(events) &&
-    events.some(
-      (e) =>
-        !!e &&
-        typeof e === "object" &&
-        !!(e as Record<string, unknown>).screenshotId
-    )
+    events.some((e) => {
+      if (!e || typeof e !== "object") return false;
+      const ev = e as Record<string, unknown>;
+      if (ev.screenshotId) return true;
+      // Multi-frame captures carry keys under frames.{before,after}.
+      const frames = ev.frames as
+        | { before?: unknown; after?: unknown }
+        | undefined;
+      return !!(frames && (frames.before || frames.after));
+    })
   );
 }
 

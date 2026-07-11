@@ -2,6 +2,7 @@ import type {
   ClickEvent,
   InputEvent,
   NavigationEvent,
+  Settle,
 } from "@workspace/contracts/capture"
 
 import { safeSendMessage } from "@/lib/runtime"
@@ -9,6 +10,14 @@ import { describeElement, maskValue } from "@/lib/selector"
 import type { RecordedEvent } from "@/lib/types"
 
 const PILL_ID = "__tacto_recording_pill__"
+
+// DOM-settle tuning. Kept conservative; a future milestone delivers these from
+// the server (CaptureConfig) so they're tunable without an extension release.
+const SETTLE_QUIET_MS = 200 // no mutations for this long ⇒ stable
+const SETTLE_MIN_MS = 80 // always let the first paint happen
+const SETTLE_MAX_MS = 1200 // cap: pages that never quiet (spinners/ambient anim)
+const OVERLAY_SELECTOR =
+  "[role=dialog],[aria-modal=true],[role=menu],[role=listbox],[role=tooltip]"
 
 /**
  * Capture engine — instruments the page while recording. Every meaningful
@@ -28,12 +37,26 @@ export default defineContentScript({
     let recording = false
     let lastUrl = location.href
 
+    // Monotonic per-event id. Correlates an event with its before/after frames
+    // in the background (replaces the old fragile "shots pushed in order").
+    let seqCounter = 0
+    const nextSeq = () => ++seqCounter
+    // A pointerdown reserves a seq for the click that follows, so the pre-click
+    // frame pairs with that exact click.
+    let pendingSeq: number | null = null
+
     function viewport() {
       return { w: window.innerWidth, h: window.innerHeight }
     }
 
-    function send(event: RecordedEvent, shot: "pending" | "now" | "none") {
-      void safeSendMessage({ type: "RECORD_EVENT", event, shot })
+    /** Record an event + start watching for its settled "after" frame. */
+    function record(
+      event: RecordedEvent,
+      seq: number,
+      shot: "pending" | "now" | "none"
+    ) {
+      void safeSendMessage({ type: "RECORD_EVENT", event, seq, shot })
+      startSettle(seq)
     }
 
     function recordNavigation() {
@@ -43,7 +66,77 @@ export default defineContentScript({
         url: location.href,
         pageTitle: document.title,
       }
-      send(event, "now")
+      record(event, nextSeq(), "now")
+    }
+
+    /**
+     * DOM-settle watcher (M2/M3). Observes the page until it stabilises, records
+     * factual observations (mutated / overlay / url-changed), and asks the
+     * background for the "after" frame — but only when the interaction actually
+     * changed something AND didn't just navigate away (a navigation's own event
+     * captures the destination; a click that navigates keeps its before frame).
+     * Records nothing but facts — the frame CHOICE happens later, in the worker.
+     */
+    function startSettle(seq: number) {
+      const startUrl = location.href
+      const startedAt = Date.now()
+      let mutated = false
+      let overlayAppeared = false
+      let done = false
+      let quietTimer: ReturnType<typeof setTimeout> | null = null
+      let capTimer: ReturnType<typeof setTimeout> | null = null
+
+      const obs = new MutationObserver((batches) => {
+        for (const m of batches) {
+          const t = m.target as Node
+          if (t instanceof Element && t.closest(`#${PILL_ID}`)) continue // ignore our pill
+          mutated = true
+          m.addedNodes.forEach((n) => {
+            if (
+              n instanceof Element &&
+              (n.matches?.(OVERLAY_SELECTOR) || n.querySelector?.(OVERLAY_SELECTOR))
+            )
+              overlayAppeared = true
+          })
+        }
+        scheduleQuiet()
+      })
+
+      function scheduleQuiet() {
+        if (quietTimer) clearTimeout(quietTimer)
+        quietTimer = setTimeout(() => {
+          if (Date.now() - startedAt >= SETTLE_MIN_MS) finish()
+          else scheduleQuiet()
+        }, SETTLE_QUIET_MS)
+      }
+
+      function finish() {
+        if (done) return
+        done = true
+        obs.disconnect()
+        if (quietTimer) clearTimeout(quietTimer)
+        if (capTimer) clearTimeout(capTimer)
+        const urlChanged = location.href !== startUrl
+        const settle: Settle = { mutated, overlayAppeared, urlChanged }
+        // Capture an "after" frame only when something changed AND we didn't
+        // just navigate away without opening an overlay (that result is the
+        // navigation step's job). Saves both a capture (rate limit) and storage.
+        const capture = mutated && (overlayAppeared || !urlChanged)
+        // 2×rAF so the settled state is laid out + painted before we capture.
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() =>
+            void safeSendMessage({ type: "POST_ACTION", seq, settle, capture })
+          )
+        )
+      }
+
+      obs.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+      })
+      scheduleQuiet()
+      capTimer = setTimeout(finish, SETTLE_MAX_MS)
     }
 
     const INTERACTIVE_SELECTOR =
@@ -76,8 +169,10 @@ export default defineContentScript({
       // never includes it — and so the background can grab the frame WITHOUT a
       // hide round-trip that would otherwise let the click's effect paint first.
       setPillHidden(true)
-      // Grab the pre-click screenshot immediately (pill already hidden).
-      void safeSendMessage({ type: "PRE_ACTION" })
+      // Reserve the seq for the click that follows, and grab its pre-click
+      // ("before") frame immediately (pill already hidden).
+      pendingSeq = nextSeq()
+      void safeSendMessage({ type: "PRE_ACTION", seq: pendingSeq })
     }
 
     function onClick(e: MouseEvent) {
@@ -90,7 +185,10 @@ export default defineContentScript({
       // Keep every genuine interactive click (even icon-only). Only drop a
       // truly non-interactive AND unlabeled click — that's a dead click on
       // page background, no instruction to write.
-      if (!interactiveEl && !info.text.trim()) return
+      if (!interactiveEl && !info.text.trim()) {
+        pendingSeq = null // reserved a seq on pointerdown but not recording this
+        return
+      }
       const event: ClickEvent = {
         type: "click",
         timestamp: Date.now(),
@@ -99,7 +197,12 @@ export default defineContentScript({
         viewport: viewport(),
         target: info,
       }
-      send(event, "pending")
+      // Use the pre-click frame reserved on pointerdown; if there was none
+      // (synthetic click), fall back to capturing "now".
+      const hadPre = pendingSeq !== null
+      const seq = pendingSeq ?? nextSeq()
+      pendingSeq = null
+      record(event, seq, hadPre ? "pending" : "now")
     }
 
     function onFocusOut(e: FocusEvent) {
@@ -130,7 +233,7 @@ export default defineContentScript({
         target: describeElement(el),
         value,
       }
-      send(event, "now")
+      record(event, nextSeq(), "now")
     }
 
     // SPA navigation: poll the URL (the page's pushState happens in the main

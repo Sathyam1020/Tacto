@@ -1,11 +1,11 @@
 import type { CaptureEvent } from "@workspace/contracts/capture"
 
 /**
- * An event as buffered during recording. `_shotIndex` points into the
- * background's screenshot buffer; on stop it's resolved to an R2 key
- * (screenshotId) and stripped before submit.
+ * An event as buffered during recording. Its candidate frames (before/after)
+ * are captured by the background, keyed to the event by `seq`, and resolved to
+ * R2 keys on the event's `frames` field on stop.
  */
-export type RecordedEvent = CaptureEvent & { _shotIndex?: number }
+export type RecordedEvent = CaptureEvent
 
 export type Status = {
   connected: boolean

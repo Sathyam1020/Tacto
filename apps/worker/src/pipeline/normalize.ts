@@ -46,6 +46,20 @@ export function normalize(rawEvents: unknown): CaptureEvent[] {
       continue;
     }
 
+    // M0 — collapse consecutive navigations to the SAME url (SPA pushState
+    // caught by the URL poll AND a hard reload/redirect both emit a nav event).
+    // Keep the LATER one: its screenshot is the more-settled destination.
+    // NOTE: we never merge a click with the navigation it caused — that's a
+    // workflow decision, not the normalizer's job.
+    if (
+      event.type === "navigation" &&
+      previous?.type === "navigation" &&
+      previous.url === event.url
+    ) {
+      cleaned[cleaned.length - 1] = event;
+      continue;
+    }
+
     cleaned.push(event);
   }
 

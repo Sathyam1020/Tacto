@@ -1,4 +1,4 @@
-import type { CaptureEvent } from "@workspace/contracts/capture"
+import type { CaptureEvent, Settle } from "@workspace/contracts/capture"
 
 import {
   APP_URL,
@@ -10,6 +10,21 @@ import {
 } from "@/lib/api"
 import type { Message } from "@/lib/messages"
 import type { RecordedEvent, Status } from "@/lib/types"
+
+/**
+ * One recorded event plus its captured frames. `before` is the pre-interaction
+ * frame; `after` is the post-settle frame (only when the interaction changed
+ * the DOM). Correlated to messages by `seq`. `work` holds the in-flight capture
+ * promises so `stop` can await them before uploading.
+ */
+type Buffered = {
+  seq: number
+  event: RecordedEvent
+  before?: string
+  after?: string
+  settle?: Settle
+  work: Promise<unknown>[]
+}
 
 /**
  * Recorder brain. Lives in the (ephemeral) service worker, so connection
@@ -24,13 +39,24 @@ export default defineBackground(() => {
   let recordingWindowId: number | null = null
   // Folder the resulting guide should land in (chosen on the web at start).
   let recordingFolderId: string | null = null
-  let events: RecordedEvent[] = []
-  let shots: string[] = []
-  // The pre-click screenshot, stamped so a stale one (pointerdown that never
-  // became a recorded click) can't be paired with a later, unrelated click.
-  let pendingShot: { promise: Promise<string | null>; at: number } | null = null
+  // Ordered event buffer + a seq index for correlating late "after" frames.
+  let buffer: Buffered[] = []
+  let byId = new Map<number, Buffered>()
+  // Pre-click ("before") frames captured on pointerdown, keyed by seq, stamped
+  // so a stale one (pointerdown that never became a click) can be discarded.
+  let pendingBefore = new Map<
+    number,
+    { promise: Promise<string | null>; at: number }
+  >()
   let lastCaptureUrl: string | null = null
   let error: string | null = null
+
+  // Rate-limit guard for captureVisibleTab (~2/sec). "before" frames are
+  // time-critical (pre-click) and fire immediately; the NEW "after" frames go
+  // through this serializer so a burst never blows the quota.
+  let captureChain: Promise<unknown> = Promise.resolve()
+  let lastCaptureAt = 0
+  const MIN_AFTER_SPACING_MS = 550
 
   // Restore connection across SW restarts. Every handler awaits this first.
   const ready = chrome.storage.local
@@ -45,7 +71,7 @@ export default defineBackground(() => {
       connected: !!token,
       workspaceName,
       recording,
-      eventCount: events.length,
+      eventCount: buffer.length,
       lastCaptureUrl,
       error,
     }
@@ -89,9 +115,28 @@ export default defineBackground(() => {
     } catch {
       return null
     } finally {
+      lastCaptureAt = Date.now()
       // Always restore — covers both our hide and the content script's.
       void sendToTab(recordingTabId, { type: "PILL", visible: true })
     }
+  }
+
+  /**
+   * Capture an "after" frame through the rate-limit serializer: one at a time,
+   * spaced ≥ MIN_AFTER_SPACING_MS from the previous capture. "after" frames are
+   * not time-critical (the DOM has already settled), so spacing them is free —
+   * it keeps us under Chrome's captureVisibleTab quota during bursts.
+   */
+  function queuedAfterCapture(): Promise<string | null> {
+    const run = captureChain.then(async () => {
+      const since = Date.now() - lastCaptureAt
+      if (since < MIN_AFTER_SPACING_MS) {
+        await new Promise((r) => setTimeout(r, MIN_AFTER_SPACING_MS - since))
+      }
+      return captureShot()
+    })
+    captureChain = run.catch(() => {})
+    return run
   }
 
   function setBadge(on: boolean) {
@@ -132,9 +177,11 @@ export default defineBackground(() => {
     recording = true
     recordingTabId = tab.id
     recordingWindowId = tab.windowId
-    events = []
-    shots = []
-    pendingShot = null
+    buffer = []
+    byId = new Map()
+    pendingBefore = new Map()
+    captureChain = Promise.resolve()
+    lastCaptureAt = 0
     lastCaptureUrl = null
     error = null
     setBadge(true)
@@ -169,43 +216,72 @@ export default defineBackground(() => {
       error = "Not connected"
       return
     }
-    if (events.length === 0) {
+    if (buffer.length === 0) {
       error = "No actions were captured"
       return
     }
-    // A Tacto guide is screenshots + pointers — no shots, no guide. Stop here
+
+    // Wait for every in-flight before/after capture to resolve before we build
+    // the upload list (an "after" frame may still be settling when Stop lands).
+    await Promise.allSettled(buffer.flatMap((b) => b.work))
+
+    // Flatten all captured frames into one upload list, remembering which slot
+    // each belongs to. Byte-identical before/after upload once (dedup).
+    type Slot = { b: Buffered; role: "before" | "after" }
+    const flat: { dataUrl: string; slots: Slot[] }[] = []
+    const seen = new Map<string, number>() // dataUrl → flat index (dedup)
+    function place(b: Buffered, role: "before" | "after", dataUrl?: string) {
+      if (!dataUrl) return
+      const existing = seen.get(dataUrl)
+      if (existing !== undefined) {
+        flat[existing]!.slots.push({ b, role })
+        return
+      }
+      seen.set(dataUrl, flat.length)
+      flat.push({ dataUrl, slots: [{ b, role }] })
+    }
+    for (const b of buffer) {
+      place(b, "before", b.before)
+      place(b, "after", b.after)
+    }
+
+    // A Tacto guide is screenshots + pointers — no frames, no guide. Stop here
     // so we never create a capture that can only fail downstream.
-    if (shots.length === 0) {
+    if (flat.length === 0) {
       error = "No screenshots were captured — try recording again"
       return
     }
 
     try {
-      const firstNav = events.find((e) => e.type === "navigation")
-      const title = firstNav?.pageTitle ?? "Untitled capture"
+      const firstNav = buffer.find((b) => b.event.type === "navigation")
+      const title = firstNav?.event.pageTitle ?? "Untitled capture"
       const { captureId } = await createCapture(token, title, recordingFolderId)
 
-      if (shots.length > 0) {
-        const { urls } = await getScreenshotUrls(token, captureId, shots.length)
-        await Promise.all(
-          shots.map((dataUrl, i) => uploadShot(urls[i]!.uploadUrl, dataUrl))
-        )
-        for (const event of events) {
-          if (event._shotIndex !== undefined) {
-            event.screenshotId = urls[event._shotIndex]!.key
-          }
+      const { urls } = await getScreenshotUrls(token, captureId, flat.length)
+      await Promise.all(
+        flat.map((f, i) => uploadShot(urls[i]!.uploadUrl, f.dataUrl))
+      )
+      // Attach resolved R2 keys to each event's frame slots + settle facts.
+      flat.forEach((f, i) => {
+        const key = urls[i]!.key
+        for (const { b, role } of f.slots) {
+          b.event.frames = { ...b.event.frames, [role]: key }
         }
+      })
+      for (const b of buffer) {
+        if (b.settle) b.event.settle = b.settle
+        // Default resolved frame (the worker's selector may override). Keeps the
+        // API's "has a screenshot" guard + legacy readers happy.
+        b.event.screenshotId =
+          b.event.frames?.before ?? b.event.frames?.after ?? b.event.screenshotId
       }
 
-      const clean: CaptureEvent[] = events.map(({ _shotIndex, ...e }) => {
-        void _shotIndex
-        return e
-      })
+      const clean: CaptureEvent[] = buffer.map((b) => b.event)
       await submitCapture(token, captureId, clean)
 
       lastCaptureUrl = `${APP_URL}/home`
-      events = []
-      shots = []
+      buffer = []
+      byId = new Map()
     } catch (e) {
       error = e instanceof Error ? e.message : "Could not submit capture"
     }
@@ -283,32 +359,49 @@ export default defineBackground(() => {
 
         case "PRE_ACTION": {
           if (recording && sender.tab?.id === recordingTabId) {
-            // Content script already hid the pill synchronously → capture now.
-            pendingShot = { promise: captureShot(true), at: Date.now() }
+            // Content script already hid the pill synchronously → capture the
+            // pre-click ("before") frame immediately, keyed by seq.
+            pendingBefore.set(message.seq, {
+              promise: captureShot(true),
+              at: Date.now(),
+            })
           }
           return false
         }
 
         case "RECORD_EVENT": {
           if (!recording || sender.tab?.id !== recordingTabId) return false
-          const event = message.event
-          void (async () => {
-            let dataUrl: string | null = null
+          const b: Buffered = { seq: message.seq, event: message.event, work: [] }
+          buffer.push(b)
+          byId.set(message.seq, b)
+          const work = (async () => {
             if (message.shot === "pending") {
-              // Use the pre-click shot only if it's fresh; a stale one belongs
-              // to a pointerdown that never produced this click.
-              const fresh = pendingShot && Date.now() - pendingShot.at < 1500
-              dataUrl = fresh ? await pendingShot!.promise : await captureShot()
-              pendingShot = null
+              // Use the pre-click frame if it's fresh; a stale one belongs to a
+              // pointerdown that never produced this click.
+              const pb = pendingBefore.get(message.seq)
+              pendingBefore.delete(message.seq)
+              const fresh = pb && Date.now() - pb.at < 1500
+              b.before = (fresh ? await pb!.promise : await captureShot()) ?? undefined
             } else if (message.shot === "now") {
-              dataUrl = await captureShot()
+              b.before = (await captureShot()) ?? undefined
             }
-            if (dataUrl) {
-              shots.push(dataUrl)
-              event._shotIndex = shots.length - 1
-            }
-            events.push(event)
           })()
+          b.work.push(work)
+          return false
+        }
+
+        case "POST_ACTION": {
+          if (!recording || sender.tab?.id !== recordingTabId) return false
+          const b = byId.get(message.seq)
+          if (!b) return false
+          b.settle = message.settle
+          if (message.capture) {
+            // Rate-limited "after" capture — the DOM has settled; spacing is free.
+            const work = (async () => {
+              b.after = (await queuedAfterCapture()) ?? undefined
+            })()
+            b.work.push(work)
+          }
           return false
         }
       }

@@ -8,6 +8,7 @@
     "start": "tsx --env-file=.env src/index.ts",
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
+    "test": "tsx src/pipeline/select-frames.test.ts",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\""
   },

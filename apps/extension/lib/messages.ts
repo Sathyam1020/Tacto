@@ -1,9 +1,17 @@
+import type { Settle } from "@workspace/contracts/capture"
+
 import type { RecordedEvent } from "./types"
 
-/** capture content script → background */
+/** capture content script → background. `seq` correlates an event with its frames. */
 export type ContentMessage =
-  | { type: "PRE_ACTION" }
-  | { type: "RECORD_EVENT"; event: RecordedEvent; shot: "pending" | "now" | "none" }
+  | { type: "PRE_ACTION"; seq: number }
+  | {
+      type: "RECORD_EVENT"
+      event: RecordedEvent
+      seq: number
+      shot: "pending" | "now" | "none"
+    }
+  | { type: "POST_ACTION"; seq: number; settle: Settle; capture: boolean }
   | { type: "GET_RECORDING" }
   | { type: "STOP" }
 
