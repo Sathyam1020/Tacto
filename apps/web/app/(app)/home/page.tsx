@@ -9,13 +9,16 @@ import {
   Clock,
   FolderOpen,
   ListFilter,
+  Loader2,
   Star,
+  TriangleAlert,
 } from "lucide-react"
 import { RotateCCWIcon } from "@workspace/ui/components/rotate-ccw"
 import { XIcon } from "@workspace/ui/components/x"
 import { toast } from "sonner"
 
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -272,70 +275,117 @@ function CaptureCard({
     })
   }
 
+  const statusLine = failed
+    ? (capture.errorMessage ?? "Processing failed. Retry or dismiss it.")
+    : capture.status === "UPLOADING"
+      ? "Waiting for the recording to upload…"
+      : "Writing your guide from the recording…"
+
   return (
-    <div className="group relative overflow-hidden rounded-[14px] border border-[var(--l-hairline)] bg-[var(--l-card)] p-2">
+    // Mirrors GuideCard's structure (chrome preview + title/desc/chips/footer)
+    // so an in-flight card is exactly the same height in the grid.
+    <div className="group relative rounded-[14px] border border-[var(--l-hairline)] bg-[var(--l-card)] p-2 shadow-[inset_0_1px_0_var(--l-edge)]">
       {!failed && (
         <button
           aria-label="Cancel capture"
           onClick={onDismiss}
           disabled={busy}
-          className="absolute top-3 right-3 z-10 flex size-7 items-center justify-center rounded-lg bg-[var(--l-chrome)] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 disabled:opacity-50"
+          className="absolute top-3.5 right-3.5 z-10 flex size-7 items-center justify-center rounded-lg bg-[var(--l-chrome)] text-muted-foreground opacity-0 shadow-sm ring-1 ring-[var(--l-hairline)] transition-opacity group-hover:opacity-100 hover:text-foreground focus-visible:opacity-100 disabled:opacity-50"
         >
-          <XIcon size={16} />
+          <XIcon size={15} />
         </button>
       )}
 
-      <div className="flex aspect-[2/1] flex-col items-center justify-center gap-3 rounded-[10px] bg-[var(--l-preview)]">
-        <TouchRing
-          variant={failed ? "static" : "processing"}
-          tone={failed ? "recording" : "touch"}
-          size="lg"
-          label={failed ? "Processing failed" : "Processing"}
-        />
+      {/* Browser-preview hero — same chrome bar + aspect as GuideCard. */}
+      <div className="relative overflow-hidden rounded-[12px] border border-[var(--l-hairline)] bg-[var(--l-preview)]">
+        <div className="flex h-7 items-center gap-2 border-b border-[var(--l-hairline)] bg-[var(--l-chrome)] px-3">
+          <span className="flex gap-1.5">
+            <span className="size-2 rounded-full bg-[var(--l-dot)]" />
+            <span className="size-2 rounded-full bg-[var(--l-dot)]" />
+            <span className="size-2 rounded-full bg-[var(--l-dot)]" />
+          </span>
+          <span className="ml-1 flex h-4 min-w-0 flex-1 items-center gap-1 rounded-[5px] bg-[var(--l-preview)] px-2 text-[9px] font-medium text-[var(--l-ink-tertiary)] ring-1 ring-[var(--l-hairline)]">
+            <span className="size-1.5 shrink-0 rounded-full bg-[var(--l-dot)]" />
+            <span className="truncate">
+              {failed ? "capture failed" : "generating guide…"}
+            </span>
+          </span>
+        </div>
+        <div className="flex aspect-[2/1] items-center justify-center bg-[var(--l-preview)]">
+          <TouchRing
+            variant={failed ? "static" : "processing"}
+            tone={failed ? "recording" : "touch"}
+            size="lg"
+            label={failed ? "Processing failed" : "Processing"}
+          />
+        </div>
       </div>
 
+      {/* Body — same vertical rhythm as GuideCard. */}
       <div className="px-1.5 pt-2.5">
-        <span className="block truncate text-[14px] font-medium">
+        <h3 className="line-clamp-1 text-[14px] font-semibold tracking-[-0.01em] text-foreground/90">
           {capture.title || "Untitled capture"}
-        </span>
-      </div>
-      <div className="flex items-center justify-between gap-2 px-1.5 pt-1 pb-1">
-        <span
-          className={
-            failed
-              ? "text-xs text-destructive"
-              : "font-mono text-xs text-muted-foreground"
-          }
+        </h3>
+        <p
+          className={cn(
+            "mt-1 line-clamp-1 text-[12.5px] leading-relaxed",
+            failed ? "text-destructive" : "text-muted-foreground"
+          )}
         >
-          {failed
-            ? (capture.errorMessage ?? "Processing failed")
-            : capture.status === "UPLOADING"
-              ? "waiting for upload…"
-              : "writing your guide…"}
-        </span>
-        {failed && (
-          <div className="flex shrink-0 items-center gap-1.5">
-            {capture.retryable && (
+          {statusLine}
+        </p>
+
+        {/* chips row — keeps the same height as GuideCard's info chips */}
+        <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-[var(--l-lift)] px-1.5 py-1 text-[11px] font-medium text-[var(--l-ink-subtle)] ring-1 ring-inset ring-[var(--l-hairline)]">
+            {failed ? (
+              <>
+                <TriangleAlert className="size-3 text-destructive" />
+                Failed
+              </>
+            ) : (
+              <>
+                <span className="size-1.5 animate-pulse rounded-full bg-primary" />
+                {capture.status === "UPLOADING" ? "Uploading" : "Processing"}
+              </>
+            )}
+          </span>
+        </div>
+
+        {/* footer — bordered, same height as GuideCard's creator/CTA row */}
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-[var(--l-hairline)] pt-2.5">
+          <span className="font-mono text-[11px] text-muted-foreground">
+            {failed ? "needs attention" : "just now"}
+          </span>
+          {failed ? (
+            <div className="flex shrink-0 items-center gap-1.5">
+              {capture.retryable && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onRetry}
+                  disabled={busy}
+                >
+                  <RotateCCWIcon size={15} />
+                  Retry
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant="outline"
-                onClick={onRetry}
+                variant="ghost"
+                onClick={onDismiss}
                 disabled={busy}
               >
-                <RotateCCWIcon size={15} />
-                Retry
+                Dismiss
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onDismiss}
-              disabled={busy}
-            >
-              Dismiss
-            </Button>
-          </div>
-        )}
+            </div>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--l-lift)] px-3 py-1.5 text-[12.5px] font-semibold text-muted-foreground ring-1 ring-inset ring-[var(--l-hairline)]">
+              <Loader2 className="size-3.5 animate-spin" />
+              Working
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -515,7 +565,7 @@ export default function HomePage() {
           >
             {currentPage === 1 &&
               inFlight.map((capture) => (
-                <m.div key={capture.id} variants={staggerItem}>
+                <m.div key={capture.id} layout variants={staggerItem}>
                   <CaptureCard
                     capture={capture}
                     workspaceId={activeWorkspace?.id}
@@ -523,7 +573,7 @@ export default function HomePage() {
                 </m.div>
               ))}
             {pageItems.map((guide) => (
-              <m.div key={guide.id} variants={staggerItem}>
+              <m.div key={guide.id} layout variants={staggerItem}>
                 <GuideCard
                   guide={guide}
                   selected={selected.has(guide.id)}

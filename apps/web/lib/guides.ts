@@ -91,6 +91,8 @@ export function useActiveCaptures(workspaceId: string | undefined) {
   const lastStatus = React.useRef<Map<string, ActiveCapture["status"]>>(
     new Map()
   )
+  const isActive = (s: ActiveCapture["status"]) =>
+    s === "PROCESSING" || s === "UPLOADING"
   return useQuery({
     queryKey: ["captures", workspaceId],
     queryFn: async () => {
@@ -107,30 +109,31 @@ export function useActiveCaptures(workspaceId: string | undefined) {
           })
         }
       }
+      // Was anything in flight on the *previous* poll? Compare before we
+      // overwrite lastStatus, so we can detect the exact completion moment.
+      const wasProcessing = [...lastStatus.current.values()].some(isActive)
       lastStatus.current = new Map(
         data.captures.map((capture) => [capture.id, capture.status])
       )
+      const nowProcessing = data.captures.some((c) => isActive(c.status))
 
-      const processing = data.captures.some(
-        (capture) =>
-          capture.status === "PROCESSING" || capture.status === "UPLOADING"
-      )
-      if (!processing) {
-        // Something may have just finished — refresh guides.
-        void queryClient.invalidateQueries({
+      // A capture just finished (in flight → gone). Pull the freshly-created
+      // guide and AWAIT it, so it's in cache before this query resolves and the
+      // processing card is removed — no empty gap between card and guide.
+      if (wasProcessing && !nowProcessing) {
+        await queryClient.refetchQueries({
           queryKey: ["guides", workspaceId],
         })
       }
       return data.captures
     },
     enabled: !!workspaceId,
+    // Discover captures started elsewhere the moment we refocus this tab…
+    refetchOnWindowFocus: true,
+    // …and poll fast while work is in flight, gently otherwise (a fallback for
+    // when recording happens in a separate window and no refocus fires).
     refetchInterval: (query) =>
-      query.state.data?.some(
-        (capture) =>
-          capture.status === "PROCESSING" || capture.status === "UPLOADING"
-      )
-        ? 3000
-        : false,
+      query.state.data?.some((c) => isActive(c.status)) ? 3000 : 10_000,
   })
 }
 

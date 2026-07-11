@@ -54,10 +54,16 @@ export default defineContentScript({
       return el.closest(INTERACTIVE_SELECTOR)
     }
 
-    /** Toggle our recording pill's visibility synchronously (no round-trip). */
+    /**
+     * Toggle our recording pill for a screenshot, synchronously. We use OPACITY,
+     * not visibility: opacity:0 is excluded from the capture (fully transparent)
+     * but — unlike visibility:hidden — is NOT click-through, so the Stop button
+     * always catches the click even mid-capture (no two-click stop, no stray
+     * step recorded on the element behind the pill).
+     */
     function setPillHidden(hidden: boolean) {
       const pill = document.getElementById(PILL_ID)
-      if (pill) pill.style.visibility = hidden ? "hidden" : "visible"
+      if (pill) pill.style.opacity = hidden ? "0" : "1"
     }
 
     function onPointerDown(e: PointerEvent) {
@@ -219,7 +225,7 @@ export default defineContentScript({
         }
         if (msg.type === "PILL") {
           const pill = document.getElementById(PILL_ID)
-          if (pill) pill.style.visibility = msg.visible ? "visible" : "hidden"
+          if (pill) pill.style.opacity = msg.visible ? "1" : "0"
           if (msg.visible) {
             sendResponse(true)
           } else {
