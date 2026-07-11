@@ -114,7 +114,7 @@ export function BulkBar({
   // Explicit hover / open / pressed states — the ghost default is too faint on
   // the lifted bar surface.
   const btnCls =
-    "hover:bg-[var(--l-hairline-strong)] hover:text-foreground active:scale-90 data-[popup-open]:bg-[var(--l-hairline-strong)] data-[popup-open]:text-foreground"
+    "hover:bg-foreground/10 hover:text-foreground active:scale-90 active:bg-foreground/15 data-[popup-open]:bg-foreground/10 data-[popup-open]:text-foreground"
 
   return (
     <>
@@ -195,7 +195,7 @@ export function BulkBar({
           size="sm"
           disabled={busy}
           onClick={() => setConfirmOpen(true)}
-          className="text-destructive hover:bg-destructive/15 hover:text-destructive active:scale-90"
+          className="text-destructive hover:bg-destructive/20 hover:text-destructive active:scale-90"
         >
           <Trash2 className="size-4" />
           <span className="max-sm:hidden">Delete</span>

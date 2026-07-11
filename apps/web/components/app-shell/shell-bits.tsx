@@ -84,8 +84,8 @@ export function ViewRow({
       className={cn(
         "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] transition-colors duration-150",
         active
-          ? "bg-cobalt-tint font-medium text-cobalt-ink"
-          : "text-foreground hover:bg-muted"
+          ? "bg-foreground/[0.09] font-medium text-cobalt-ink"
+          : "text-foreground hover:bg-foreground/[0.06]"
       )}
     >
       <span className={active ? "text-cobalt" : "text-muted-foreground"}>

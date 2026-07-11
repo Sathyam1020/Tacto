@@ -7,7 +7,6 @@ import { m } from "motion/react"
 import {
   ArrowRight,
   Check,
-  CircleCheck,
   Clock,
   Eye,
   Folder,

@@ -196,7 +196,7 @@ export function FoldersPanel() {
               key={f.id}
               className={cn(
                 "group flex items-center rounded-lg pr-1 transition-colors",
-                active ? "bg-cobalt-tint" : "hover:bg-muted"
+                active ? "bg-foreground/[0.09]" : "hover:bg-foreground/[0.06]"
               )}
             >
               <button
