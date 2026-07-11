@@ -4,6 +4,7 @@ import { toNodeHandler } from "better-auth/node";
 
 import { captureRouter } from "./features/capture/router.js";
 import { extensionRouter } from "./features/extension/router.js";
+import { folderRouter } from "./features/folder/router.js";
 import { guideRouter } from "./features/guide/router.js";
 import { healthRouter } from "./features/health/router.js";
 import { mediaRouter } from "./features/media/router.js";
@@ -65,6 +66,7 @@ export function createApp(): Express {
   app.use(workspaceRouter);
   app.use(captureRouter);
   app.use(guideRouter);
+  app.use(folderRouter);
   app.use(mediaRouter);
   app.use(extensionRouter);
 

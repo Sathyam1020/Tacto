@@ -36,7 +36,14 @@ export default defineContentScript({
     window.addEventListener("message", (event) => {
       if (event.source !== window || event.origin !== origin) return
       const data = event.data as
-        | { source?: string; type?: string; token?: string; tabId?: number; nonce?: string }
+        | {
+            source?: string
+            type?: string
+            token?: string
+            tabId?: number
+            folderId?: string | null
+            nonce?: string
+          }
         | undefined
       if (data?.source !== "tacto-web") return
 
@@ -64,7 +71,12 @@ export default defineContentScript({
         case "start-on-tab":
           if (typeof data.tabId === "number") {
             void chrome.runtime
-              .sendMessage({ type: "START_ON_TAB", tabId: data.tabId })
+              .sendMessage({
+                type: "START_ON_TAB",
+                tabId: data.tabId,
+                folderId:
+                  typeof data.folderId === "string" ? data.folderId : null,
+              })
               .then(() => post({ type: "started", nonce: data.nonce }))
           }
           break

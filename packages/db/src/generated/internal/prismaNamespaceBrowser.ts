@@ -56,10 +56,12 @@ export const ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Organization: 'Organization',
+  Folder: 'Folder',
   Member: 'Member',
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  CaptureIntent: 'CaptureIntent',
   Step: 'Step'
 } as const
 
@@ -150,6 +152,19 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
+export const FolderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isDefault: 'isDefault',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organizationId: 'organizationId'
+} as const
+
+export type FolderScalarFieldEnum = (typeof FolderScalarFieldEnum)[keyof typeof FolderScalarFieldEnum]
+
+
 export const MemberScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -188,7 +203,8 @@ export const CaptureScalarFieldEnum = {
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
   organizationId: 'organizationId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  folderId: 'folderId'
 } as const
 
 export type CaptureScalarFieldEnum = (typeof CaptureScalarFieldEnum)[keyof typeof CaptureScalarFieldEnum]
@@ -208,10 +224,21 @@ export const GuideScalarFieldEnum = {
   pinnedAt: 'pinnedAt',
   organizationId: 'organizationId',
   captureId: 'captureId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  folderId: 'folderId'
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const CaptureIntentScalarFieldEnum = {
+  userId: 'userId',
+  organizationId: 'organizationId',
+  folderId: 'folderId',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CaptureIntentScalarFieldEnum = (typeof CaptureIntentScalarFieldEnum)[keyof typeof CaptureIntentScalarFieldEnum]
 
 
 export const StepScalarFieldEnum = {

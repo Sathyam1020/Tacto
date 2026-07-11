@@ -72,7 +72,10 @@ export function listTabs(): Promise<BrowserTab[]> {
   return request("list-tabs", "tabs", (d) => (d.tabs as BrowserTab[]) ?? [])
 }
 
-export function startOnTab(tabId: number): Promise<void> {
+export function startOnTab(
+  tabId: number,
+  folderId?: string | null
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const nonce = nextNonce()
     const timer = setTimeout(() => {
@@ -93,7 +96,7 @@ export function startOnTab(tabId: number): Promise<void> {
       window.removeEventListener("message", onMessage)
     }
     window.addEventListener("message", onMessage)
-    post({ type: "start-on-tab", tabId, nonce })
+    post({ type: "start-on-tab", tabId, folderId: folderId ?? null, nonce })
   })
 }
 

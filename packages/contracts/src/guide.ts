@@ -34,10 +34,19 @@ export const updateGuideSchema = z.object({
 });
 export type UpdateGuideInput = z.infer<typeof updateGuideSchema>;
 
-/** Move a guide to another workspace the caller is a member of. */
+/** Move a guide to another workspace (and a folder within it) the caller is a
+ *  member of. Every guide belongs to a folder, so a destination folder is
+ *  required. */
 export const moveGuideSchema = z.object({
   organizationId: z.string().min(1),
+  folderId: z.string().min(1),
 });
+
+/** Assign a guide to a folder in the same workspace (null = uncategorized). */
+export const setGuideFolderSchema = z.object({
+  folderId: z.string().min(1).nullable(),
+});
+export type SetGuideFolderInput = z.infer<typeof setGuideFolderSchema>;
 export type MoveGuideInput = z.infer<typeof moveGuideSchema>;
 
 /** A block as returned to clients (screenshotUrl is presigned for display). */

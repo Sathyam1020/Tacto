@@ -1,6 +1,6 @@
 import { synthesizeGuide } from "@workspace/ai";
 import type { CaptureEvent } from "@workspace/contracts/capture";
-import { prisma } from "@workspace/db";
+import { ensureDefaultFolder, prisma } from "@workspace/db";
 
 import { ingestVideo } from "./ingest-video.js";
 import { normalize } from "./normalize.js";
@@ -115,6 +115,12 @@ export async function processCapture(captureId: string): Promise<void> {
   );
   await prisma.$transaction(
     async (tx) => {
+      // Land in the folder chosen at record time, else the workspace default.
+      // (If that folder was deleted meanwhile, the SetNull FK already cleared
+      // capture.folderId, so this safely falls back.)
+      const folderId =
+        capture.folderId ??
+        (await ensureDefaultFolder(tx, capture.organizationId));
       const guide = await tx.guide.create({
       data: {
         title: synthesized.title,
@@ -122,6 +128,7 @@ export async function processCapture(captureId: string): Promise<void> {
         organizationId: capture.organizationId,
         captureId: capture.id,
         createdById: capture.createdById,
+        folderId,
         blocks: {
           create: synthesized.steps.map((step, index) => {
             // Trace the step back to its source events for element metadata.

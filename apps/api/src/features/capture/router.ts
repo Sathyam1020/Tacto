@@ -11,6 +11,7 @@ import { Router } from "express";
 import { z } from "zod";
 
 const idParamSchema = z.object({ id: z.string() });
+const captureIntentSchema = z.object({ folderId: z.string().min(1).nullable() });
 
 import { captureQueue } from "../../lib/queue.js";
 import { AppError } from "../../middleware/error.js";
@@ -148,12 +149,83 @@ captureRouter.post(
 // upload to R2 → submit events (referencing the screenshot keys). The worker
 // then runs the same normalize → synthesize → assemble pipeline.
 
+// The web records the folder a capture should land in, just before it tells
+// the extension to start. It's consumed when the extension creates the capture.
+captureRouter.post(
+  "/api/captures/intent",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { folderId } = captureIntentSchema.parse(req.body);
+    const userId = req.user!.id;
+    const organizationId = req.workspace!.id;
+
+    if (!folderId) {
+      await prisma.captureIntent.deleteMany({
+        where: { userId, organizationId },
+      });
+      res.status(204).end();
+      return;
+    }
+
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, organizationId },
+      select: { id: true },
+    });
+    if (!folder) throw new AppError(404, "NOT_FOUND", "Folder not found");
+
+    await prisma.captureIntent.upsert({
+      where: { userId_organizationId: { userId, organizationId } },
+      create: { userId, organizationId, folderId },
+      update: { folderId },
+    });
+    res.status(204).end();
+  }
+);
+
 captureRouter.post(
   "/api/captures/extension",
   requireAuth,
   requireWorkspace,
   async (req, res) => {
     const input = createExtensionCaptureSchema.parse(req.body);
+    const userId = req.user!.id;
+    const organizationId = req.workspace!.id;
+
+    // The target folder comes from the extension (if fresh) or, more reliably,
+    // the intent the web recorded at record-start. Either way it must belong to
+    // this workspace; otherwise the worker uses the default folder (null).
+    async function resolveFolder(candidate: string | null): Promise<string | null> {
+      if (!candidate) return null;
+      const folder = await prisma.folder.findFirst({
+        where: { id: candidate, organizationId },
+        select: { id: true },
+      });
+      return folder?.id ?? null;
+    }
+
+    let folderId = await resolveFolder(input.folderId ?? null);
+
+    // Consume the user's most recent one-shot web intent (delete it whether or
+    // not it resolves). resolveFolder validates it against THIS workspace, so a
+    // stale/cross-workspace intent safely falls back to the default.
+    const intent = await prisma.captureIntent.findFirst({
+      where: { userId },
+      orderBy: { updatedAt: "desc" },
+      select: { organizationId: true, folderId: true },
+    });
+    if (intent) {
+      await prisma.captureIntent.delete({
+        where: {
+          userId_organizationId: {
+            userId,
+            organizationId: intent.organizationId,
+          },
+        },
+      });
+      folderId = folderId ?? (await resolveFolder(intent.folderId));
+    }
+
     const capture = await prisma.capture.create({
       data: {
         title: input.title ?? null,
@@ -161,6 +233,7 @@ captureRouter.post(
         status: "UPLOADING",
         organizationId: req.workspace!.id,
         createdById: req.user!.id,
+        folderId,
       },
     });
     res.status(201).json({ captureId: capture.id });

@@ -101,8 +101,32 @@ model Organization {
   invitations Invitation[]
   captures    Capture[]
   guides      Guide[]
+  folders     Folder[]
 
   @@map("organization")
+}
+
+/// A folder groups guides within a workspace. Flat (no nesting); a guide
+/// belongs to at most one folder (folderId null = uncategorized / All guides).
+model Folder {
+  id        String   @id @default(uuid())
+  name      String
+  /// The workspace's default folder — new/uncategorized guides land here, and
+  /// it can't be deleted (exactly one per workspace).
+  isDefault Boolean  @default(false)
+  /// Manual sort order within the workspace (lower = higher in the list).
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  guides   Guide[]
+  captures Capture[]
+
+  @@index([organizationId])
+  @@map("folder")
 }
 
 model Member {
@@ -192,6 +216,10 @@ model Capture {
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdById    String
   createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  /// Folder the resulting guide should land in (chosen at record time; null =
+  /// the workspace's default folder).
+  folderId       String?
+  folder         Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   guides Guide[]
 
@@ -222,11 +250,31 @@ model Guide {
   capture        Capture?     @relation(fields: [captureId], references: [id], onDelete: SetNull)
   createdById    String
   createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  /// Folder grouping within the workspace (null = uncategorized). Deleting the
+  /// folder leaves the guide uncategorized rather than removing it.
+  folderId       String?
+  folder         Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   blocks Step[]
 
   @@index([organizationId, status])
+  @@index([organizationId, folderId])
   @@map("guide")
+}
+
+/// Ephemeral hint: the folder the user's next extension capture should land in.
+/// The web sets it at record-start (the extension can't reliably carry state
+/// across an MV3 service-worker restart); the capture-create consumes + clears
+/// it. One per (user, workspace). Not FK-constrained — a stale/deleted folder
+/// is simply validated away at consume time (falls back to the default folder).
+model CaptureIntent {
+  userId         String
+  organizationId String
+  folderId       String
+  updatedAt      DateTime @updatedAt
+
+  @@id([userId, organizationId])
+  @@map("capture_intent")
 }
 
 /// A content block within a guide (table name kept as "step" for history).

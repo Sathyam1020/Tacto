@@ -4,8 +4,10 @@ import * as React from "react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 /**
- * Datum is light-only by design (a drafting sheet). We force light so the
- * OS/system preference can't flip it, and there's no dark toggle anywhere.
+ * The Linear design system ships light + dark. We toggle via the `.dark` class
+ * (next-themes persists the choice to localStorage). Dark is the default; the
+ * OS preference is ignored so the app has one deliberate default until the user
+ * chooses. The toggle lives in the account dropdown.
  */
 function ThemeProvider({
   children,
@@ -14,7 +16,7 @@ function ThemeProvider({
   return (
     <NextThemesProvider
       attribute="class"
-      forcedTheme="light"
+      defaultTheme="dark"
       enableSystem={false}
       disableTransitionOnChange
       {...props}

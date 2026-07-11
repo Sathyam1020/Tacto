@@ -1,5 +1,9 @@
-import { moveGuideSchema, updateGuideSchema } from "@workspace/contracts/guide";
-import { prisma } from "@workspace/db";
+import {
+  moveGuideSchema,
+  setGuideFolderSchema,
+  updateGuideSchema,
+} from "@workspace/contracts/guide";
+import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
 import { Router } from "express";
 import { nanoid } from "nanoid";
@@ -36,8 +40,12 @@ guideRouter.get(
         status: true,
         shareId: true,
         pinnedAt: true,
+        viewCount: true,
+        folderId: true,
+        captureId: true,
         createdAt: true,
         updatedAt: true,
+        createdBy: { select: { name: true, image: true } },
         _count: { select: { blocks: { where: { type: "STEP" } } } },
         // First STEP block with a screenshot → card cover.
         blocks: {
@@ -62,6 +70,13 @@ guideRouter.get(
             stepCount: guide._count.blocks,
             coverUrl: coverKey ? await presignGet(coverKey) : null,
             pinnedAt: guide.pinnedAt,
+            viewCount: guide.viewCount,
+            folderId: guide.folderId,
+            aiGenerated: guide.captureId !== null,
+            author: {
+              name: guide.createdBy.name,
+              image: guide.createdBy.image,
+            },
             createdAt: guide.createdAt,
             updatedAt: guide.updatedAt,
           };
@@ -232,6 +247,10 @@ guideRouter.post(
     if (!source) throw new AppError(404, "NOT_FOUND", "Guide not found");
 
     // New DRAFT copy; reuses the same screenshot object keys (no R2 copy).
+    // The copy stays in the source's folder (default if somehow unset).
+    const folderId =
+      source.folderId ??
+      (await ensureDefaultFolder(prisma, req.workspace!.id));
     const clone = await prisma.guide.create({
       data: {
         title: `Copy of ${source.title}`,
@@ -239,6 +258,7 @@ guideRouter.post(
         status: "DRAFT",
         organizationId: req.workspace!.id,
         createdById: req.user!.id,
+        folderId,
         blocks: {
           create: source.blocks.map((block) => ({
             type: block.type,
@@ -265,7 +285,7 @@ guideRouter.post(
   requireWorkspace,
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
-    const { organizationId } = moveGuideSchema.parse(req.body);
+    const { organizationId, folderId } = moveGuideSchema.parse(req.body);
 
     const guide = await prisma.guide.findFirst({
       where: { id, organizationId: req.workspace!.id, deletedAt: null },
@@ -281,11 +301,47 @@ guideRouter.post(
     if (!membership)
       throw new AppError(403, "FORBIDDEN", "Not a member of that workspace");
 
+    // The destination folder must live in the destination workspace.
+    const folder = await prisma.folder.findFirst({
+      where: { id: folderId, organizationId },
+      select: { id: true },
+    });
+    if (!folder) throw new AppError(404, "NOT_FOUND", "Folder not found");
+
     await prisma.guide.update({
       where: { id },
-      data: { organizationId, pinnedAt: null },
+      data: { organizationId, folderId, pinnedAt: null },
     });
-    res.json({ guide: { id, organizationId } });
+    res.json({ guide: { id, organizationId, folderId } });
+  }
+);
+
+// ── Set folder ─────────────────────────────────────────────────────────────
+guideRouter.patch(
+  "/api/guides/:id/folder",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { folderId } = setGuideFolderSchema.parse(req.body);
+
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+    // A guide can only join a folder in its own workspace.
+    if (folderId) {
+      const folder = await prisma.folder.findFirst({
+        where: { id: folderId, organizationId: req.workspace!.id },
+        select: { id: true },
+      });
+      if (!folder) throw new AppError(404, "NOT_FOUND", "Folder not found");
+    }
+
+    await prisma.guide.update({ where: { id }, data: { folderId } });
+    res.json({ guide: { id, folderId } });
   }
 );
 

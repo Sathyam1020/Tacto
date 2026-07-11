@@ -103,8 +103,9 @@
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
 
-    /* Skeleton shimmer — premium loading, no spinner. */
-    --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+    /* Skeleton shimmer — premium loading, no spinner. Slow + faint so it reads
+       as a gentle breathing surface, never a strobe. */
+    --animate-shimmer: shimmer 2.4s ease-in-out infinite;
     @keyframes shimmer {
         100% { transform: translateX(100%); }
     }
@@ -166,47 +167,51 @@
     }
 }
 
+/* ── Linear design system — LIGHT (:root) ─────────────────────────────────
+   The single source of truth for the whole app. Legacy Datum/brand names are
+   kept and remapped so every existing utility (bg-viridian, text-graphite,
+   bg-primary, text-cobalt, bg-sage, border-hairline, …) re-skins to Linear
+   without editing each call site. The `--l-*` vars carry the shell/card
+   surface ladder + effects; they mirror .dark 1:1 so the tree flips by class. */
 :root {
-    /* Brand primitives — remapped to Datum. Legacy names kept so existing
-       bg-viridian / text-graphite / border-hairline usages re-skin to the new
-       language without editing every file (renamed progressively per phase). */
-    --paper: #eef1f5; /* cool drafting canvas */
-    --ink: #1b1d22; /* near-black, never #000 */
-    --graphite: #545862; /* secondary ink */
-    --hairline: #e0e3ea; /* line */
-    --viridian: #1f47d6; /* now COBALT — the one action color */
-    --signal: #ae4f5e; /* now muted rose */
+    /* Brand primitives (legacy names → Linear) */
+    --paper: #eceef2; /* canvas */
+    --ink: #16171b; /* ink / text */
+    --graphite: #6b6f76; /* secondary ink (ink-subtle) */
+    --hairline: #dcdfe6; /* hairline border */
+    --viridian: #5e6ad2; /* the one action color → lavender */
+    --signal: #dc2626; /* destructive red */
 
-    /* Grotesque-only: legacy font-serif call sites render as Geist until
-       migrated (a display serif can be slotted in later for hero moments). */
+    /* Grotesque-only: legacy font-serif call sites render as Geist. */
     --font-serif: var(--font-sans);
 
-    /* Datum semantic accents + surfaces */
-    --cobalt: #1f47d6; --cobalt-tint: #e6ebfb; --cobalt-ink: #163aa8;
-    --sage: #4f8168; --sage-tint: #e4efe9; --sage-ink: #356049;
-    --amber: #a4711d; --amber-tint: #f4ecd7; --amber-ink: #7c5514;
-    --rose: #ae4f5e; --rose-tint: #f6e7ea; --rose-ink: #8f3a49;
-    --plate: #fdfdfe; --sheet: #f6f8fb; --line: #e0e3ea; --line-2: #ccd0d9;
+    /* Datum accents → Linear (kept so bg-sage/amber/rose/cobalt re-skin) */
+    --cobalt: #5e6ad2; --cobalt-tint: #e8eaf6; --cobalt-ink: #16171b;
+    --sage: #1f9d3f; --sage-tint: #e3f3e8; --sage-ink: #157f38;
+    --amber: #b7791f; --amber-tint: #f6edd6; --amber-ink: #92600f;
+    --rose: #dc2626; --rose-tint: #fbe3e3; --rose-ink: #b91c1c;
+    --plate: #ffffff; --sheet: #f1f2f6; --line: #dcdfe6; --line-2: #c8ccd6;
 
-    /* Semantic mapping — Datum (light only) */
+    /* Semantic mapping (shadcn contract) */
     --background: var(--paper);
     --foreground: var(--ink);
-    --card: var(--plate); /* floating surfaces — near-white, never pure */
+    --card: #ffffff;
     --card-foreground: var(--ink);
-    --popover: var(--plate);
+    --popover: #ffffff;
     --popover-foreground: var(--ink);
-    --primary: var(--cobalt); /* the one action color */
+    --primary: var(--cobalt);
     --primary-foreground: #ffffff;
-    --secondary: var(--sheet);
+    --primary-hover: #828fff; /* lighter lavender — primary CTA hover */
+    --secondary: #f1f2f6;
     --secondary-foreground: var(--ink);
-    --muted: #e9edf3;
+    --muted: #e6e8ee;
     --muted-foreground: var(--graphite);
-    --accent: var(--cobalt-tint); /* hover wash carries the accent */
-    --accent-foreground: var(--cobalt-ink);
+    --accent: #e6e8ee;
+    --accent-foreground: var(--ink);
     --destructive: var(--rose);
-    --border: var(--line);
-    --input: #d5dae2; /* inputs read slightly firmer than borders */
-    --ring: var(--cobalt); /* focus is cobalt */
+    --border: var(--hairline);
+    --input: #d6d9e1;
+    --ring: var(--cobalt);
     --radius: 0.625rem; /* 10px base */
 
     --chart-1: var(--cobalt);
@@ -215,59 +220,109 @@
     --chart-4: var(--graphite);
     --chart-5: var(--rose);
 
-    --sidebar: var(--sheet);
+    --sidebar: #f1f2f6;
     --sidebar-foreground: var(--ink);
     --sidebar-primary: var(--cobalt);
     --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: var(--cobalt-tint);
-    --sidebar-accent-foreground: var(--cobalt-ink);
-    --sidebar-border: var(--line);
+    --sidebar-accent: #e6e8ee;
+    --sidebar-accent-foreground: var(--ink);
+    --sidebar-border: var(--hairline);
     --sidebar-ring: var(--cobalt);
+
+    /* Linear surface ladder + effects (shell + cards) — LIGHT */
+    --l-canvas: #eceef2;
+    --l-rail-a: #e3e5ea; --l-rail-b: #d9dce3;
+    --l-panel-a: #edeff3; --l-panel-b: #e4e6ec;
+    --l-content-a: #f8f9fb; --l-content-b: #eef0f4;
+    --l-card: #ffffff; --l-card-hover: #ffffff;
+    --l-lift: #f1f2f6; --l-chrome: #f4f5f8;
+    --l-preview: #f4f5f8; --l-preview-base: #ffffff;
+    --l-dot: #c4c8d2; --l-skel-card: #f4f5f8;
+    --l-skel-accent: #c8ccd6; --l-skel-tint: #d6d9e1;
+    --l-hairline: #dcdfe6; --l-hairline-strong: #c8ccd6;
+    --l-ink: #16171b; --l-ink-subtle: #6b6f76; --l-ink-tertiary: #9297a1;
+    --l-edge: rgba(255,255,255,0.9);
+    --l-hover: rgba(0,0,0,0.04);
+    --l-placeholder: rgba(0,0,0,0.015);
+    --l-placeholder-hover: rgba(0,0,0,0.03);
+    --l-card-shadow: 0 12px 30px -16px rgba(20,22,40,0.16);
+    --l-pin-ring: #f8f9fb;
+    --l-success: #1f9d3f; --l-success-ring: rgba(31,157,63,0.30);
+    --l-ai-bg: rgba(94,106,210,0.12); --l-ai-text: #4d58c9; --l-ai-ring: rgba(94,106,210,0.28);
+    --l-clo-bg: rgba(220,60,60,0.10); --l-clo-fg: #c0392b; --l-clo-ring: rgba(220,60,60,0.28);
+    --l-cmid-bg: rgba(180,120,20,0.12); --l-cmid-fg: #a16207; --l-cmid-ring: rgba(180,120,20,0.30);
+    --l-chi-bg: rgba(31,157,63,0.12); --l-chi-fg: #157f38; --l-chi-ring: rgba(31,157,63,0.30);
 }
 
+/* ── Linear design system — DARK (.dark) ── */
 .dark {
-    /* Brand primitives — dark (system inverted, viridian brightened one step) */
-    --paper: oklch(0.96 0.0053 106.5); /* #F2F2EE — becomes the text color */
-    --ink: oklch(0.1983 0.0042 128.7); /* #151614 — becomes the surface */
-    --graphite: oklch(0.6968 0.0161 119.2); /* #9C9F94 */
-    --hairline: oklch(0.2866 0.0073 118.3); /* #2A2B27 */
-    --viridian: oklch(0.6454 0.1303 163.9); /* #1FA678 */
-    --signal: oklch(0.6607 0.1894 22.1); /* #F0565B */
+    --paper: #08090b; --ink: #f7f8f8; --graphite: #8a8f98; --hairline: #23252a;
+    --viridian: #5e6ad2; --signal: #eb5757;
 
-    /* Semantic mapping — dark */
-    --background: var(--ink);
-    --foreground: var(--paper);
-    --card: oklch(0.2328 0.0058 121.9); /* #1D1E1B */
-    --card-foreground: var(--paper);
-    --popover: oklch(0.254 0.0057 121.9); /* #222320 */
-    --popover-foreground: var(--paper);
-    --primary: var(--viridian);
-    --primary-foreground: oklch(0.1983 0.0042 128.7);
-    --secondary: oklch(0.2578 0.0075 118.3); /* #232420 */
-    --secondary-foreground: var(--paper);
-    --muted: oklch(0.2578 0.0075 118.3);
+    --cobalt: #5e6ad2; --cobalt-tint: #212228; --cobalt-ink: #f7f8f8;
+    --sage: #27a644; --sage-tint: #16221a; --sage-ink: #5fd07a;
+    --amber: #d9a441; --amber-tint: #241d10; --amber-ink: #e6b866;
+    --rose: #eb5757; --rose-tint: #241618; --rose-ink: #f0888a;
+    --plate: #17181c; --sheet: #16171b; --line: #23252a; --line-2: #2c2e34;
+
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: #17181c;
+    --card-foreground: var(--ink);
+    --popover: #1c1d22;
+    --popover-foreground: var(--ink);
+    --primary: var(--cobalt);
+    --primary-foreground: #ffffff;
+    --primary-hover: #828fff; /* lighter lavender — primary CTA hover */
+    --secondary: #212228;
+    --secondary-foreground: var(--ink);
+    --muted: #212228;
     --muted-foreground: var(--graphite);
-    --accent: oklch(0.2863 0.009 116.2); /* #2A2B26 */
-    --accent-foreground: var(--paper);
+    --accent: #23252a;
+    --accent-foreground: var(--ink);
     --destructive: var(--signal);
     --border: var(--hairline);
-    --input: oklch(0.2866 0.0073 118.3);
-    --ring: var(--viridian);
+    --input: #2a2c31;
+    --ring: var(--cobalt);
 
-    --chart-1: var(--viridian);
-    --chart-2: oklch(0.5383 0.0952 257.8);
-    --chart-3: oklch(0.6629 0.1197 80.3);
+    --chart-1: var(--cobalt);
+    --chart-2: var(--sage);
+    --chart-3: var(--amber);
     --chart-4: var(--graphite);
-    --chart-5: var(--signal);
+    --chart-5: var(--rose);
 
-    --sidebar: oklch(0.2328 0.0058 121.9);
-    --sidebar-foreground: var(--paper);
-    --sidebar-primary: var(--viridian);
-    --sidebar-primary-foreground: oklch(0.1983 0.0042 128.7);
-    --sidebar-accent: oklch(0.2863 0.009 116.2);
-    --sidebar-accent-foreground: var(--paper);
+    --sidebar: #0e0f13;
+    --sidebar-foreground: var(--ink);
+    --sidebar-primary: var(--cobalt);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #23252a;
+    --sidebar-accent-foreground: var(--ink);
     --sidebar-border: var(--hairline);
-    --sidebar-ring: var(--viridian);
+    --sidebar-ring: var(--cobalt);
+
+    /* Linear surface ladder + effects — DARK */
+    --l-canvas: #08090b;
+    --l-rail-a: #0b0c0f; --l-rail-b: #060709;
+    --l-panel-a: #15161b; --l-panel-b: #0e0f13;
+    --l-content-a: #1c1d22; --l-content-b: #141519;
+    --l-card: #202127; --l-card-hover: #24252b;
+    --l-lift: #1c1d22; --l-chrome: #16171b;
+    --l-preview: #0e0f12; --l-preview-base: #101114;
+    --l-dot: #33363c; --l-skel-card: #17181c;
+    --l-skel-accent: #4a4e57; --l-skel-tint: #2f323a;
+    --l-hairline: #23252a; --l-hairline-strong: #2c2e34;
+    --l-ink: #f7f8f8; --l-ink-subtle: #8a8f98; --l-ink-tertiary: #62666d;
+    --l-edge: rgba(255,255,255,0.05);
+    --l-hover: rgba(255,255,255,0.06);
+    --l-placeholder: rgba(255,255,255,0.015);
+    --l-placeholder-hover: rgba(255,255,255,0.03);
+    --l-card-shadow: 0 16px 40px -18px rgba(0,0,0,0.6);
+    --l-pin-ring: #16171b;
+    --l-success: #27a644; --l-success-ring: rgba(39,166,68,0.35);
+    --l-ai-bg: rgba(94,106,210,0.15); --l-ai-text: #aab2f5; --l-ai-ring: rgba(94,106,210,0.30);
+    --l-clo-bg: rgba(235,87,87,0.12); --l-clo-fg: #f0888a; --l-clo-ring: rgba(235,87,87,0.25);
+    --l-cmid-bg: rgba(224,165,60,0.12); --l-cmid-fg: #e6b866; --l-cmid-ring: rgba(224,165,60,0.25);
+    --l-chi-bg: rgba(39,166,68,0.15); --l-chi-fg: #5fd07a; --l-chi-ring: rgba(39,166,68,0.30);
 }
 
 @layer base {

@@ -120,6 +120,8 @@ export const MAX_CAPTURE_DURATION_SEC = 300;
 /** Extension capture flow: create → presign screenshots → submit events. */
 export const createExtensionCaptureSchema = z.object({
   title: z.string().trim().max(200).optional(),
+  /** Folder the guide should land in (null/absent = default folder). */
+  folderId: z.string().min(1).nullish(),
 });
 export type CreateExtensionCaptureInput = z.infer<
   typeof createExtensionCaptureSchema

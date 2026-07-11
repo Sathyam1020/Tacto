@@ -3,24 +3,20 @@
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
 
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@workspace/ui/components/sidebar"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-import { AppNavbar } from "@/components/app-navbar"
-import { AppSidebar } from "@/components/app-sidebar"
+import { AppShell } from "@/components/app-shell/app-shell"
+import { LibraryViewProvider } from "@/components/app-shell/view-context"
 import { CommandPalette } from "@/components/command-palette"
 import { ExtensionOnboarding } from "@/components/extension-onboarding"
-import { NavbarProvider } from "@/components/navbar-context"
+import { NavbarProvider, useNavbar } from "@/components/navbar-context"
 import { authClient } from "@/lib/auth-client"
 import { useExtension } from "@/lib/extension"
 
 /**
- * Authenticated app shell: session guard + floating sidebar + floating
- * navbar. The editor route (paths ending in /edit) is chrome-free — sidebar
- * hidden — for a focused editing surface.
+ * Authenticated app shell: session guard + extension gate + the Linear
+ * double-sidebar shell. The editor route (paths ending in /edit) is
+ * chrome-free — just the injected Back/Save bar — for focused editing.
  */
 export default function AppLayout({
   children,
@@ -58,15 +54,29 @@ export default function AppLayout({
   }
 
   return (
-    <NavbarProvider>
-      <CommandPalette />
-      <SidebarProvider>
-        {!focusedEditor && <AppSidebar />}
-        <SidebarInset>
-          <AppNavbar />
-          <main className="flex-1 px-6 py-8 md:px-8">{children}</main>
-        </SidebarInset>
-      </SidebarProvider>
-    </NavbarProvider>
+    <LibraryViewProvider>
+      <NavbarProvider>
+        <CommandPalette />
+        {focusedEditor ? (
+          <EditorChrome>{children}</EditorChrome>
+        ) : (
+          <AppShell>{children}</AppShell>
+        )}
+      </NavbarProvider>
+    </LibraryViewProvider>
+  )
+}
+
+/** Chrome-free editing surface — only the page's injected Back/Save bar. */
+function EditorChrome({ children }: { children: React.ReactNode }) {
+  const { leftActions, actions } = useNavbar()
+  return (
+    <div className="flex h-svh flex-col bg-background text-foreground">
+      <header className="flex h-14 flex-none items-center justify-between gap-3 border-b px-5">
+        <div className="flex min-w-0 items-center gap-2">{leftActions}</div>
+        {actions}
+      </header>
+      <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">{children}</div>
+    </div>
   )
 }

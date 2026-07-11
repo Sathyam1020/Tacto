@@ -22,6 +22,8 @@ export default defineBackground(() => {
   let recording = false
   let recordingTabId: number | null = null
   let recordingWindowId: number | null = null
+  // Folder the resulting guide should land in (chosen on the web at start).
+  let recordingFolderId: string | null = null
   let events: RecordedEvent[] = []
   let shots: string[] = []
   let pendingShot: Promise<string | null> | null = null
@@ -89,8 +91,9 @@ export default defineBackground(() => {
     }
   }
 
-  async function startRecording(tabId?: number) {
+  async function startRecording(tabId?: number, folderId?: string | null) {
     await ready
+    recordingFolderId = folderId ?? null
     let tab: chrome.tabs.Tab | undefined
     if (tabId != null) {
       tab = await chrome.tabs.get(tabId).catch(() => undefined)
@@ -155,7 +158,7 @@ export default defineBackground(() => {
     try {
       const firstNav = events.find((e) => e.type === "navigation")
       const title = firstNav?.pageTitle ?? "Untitled capture"
-      const { captureId } = await createCapture(token, title)
+      const { captureId } = await createCapture(token, title, recordingFolderId)
 
       if (shots.length > 0) {
         const { urls } = await getScreenshotUrls(token, captureId, shots.length)
@@ -211,7 +214,9 @@ export default defineBackground(() => {
         }
 
         case "START_ON_TAB": {
-          void startRecording(message.tabId).then(() => sendResponse(status()))
+          void startRecording(message.tabId, message.folderId).then(() =>
+            sendResponse(status())
+          )
           return true
         }
 

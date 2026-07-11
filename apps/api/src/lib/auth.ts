@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { prisma } from "@workspace/db";
+import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, organization } from "better-auth/plugins";
@@ -48,7 +48,18 @@ export const auth = betterAuth({
   // bearer(): lets the Chrome extension authenticate with
   // `Authorization: Bearer <sessionToken>` instead of cookies (which can't
   // cross-origin to an extension). requireAuth's getSession reads it.
-  plugins: [organization(), bearer()],
+  plugins: [
+    // Workspaces created via the UI get a default folder too (signup creates
+    // its workspace directly, handled in the user.create hook below).
+    organization({
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization: org }) => {
+          await ensureDefaultFolder(prisma, org.id);
+        },
+      },
+    }),
+    bearer(),
+  ],
 
   databaseHooks: {
     user: {
@@ -57,9 +68,10 @@ export const auth = betterAuth({
         after: async (user) => {
           const firstName = user.name.trim().split(/\s+/)[0] || "Personal";
           const workspaceName = `${firstName}'s Workspace`;
+          const organizationId = randomUUID();
           await prisma.organization.create({
             data: {
-              id: randomUUID(),
+              id: organizationId,
               name: workspaceName,
               slug: generateSlug(workspaceName),
               createdAt: new Date(),
@@ -73,6 +85,9 @@ export const auth = betterAuth({
               },
             },
           });
+          // Every workspace starts with a default folder so guides always have
+          // a home.
+          await ensureDefaultFolder(prisma, organizationId);
         },
       },
     },

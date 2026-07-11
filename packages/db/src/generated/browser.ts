@@ -43,6 +43,12 @@ export type Verification = Prisma.VerificationModel
  */
 export type Organization = Prisma.OrganizationModel
 /**
+ * Model Folder
+ * A folder groups guides within a workspace. Flat (no nesting); a guide
+ * belongs to at most one folder (folderId null = uncategorized / All guides).
+ */
+export type Folder = Prisma.FolderModel
+/**
  * Model Member
  * 
  */
@@ -65,6 +71,15 @@ export type Capture = Prisma.CaptureModel
  * many Guides (reprocessing, translations later).
  */
 export type Guide = Prisma.GuideModel
+/**
+ * Model CaptureIntent
+ * Ephemeral hint: the folder the user's next extension capture should land in.
+ * The web sets it at record-start (the extension can't reliably carry state
+ * across an MV3 service-worker restart); the capture-create consumes + clears
+ * it. One per (user, workspace). Not FK-constrained — a stale/deleted folder
+ * is simply validated away at consume time (falls back to the default folder).
+ */
+export type CaptureIntent = Prisma.CaptureIntentModel
 /**
  * Model Step
  * A content block within a guide (table name kept as "step" for history).

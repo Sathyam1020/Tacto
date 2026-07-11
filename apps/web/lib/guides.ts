@@ -19,6 +19,10 @@ export type GuideListItem = {
   stepCount: number
   coverUrl: string | null
   pinnedAt: string | null
+  viewCount: number
+  folderId: string | null
+  aiGenerated: boolean
+  author: { name: string; image: string | null }
   createdAt: string
   updatedAt: string
 }
@@ -213,8 +217,34 @@ export function usePinGuide() {
       )
       return data.guide
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["guides"] }),
+    // Optimistic: flip pinnedAt in the cache immediately so the guide reorders
+    // (the list re-sorts pinned-first) without waiting for the round-trip.
+    onMutate: async (guideId) => {
+      await queryClient.cancelQueries({ queryKey: ["guides"] })
+      const snapshots = queryClient.getQueriesData<GuideListItem[]>({
+        queryKey: ["guides"],
+      })
+      const nowIso = new Date().toISOString()
+      queryClient.setQueriesData<GuideListItem[]>(
+        { queryKey: ["guides"] },
+        (old) =>
+          old?.map((g) =>
+            g.id === guideId
+              ? { ...g, pinnedAt: g.pinnedAt ? null : nowIso }
+              : g
+          )
+      )
+      return { snapshots }
+    },
+    onError: (_err, _id, ctx) => {
+      ctx?.snapshots.forEach(([key, data]) =>
+        queryClient.setQueryData(key, data)
+      )
+      toast.error("Couldn't update pin")
+    },
+    onSuccess: (guide) =>
+      toast.success(guide.pinnedAt ? "Pinned to top" : "Unpinned"),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["guides"] }),
   })
 }
 
@@ -237,14 +267,41 @@ export function useCloneGuide() {
 export function useMoveGuide() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (vars: { guideId: string; organizationId: string }) => {
+    mutationFn: async (vars: {
+      guideId: string
+      organizationId: string
+      folderId: string
+    }) => {
       const { data } = await api.post(`/guides/${vars.guideId}/move`, {
         organizationId: vars.organizationId,
+        folderId: vars.folderId,
       })
       return data
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["guides"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["guides"] })
+      queryClient.invalidateQueries({ queryKey: ["folders"] })
+    },
+  })
+}
+
+/** Move a guide into a folder (or out of one when folderId is null). */
+export function useSetGuideFolder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (vars: {
+      guideId: string
+      folderId: string | null
+    }) => {
+      const { data } = await api.patch(`/guides/${vars.guideId}/folder`, {
+        folderId: vars.folderId,
+      })
+      return data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["guides"] })
+      queryClient.invalidateQueries({ queryKey: ["folders"] })
+    },
   })
 }
 

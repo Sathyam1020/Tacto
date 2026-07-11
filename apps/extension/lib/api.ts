@@ -38,10 +38,14 @@ export function fetchMe(token: string) {
   }>(token, "/api/extension/me")
 }
 
-export function createCapture(token: string, title?: string) {
+export function createCapture(
+  token: string,
+  title?: string,
+  folderId?: string | null
+) {
   return authed<{ captureId: string }>(token, "/api/captures/extension", {
     method: "POST",
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, folderId: folderId ?? null }),
   })
 }
 

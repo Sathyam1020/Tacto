@@ -49,6 +49,7 @@ export type CaptureMinAggregateOutputType = {
   deletedAt: Date | null
   organizationId: string | null
   createdById: string | null
+  folderId: string | null
 }
 
 export type CaptureMaxAggregateOutputType = {
@@ -64,6 +65,7 @@ export type CaptureMaxAggregateOutputType = {
   deletedAt: Date | null
   organizationId: string | null
   createdById: string | null
+  folderId: string | null
 }
 
 export type CaptureCountAggregateOutputType = {
@@ -80,6 +82,7 @@ export type CaptureCountAggregateOutputType = {
   deletedAt: number
   organizationId: number
   createdById: number
+  folderId: number
   _all: number
 }
 
@@ -105,6 +108,7 @@ export type CaptureMinAggregateInputType = {
   deletedAt?: true
   organizationId?: true
   createdById?: true
+  folderId?: true
 }
 
 export type CaptureMaxAggregateInputType = {
@@ -120,6 +124,7 @@ export type CaptureMaxAggregateInputType = {
   deletedAt?: true
   organizationId?: true
   createdById?: true
+  folderId?: true
 }
 
 export type CaptureCountAggregateInputType = {
@@ -136,6 +141,7 @@ export type CaptureCountAggregateInputType = {
   deletedAt?: true
   organizationId?: true
   createdById?: true
+  folderId?: true
   _all?: true
 }
 
@@ -239,6 +245,7 @@ export type CaptureGroupByOutputType = {
   deletedAt: Date | null
   organizationId: string
   createdById: string
+  folderId: string | null
   _count: CaptureCountAggregateOutputType | null
   _avg: CaptureAvgAggregateOutputType | null
   _sum: CaptureSumAggregateOutputType | null
@@ -278,8 +285,10 @@ export type CaptureWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"Capture"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Capture"> | string
   createdById?: Prisma.StringFilter<"Capture"> | string
+  folderId?: Prisma.StringNullableFilter<"Capture"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   guides?: Prisma.GuideListRelationFilter
 }
 
@@ -297,8 +306,10 @@ export type CaptureOrderByWithRelationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
+  folder?: Prisma.FolderOrderByWithRelationInput
   guides?: Prisma.GuideOrderByRelationAggregateInput
 }
 
@@ -319,8 +330,10 @@ export type CaptureWhereUniqueInput = Prisma.AtLeast<{
   deletedAt?: Prisma.DateTimeNullableFilter<"Capture"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Capture"> | string
   createdById?: Prisma.StringFilter<"Capture"> | string
+  folderId?: Prisma.StringNullableFilter<"Capture"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   guides?: Prisma.GuideListRelationFilter
 }, "id">
 
@@ -338,6 +351,7 @@ export type CaptureOrderByWithAggregationInput = {
   deletedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.CaptureCountOrderByAggregateInput
   _avg?: Prisma.CaptureAvgOrderByAggregateInput
   _max?: Prisma.CaptureMaxOrderByAggregateInput
@@ -362,6 +376,7 @@ export type CaptureScalarWhereWithAggregatesInput = {
   deletedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Capture"> | Date | string | null
   organizationId?: Prisma.StringWithAggregatesFilter<"Capture"> | string
   createdById?: Prisma.StringWithAggregatesFilter<"Capture"> | string
+  folderId?: Prisma.StringNullableWithAggregatesFilter<"Capture"> | string | null
 }
 
 export type CaptureCreateInput = {
@@ -378,6 +393,7 @@ export type CaptureCreateInput = {
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutCapturesInput
   createdBy: Prisma.UserCreateNestedOneWithoutCapturesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutCapturesInput
   guides?: Prisma.GuideCreateNestedManyWithoutCaptureInput
 }
 
@@ -395,6 +411,7 @@ export type CaptureUncheckedCreateInput = {
   deletedAt?: Date | string | null
   organizationId: string
   createdById: string
+  folderId?: string | null
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCaptureInput
 }
 
@@ -412,6 +429,7 @@ export type CaptureUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutCapturesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCapturesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutCapturesNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCaptureNestedInput
 }
 
@@ -429,6 +447,7 @@ export type CaptureUncheckedUpdateInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCaptureNestedInput
 }
 
@@ -446,6 +465,7 @@ export type CaptureCreateManyInput = {
   deletedAt?: Date | string | null
   organizationId: string
   createdById: string
+  folderId?: string | null
 }
 
 export type CaptureUpdateManyMutationInput = {
@@ -476,6 +496,7 @@ export type CaptureUncheckedUpdateManyInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CaptureListRelationFilter = {
@@ -502,6 +523,7 @@ export type CaptureCountOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type CaptureAvgOrderByAggregateInput = {
@@ -521,6 +543,7 @@ export type CaptureMaxOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type CaptureMinOrderByAggregateInput = {
@@ -536,6 +559,7 @@ export type CaptureMinOrderByAggregateInput = {
   deletedAt?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type CaptureSumOrderByAggregateInput = {
@@ -631,6 +655,48 @@ export type CaptureUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.CaptureScalarWhereInput | Prisma.CaptureScalarWhereInput[]
 }
 
+export type CaptureCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput> | Prisma.CaptureCreateWithoutFolderInput[] | Prisma.CaptureUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.CaptureCreateOrConnectWithoutFolderInput | Prisma.CaptureCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.CaptureCreateManyFolderInputEnvelope
+  connect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+}
+
+export type CaptureUncheckedCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput> | Prisma.CaptureCreateWithoutFolderInput[] | Prisma.CaptureUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.CaptureCreateOrConnectWithoutFolderInput | Prisma.CaptureCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.CaptureCreateManyFolderInputEnvelope
+  connect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+}
+
+export type CaptureUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput> | Prisma.CaptureCreateWithoutFolderInput[] | Prisma.CaptureUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.CaptureCreateOrConnectWithoutFolderInput | Prisma.CaptureCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.CaptureUpsertWithWhereUniqueWithoutFolderInput | Prisma.CaptureUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.CaptureCreateManyFolderInputEnvelope
+  set?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  disconnect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  delete?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  connect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  update?: Prisma.CaptureUpdateWithWhereUniqueWithoutFolderInput | Prisma.CaptureUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.CaptureUpdateManyWithWhereWithoutFolderInput | Prisma.CaptureUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.CaptureScalarWhereInput | Prisma.CaptureScalarWhereInput[]
+}
+
+export type CaptureUncheckedUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput> | Prisma.CaptureCreateWithoutFolderInput[] | Prisma.CaptureUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.CaptureCreateOrConnectWithoutFolderInput | Prisma.CaptureCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.CaptureUpsertWithWhereUniqueWithoutFolderInput | Prisma.CaptureUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.CaptureCreateManyFolderInputEnvelope
+  set?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  disconnect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  delete?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  connect?: Prisma.CaptureWhereUniqueInput | Prisma.CaptureWhereUniqueInput[]
+  update?: Prisma.CaptureUpdateWithWhereUniqueWithoutFolderInput | Prisma.CaptureUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.CaptureUpdateManyWithWhereWithoutFolderInput | Prisma.CaptureUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.CaptureScalarWhereInput | Prisma.CaptureScalarWhereInput[]
+}
+
 export type EnumCaptureSourceFieldUpdateOperationsInput = {
   set?: $Enums.CaptureSource
 }
@@ -676,6 +742,7 @@ export type CaptureCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutCapturesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutCapturesInput
   guides?: Prisma.GuideCreateNestedManyWithoutCaptureInput
 }
 
@@ -692,6 +759,7 @@ export type CaptureUncheckedCreateWithoutCreatedByInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organizationId: string
+  folderId?: string | null
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCaptureInput
 }
 
@@ -738,6 +806,7 @@ export type CaptureScalarWhereInput = {
   deletedAt?: Prisma.DateTimeNullableFilter<"Capture"> | Date | string | null
   organizationId?: Prisma.StringFilter<"Capture"> | string
   createdById?: Prisma.StringFilter<"Capture"> | string
+  folderId?: Prisma.StringNullableFilter<"Capture"> | string | null
 }
 
 export type CaptureCreateWithoutOrganizationInput = {
@@ -753,6 +822,7 @@ export type CaptureCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   createdBy: Prisma.UserCreateNestedOneWithoutCapturesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutCapturesInput
   guides?: Prisma.GuideCreateNestedManyWithoutCaptureInput
 }
 
@@ -769,6 +839,7 @@ export type CaptureUncheckedCreateWithoutOrganizationInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   createdById: string
+  folderId?: string | null
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCaptureInput
 }
 
@@ -798,6 +869,66 @@ export type CaptureUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.CaptureUpdateManyMutationInput, Prisma.CaptureUncheckedUpdateManyWithoutOrganizationInput>
 }
 
+export type CaptureCreateWithoutFolderInput = {
+  id?: string
+  source: $Enums.CaptureSource
+  status?: $Enums.CaptureStatus
+  title?: string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutCapturesInput
+  createdBy: Prisma.UserCreateNestedOneWithoutCapturesInput
+  guides?: Prisma.GuideCreateNestedManyWithoutCaptureInput
+}
+
+export type CaptureUncheckedCreateWithoutFolderInput = {
+  id?: string
+  source: $Enums.CaptureSource
+  status?: $Enums.CaptureStatus
+  title?: string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  organizationId: string
+  createdById: string
+  guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCaptureInput
+}
+
+export type CaptureCreateOrConnectWithoutFolderInput = {
+  where: Prisma.CaptureWhereUniqueInput
+  create: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput>
+}
+
+export type CaptureCreateManyFolderInputEnvelope = {
+  data: Prisma.CaptureCreateManyFolderInput | Prisma.CaptureCreateManyFolderInput[]
+  skipDuplicates?: boolean
+}
+
+export type CaptureUpsertWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.CaptureWhereUniqueInput
+  update: Prisma.XOR<Prisma.CaptureUpdateWithoutFolderInput, Prisma.CaptureUncheckedUpdateWithoutFolderInput>
+  create: Prisma.XOR<Prisma.CaptureCreateWithoutFolderInput, Prisma.CaptureUncheckedCreateWithoutFolderInput>
+}
+
+export type CaptureUpdateWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.CaptureWhereUniqueInput
+  data: Prisma.XOR<Prisma.CaptureUpdateWithoutFolderInput, Prisma.CaptureUncheckedUpdateWithoutFolderInput>
+}
+
+export type CaptureUpdateManyWithWhereWithoutFolderInput = {
+  where: Prisma.CaptureScalarWhereInput
+  data: Prisma.XOR<Prisma.CaptureUpdateManyMutationInput, Prisma.CaptureUncheckedUpdateManyWithoutFolderInput>
+}
+
 export type CaptureCreateWithoutGuidesInput = {
   id?: string
   source: $Enums.CaptureSource
@@ -812,6 +943,7 @@ export type CaptureCreateWithoutGuidesInput = {
   deletedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutCapturesInput
   createdBy: Prisma.UserCreateNestedOneWithoutCapturesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutCapturesInput
 }
 
 export type CaptureUncheckedCreateWithoutGuidesInput = {
@@ -828,6 +960,7 @@ export type CaptureUncheckedCreateWithoutGuidesInput = {
   deletedAt?: Date | string | null
   organizationId: string
   createdById: string
+  folderId?: string | null
 }
 
 export type CaptureCreateOrConnectWithoutGuidesInput = {
@@ -860,6 +993,7 @@ export type CaptureUpdateWithoutGuidesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutCapturesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCapturesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutCapturesNestedInput
 }
 
 export type CaptureUncheckedUpdateWithoutGuidesInput = {
@@ -876,6 +1010,7 @@ export type CaptureUncheckedUpdateWithoutGuidesInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CaptureCreateManyCreatedByInput = {
@@ -891,6 +1026,7 @@ export type CaptureCreateManyCreatedByInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   organizationId: string
+  folderId?: string | null
 }
 
 export type CaptureUpdateWithoutCreatedByInput = {
@@ -906,6 +1042,7 @@ export type CaptureUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutCapturesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutCapturesNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCaptureNestedInput
 }
 
@@ -922,6 +1059,7 @@ export type CaptureUncheckedUpdateWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCaptureNestedInput
 }
 
@@ -938,6 +1076,7 @@ export type CaptureUncheckedUpdateManyWithoutCreatedByInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type CaptureCreateManyOrganizationInput = {
@@ -953,6 +1092,7 @@ export type CaptureCreateManyOrganizationInput = {
   updatedAt?: Date | string
   deletedAt?: Date | string | null
   createdById: string
+  folderId?: string | null
 }
 
 export type CaptureUpdateWithoutOrganizationInput = {
@@ -968,6 +1108,7 @@ export type CaptureUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdBy?: Prisma.UserUpdateOneRequiredWithoutCapturesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutCapturesNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCaptureNestedInput
 }
 
@@ -984,6 +1125,7 @@ export type CaptureUncheckedUpdateWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCaptureNestedInput
 }
 
@@ -999,6 +1141,73 @@ export type CaptureUncheckedUpdateManyWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type CaptureCreateManyFolderInput = {
+  id?: string
+  source: $Enums.CaptureSource
+  status?: $Enums.CaptureStatus
+  title?: string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: string | null
+  durationSec?: number | null
+  errorMessage?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  organizationId: string
+  createdById: string
+}
+
+export type CaptureUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
+  status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutCapturesNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutCapturesNestedInput
+  guides?: Prisma.GuideUpdateManyWithoutCaptureNestedInput
+}
+
+export type CaptureUncheckedUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
+  status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  guides?: Prisma.GuideUncheckedUpdateManyWithoutCaptureNestedInput
+}
+
+export type CaptureUncheckedUpdateManyWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  source?: Prisma.EnumCaptureSourceFieldUpdateOperationsInput | $Enums.CaptureSource
+  status?: Prisma.EnumCaptureStatusFieldUpdateOperationsInput | $Enums.CaptureStatus
+  title?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  events?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  videoKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  durationSec?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  errorMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
 }
 
@@ -1047,8 +1256,10 @@ export type CaptureSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   deletedAt?: boolean
   organizationId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
   guides?: boolean | Prisma.Capture$guidesArgs<ExtArgs>
   _count?: boolean | Prisma.CaptureCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["capture"]>
@@ -1067,8 +1278,10 @@ export type CaptureSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   deletedAt?: boolean
   organizationId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
 }, ExtArgs["result"]["capture"]>
 
 export type CaptureSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1085,8 +1298,10 @@ export type CaptureSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   deletedAt?: boolean
   organizationId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
 }, ExtArgs["result"]["capture"]>
 
 export type CaptureSelectScalar = {
@@ -1103,22 +1318,26 @@ export type CaptureSelectScalar = {
   deletedAt?: boolean
   organizationId?: boolean
   createdById?: boolean
+  folderId?: boolean
 }
 
-export type CaptureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "source" | "status" | "title" | "events" | "videoKey" | "durationSec" | "errorMessage" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "createdById", ExtArgs["result"]["capture"]>
+export type CaptureOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "source" | "status" | "title" | "events" | "videoKey" | "durationSec" | "errorMessage" | "createdAt" | "updatedAt" | "deletedAt" | "organizationId" | "createdById" | "folderId", ExtArgs["result"]["capture"]>
 export type CaptureInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
   guides?: boolean | Prisma.Capture$guidesArgs<ExtArgs>
   _count?: boolean | Prisma.CaptureCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CaptureIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
 }
 export type CaptureIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Capture$folderArgs<ExtArgs>
 }
 
 export type $CapturePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1126,6 +1345,7 @@ export type $CapturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
     createdBy: Prisma.$UserPayload<ExtArgs>
+    folder: Prisma.$FolderPayload<ExtArgs> | null
     guides: Prisma.$GuidePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1149,6 +1369,11 @@ export type $CapturePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     deletedAt: Date | null
     organizationId: string
     createdById: string
+    /**
+     * Folder the resulting guide should land in (chosen at record time; null =
+     * the workspace's default folder).
+     */
+    folderId: string | null
   }, ExtArgs["result"]["capture"]>
   composites: {}
 }
@@ -1545,6 +1770,7 @@ export interface Prisma__CaptureClient<T, Null = never, ExtArgs extends runtime.
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  folder<T extends Prisma.Capture$folderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Capture$folderArgs<ExtArgs>>): Prisma.Prisma__FolderClient<runtime.Types.Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   guides<T extends Prisma.Capture$guidesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Capture$guidesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuidePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1588,6 +1814,7 @@ export interface CaptureFieldRefs {
   readonly deletedAt: Prisma.FieldRef<"Capture", 'DateTime'>
   readonly organizationId: Prisma.FieldRef<"Capture", 'String'>
   readonly createdById: Prisma.FieldRef<"Capture", 'String'>
+  readonly folderId: Prisma.FieldRef<"Capture", 'String'>
 }
     
 
@@ -1986,6 +2213,25 @@ export type CaptureDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Captures to delete.
    */
   limit?: number
+}
+
+/**
+ * Capture.folder
+ */
+export type Capture$folderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Folder
+   */
+  select?: Prisma.FolderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Folder
+   */
+  omit?: Prisma.FolderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FolderInclude<ExtArgs> | null
+  where?: Prisma.FolderWhereInput
 }
 
 /**

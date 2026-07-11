@@ -389,10 +389,12 @@ export const ModelName = {
   Account: 'Account',
   Verification: 'Verification',
   Organization: 'Organization',
+  Folder: 'Folder',
   Member: 'Member',
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  CaptureIntent: 'CaptureIntent',
   Step: 'Step'
 } as const
 
@@ -409,7 +411,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "member" | "invitation" | "capture" | "guide" | "step"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "captureIntent" | "step"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -783,6 +785,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Folder: {
+      payload: Prisma.$FolderPayload<ExtArgs>
+      fields: Prisma.FolderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FolderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FolderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        findFirst: {
+          args: Prisma.FolderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FolderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        findMany: {
+          args: Prisma.FolderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>[]
+        }
+        create: {
+          args: Prisma.FolderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        createMany: {
+          args: Prisma.FolderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FolderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>[]
+        }
+        delete: {
+          args: Prisma.FolderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        update: {
+          args: Prisma.FolderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        deleteMany: {
+          args: Prisma.FolderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FolderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FolderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>[]
+        }
+        upsert: {
+          args: Prisma.FolderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FolderPayload>
+        }
+        aggregate: {
+          args: Prisma.FolderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFolder>
+        }
+        groupBy: {
+          args: Prisma.FolderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FolderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FolderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FolderCountAggregateOutputType> | number
+        }
+      }
+    }
     Member: {
       payload: Prisma.$MemberPayload<ExtArgs>
       fields: Prisma.MemberFieldRefs
@@ -1079,6 +1155,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    CaptureIntent: {
+      payload: Prisma.$CaptureIntentPayload<ExtArgs>
+      fields: Prisma.CaptureIntentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CaptureIntentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CaptureIntentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        findFirst: {
+          args: Prisma.CaptureIntentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CaptureIntentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        findMany: {
+          args: Prisma.CaptureIntentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>[]
+        }
+        create: {
+          args: Prisma.CaptureIntentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        createMany: {
+          args: Prisma.CaptureIntentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CaptureIntentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>[]
+        }
+        delete: {
+          args: Prisma.CaptureIntentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        update: {
+          args: Prisma.CaptureIntentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        deleteMany: {
+          args: Prisma.CaptureIntentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CaptureIntentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CaptureIntentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>[]
+        }
+        upsert: {
+          args: Prisma.CaptureIntentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CaptureIntentPayload>
+        }
+        aggregate: {
+          args: Prisma.CaptureIntentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCaptureIntent>
+        }
+        groupBy: {
+          args: Prisma.CaptureIntentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CaptureIntentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CaptureIntentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CaptureIntentCountAggregateOutputType> | number
+        }
+      }
+    }
     Step: {
       payload: Prisma.$StepPayload<ExtArgs>
       fields: Prisma.StepFieldRefs
@@ -1263,6 +1413,19 @@ export const OrganizationScalarFieldEnum = {
 export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[keyof typeof OrganizationScalarFieldEnum]
 
 
+export const FolderScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  isDefault: 'isDefault',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organizationId: 'organizationId'
+} as const
+
+export type FolderScalarFieldEnum = (typeof FolderScalarFieldEnum)[keyof typeof FolderScalarFieldEnum]
+
+
 export const MemberScalarFieldEnum = {
   id: 'id',
   role: 'role',
@@ -1301,7 +1464,8 @@ export const CaptureScalarFieldEnum = {
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
   organizationId: 'organizationId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  folderId: 'folderId'
 } as const
 
 export type CaptureScalarFieldEnum = (typeof CaptureScalarFieldEnum)[keyof typeof CaptureScalarFieldEnum]
@@ -1321,10 +1485,21 @@ export const GuideScalarFieldEnum = {
   pinnedAt: 'pinnedAt',
   organizationId: 'organizationId',
   captureId: 'captureId',
-  createdById: 'createdById'
+  createdById: 'createdById',
+  folderId: 'folderId'
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const CaptureIntentScalarFieldEnum = {
+  userId: 'userId',
+  organizationId: 'organizationId',
+  folderId: 'folderId',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CaptureIntentScalarFieldEnum = (typeof CaptureIntentScalarFieldEnum)[keyof typeof CaptureIntentScalarFieldEnum]
 
 
 export const StepScalarFieldEnum = {
@@ -1429,6 +1604,20 @@ export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaM
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'CaptureSource'
  */
 export type EnumCaptureSourceFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'CaptureSource'>
@@ -1495,20 +1684,6 @@ export type EnumGuideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'GuideStatus[]'
  */
 export type ListEnumGuideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Int'
- */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-/**
- * Reference to a field of type 'Int[]'
- */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
 
 
@@ -1640,10 +1815,12 @@ export type GlobalOmitConfig = {
   account?: Prisma.AccountOmit
   verification?: Prisma.VerificationOmit
   organization?: Prisma.OrganizationOmit
+  folder?: Prisma.FolderOmit
   member?: Prisma.MemberOmit
   invitation?: Prisma.InvitationOmit
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
+  captureIntent?: Prisma.CaptureIntentOmit
   step?: Prisma.StepOmit
 }
 

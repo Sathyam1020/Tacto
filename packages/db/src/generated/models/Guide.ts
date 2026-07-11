@@ -50,6 +50,7 @@ export type GuideMinAggregateOutputType = {
   organizationId: string | null
   captureId: string | null
   createdById: string | null
+  folderId: string | null
 }
 
 export type GuideMaxAggregateOutputType = {
@@ -67,6 +68,7 @@ export type GuideMaxAggregateOutputType = {
   organizationId: string | null
   captureId: string | null
   createdById: string | null
+  folderId: string | null
 }
 
 export type GuideCountAggregateOutputType = {
@@ -84,6 +86,7 @@ export type GuideCountAggregateOutputType = {
   organizationId: number
   captureId: number
   createdById: number
+  folderId: number
   _all: number
 }
 
@@ -111,6 +114,7 @@ export type GuideMinAggregateInputType = {
   organizationId?: true
   captureId?: true
   createdById?: true
+  folderId?: true
 }
 
 export type GuideMaxAggregateInputType = {
@@ -128,6 +132,7 @@ export type GuideMaxAggregateInputType = {
   organizationId?: true
   captureId?: true
   createdById?: true
+  folderId?: true
 }
 
 export type GuideCountAggregateInputType = {
@@ -145,6 +150,7 @@ export type GuideCountAggregateInputType = {
   organizationId?: true
   captureId?: true
   createdById?: true
+  folderId?: true
   _all?: true
 }
 
@@ -249,6 +255,7 @@ export type GuideGroupByOutputType = {
   organizationId: string
   captureId: string | null
   createdById: string
+  folderId: string | null
   _count: GuideCountAggregateOutputType | null
   _avg: GuideAvgAggregateOutputType | null
   _sum: GuideSumAggregateOutputType | null
@@ -289,9 +296,11 @@ export type GuideWhereInput = {
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
+  folderId?: Prisma.StringNullableFilter<"Guide"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   capture?: Prisma.XOR<Prisma.CaptureNullableScalarRelationFilter, Prisma.CaptureWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   blocks?: Prisma.StepListRelationFilter
 }
 
@@ -310,9 +319,11 @@ export type GuideOrderByWithRelationInput = {
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   capture?: Prisma.CaptureOrderByWithRelationInput
   createdBy?: Prisma.UserOrderByWithRelationInput
+  folder?: Prisma.FolderOrderByWithRelationInput
   blocks?: Prisma.StepOrderByRelationAggregateInput
 }
 
@@ -334,9 +345,11 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
+  folderId?: Prisma.StringNullableFilter<"Guide"> | string | null
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   capture?: Prisma.XOR<Prisma.CaptureNullableScalarRelationFilter, Prisma.CaptureWhereInput> | null
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
+  folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   blocks?: Prisma.StepListRelationFilter
 }, "id" | "shareId">
 
@@ -355,6 +368,7 @@ export type GuideOrderByWithAggregationInput = {
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.GuideCountOrderByAggregateInput
   _avg?: Prisma.GuideAvgOrderByAggregateInput
   _max?: Prisma.GuideMaxOrderByAggregateInput
@@ -380,6 +394,7 @@ export type GuideScalarWhereWithAggregatesInput = {
   organizationId?: Prisma.StringWithAggregatesFilter<"Guide"> | string
   captureId?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
   createdById?: Prisma.StringWithAggregatesFilter<"Guide"> | string
+  folderId?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
 }
 
 export type GuideCreateInput = {
@@ -397,6 +412,7 @@ export type GuideCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
@@ -415,6 +431,7 @@ export type GuideUncheckedCreateInput = {
   organizationId: string
   captureId?: string | null
   createdById: string
+  folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
@@ -433,6 +450,7 @@ export type GuideUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
@@ -451,6 +469,7 @@ export type GuideUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
@@ -469,6 +488,7 @@ export type GuideCreateManyInput = {
   organizationId: string
   captureId?: string | null
   createdById: string
+  folderId?: string | null
 }
 
 export type GuideUpdateManyMutationInput = {
@@ -500,6 +520,7 @@ export type GuideUncheckedUpdateManyInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type GuideListRelationFilter = {
@@ -527,6 +548,7 @@ export type GuideCountOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type GuideAvgOrderByAggregateInput = {
@@ -548,6 +570,7 @@ export type GuideMaxOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type GuideMinOrderByAggregateInput = {
@@ -565,6 +588,7 @@ export type GuideMinOrderByAggregateInput = {
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
+  folderId?: Prisma.SortOrder
 }
 
 export type GuideSumOrderByAggregateInput = {
@@ -660,6 +684,48 @@ export type GuideUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.GuideScalarWhereInput | Prisma.GuideScalarWhereInput[]
 }
 
+export type GuideCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput> | Prisma.GuideCreateWithoutFolderInput[] | Prisma.GuideUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutFolderInput | Prisma.GuideCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.GuideCreateManyFolderInputEnvelope
+  connect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+}
+
+export type GuideUncheckedCreateNestedManyWithoutFolderInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput> | Prisma.GuideCreateWithoutFolderInput[] | Prisma.GuideUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutFolderInput | Prisma.GuideCreateOrConnectWithoutFolderInput[]
+  createMany?: Prisma.GuideCreateManyFolderInputEnvelope
+  connect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+}
+
+export type GuideUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput> | Prisma.GuideCreateWithoutFolderInput[] | Prisma.GuideUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutFolderInput | Prisma.GuideCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.GuideUpsertWithWhereUniqueWithoutFolderInput | Prisma.GuideUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.GuideCreateManyFolderInputEnvelope
+  set?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  disconnect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  delete?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  connect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  update?: Prisma.GuideUpdateWithWhereUniqueWithoutFolderInput | Prisma.GuideUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.GuideUpdateManyWithWhereWithoutFolderInput | Prisma.GuideUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.GuideScalarWhereInput | Prisma.GuideScalarWhereInput[]
+}
+
+export type GuideUncheckedUpdateManyWithoutFolderNestedInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput> | Prisma.GuideCreateWithoutFolderInput[] | Prisma.GuideUncheckedCreateWithoutFolderInput[]
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutFolderInput | Prisma.GuideCreateOrConnectWithoutFolderInput[]
+  upsert?: Prisma.GuideUpsertWithWhereUniqueWithoutFolderInput | Prisma.GuideUpsertWithWhereUniqueWithoutFolderInput[]
+  createMany?: Prisma.GuideCreateManyFolderInputEnvelope
+  set?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  disconnect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  delete?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  connect?: Prisma.GuideWhereUniqueInput | Prisma.GuideWhereUniqueInput[]
+  update?: Prisma.GuideUpdateWithWhereUniqueWithoutFolderInput | Prisma.GuideUpdateWithWhereUniqueWithoutFolderInput[]
+  updateMany?: Prisma.GuideUpdateManyWithWhereWithoutFolderInput | Prisma.GuideUpdateManyWithWhereWithoutFolderInput[]
+  deleteMany?: Prisma.GuideScalarWhereInput | Prisma.GuideScalarWhereInput[]
+}
+
 export type GuideCreateNestedManyWithoutCaptureInput = {
   create?: Prisma.XOR<Prisma.GuideCreateWithoutCaptureInput, Prisma.GuideUncheckedCreateWithoutCaptureInput> | Prisma.GuideCreateWithoutCaptureInput[] | Prisma.GuideUncheckedCreateWithoutCaptureInput[]
   connectOrCreate?: Prisma.GuideCreateOrConnectWithoutCaptureInput | Prisma.GuideCreateOrConnectWithoutCaptureInput[]
@@ -706,14 +772,6 @@ export type EnumGuideStatusFieldUpdateOperationsInput = {
   set?: $Enums.GuideStatus
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type GuideCreateNestedOneWithoutBlocksInput = {
   create?: Prisma.XOR<Prisma.GuideCreateWithoutBlocksInput, Prisma.GuideUncheckedCreateWithoutBlocksInput>
   connectOrCreate?: Prisma.GuideCreateOrConnectWithoutBlocksInput
@@ -742,6 +800,7 @@ export type GuideCreateWithoutCreatedByInput = {
   pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
@@ -759,6 +818,7 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
+  folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
@@ -806,6 +866,7 @@ export type GuideScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
+  folderId?: Prisma.StringNullableFilter<"Guide"> | string | null
 }
 
 export type GuideCreateWithoutOrganizationInput = {
@@ -822,6 +883,7 @@ export type GuideCreateWithoutOrganizationInput = {
   pinnedAt?: Date | string | null
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
@@ -839,6 +901,7 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   pinnedAt?: Date | string | null
   captureId?: string | null
   createdById: string
+  folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
@@ -868,6 +931,68 @@ export type GuideUpdateManyWithWhereWithoutOrganizationInput = {
   data: Prisma.XOR<Prisma.GuideUpdateManyMutationInput, Prisma.GuideUncheckedUpdateManyWithoutOrganizationInput>
 }
 
+export type GuideCreateWithoutFolderInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
+  capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
+  createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+}
+
+export type GuideUncheckedCreateWithoutFolderInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  organizationId: string
+  captureId?: string | null
+  createdById: string
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+}
+
+export type GuideCreateOrConnectWithoutFolderInput = {
+  where: Prisma.GuideWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput>
+}
+
+export type GuideCreateManyFolderInputEnvelope = {
+  data: Prisma.GuideCreateManyFolderInput | Prisma.GuideCreateManyFolderInput[]
+  skipDuplicates?: boolean
+}
+
+export type GuideUpsertWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.GuideWhereUniqueInput
+  update: Prisma.XOR<Prisma.GuideUpdateWithoutFolderInput, Prisma.GuideUncheckedUpdateWithoutFolderInput>
+  create: Prisma.XOR<Prisma.GuideCreateWithoutFolderInput, Prisma.GuideUncheckedCreateWithoutFolderInput>
+}
+
+export type GuideUpdateWithWhereUniqueWithoutFolderInput = {
+  where: Prisma.GuideWhereUniqueInput
+  data: Prisma.XOR<Prisma.GuideUpdateWithoutFolderInput, Prisma.GuideUncheckedUpdateWithoutFolderInput>
+}
+
+export type GuideUpdateManyWithWhereWithoutFolderInput = {
+  where: Prisma.GuideScalarWhereInput
+  data: Prisma.XOR<Prisma.GuideUpdateManyMutationInput, Prisma.GuideUncheckedUpdateManyWithoutFolderInput>
+}
+
 export type GuideCreateWithoutCaptureInput = {
   id?: string
   title: string
@@ -882,6 +1007,7 @@ export type GuideCreateWithoutCaptureInput = {
   pinnedAt?: Date | string | null
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
 }
 
@@ -899,6 +1025,7 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   pinnedAt?: Date | string | null
   organizationId: string
   createdById: string
+  folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
 }
 
@@ -943,6 +1070,7 @@ export type GuideCreateWithoutBlocksInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
 }
 
 export type GuideUncheckedCreateWithoutBlocksInput = {
@@ -960,6 +1088,7 @@ export type GuideUncheckedCreateWithoutBlocksInput = {
   organizationId: string
   captureId?: string | null
   createdById: string
+  folderId?: string | null
 }
 
 export type GuideCreateOrConnectWithoutBlocksInput = {
@@ -993,6 +1122,7 @@ export type GuideUpdateWithoutBlocksInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutBlocksInput = {
@@ -1010,6 +1140,7 @@ export type GuideUncheckedUpdateWithoutBlocksInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type GuideCreateManyCreatedByInput = {
@@ -1026,6 +1157,7 @@ export type GuideCreateManyCreatedByInput = {
   pinnedAt?: Date | string | null
   organizationId: string
   captureId?: string | null
+  folderId?: string | null
 }
 
 export type GuideUpdateWithoutCreatedByInput = {
@@ -1042,6 +1174,7 @@ export type GuideUpdateWithoutCreatedByInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
@@ -1059,6 +1192,7 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
@@ -1076,6 +1210,7 @@ export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type GuideCreateManyOrganizationInput = {
@@ -1092,6 +1227,7 @@ export type GuideCreateManyOrganizationInput = {
   pinnedAt?: Date | string | null
   captureId?: string | null
   createdById: string
+  folderId?: string | null
 }
 
 export type GuideUpdateWithoutOrganizationInput = {
@@ -1108,6 +1244,7 @@ export type GuideUpdateWithoutOrganizationInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
@@ -1125,6 +1262,7 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
@@ -1140,6 +1278,77 @@ export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+}
+
+export type GuideCreateManyFolderInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  organizationId: string
+  captureId?: string | null
+  createdById: string
+}
+
+export type GuideUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
+  capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+}
+
+export type GuideUncheckedUpdateWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+}
+
+export type GuideUncheckedUpdateManyWithoutFolderInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
 }
@@ -1158,6 +1367,7 @@ export type GuideCreateManyCaptureInput = {
   pinnedAt?: Date | string | null
   organizationId: string
   createdById: string
+  folderId?: string | null
 }
 
 export type GuideUpdateWithoutCaptureInput = {
@@ -1174,6 +1384,7 @@ export type GuideUpdateWithoutCaptureInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
 }
 
@@ -1191,6 +1402,7 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
 }
 
@@ -1208,6 +1420,7 @@ export type GuideUncheckedUpdateManyWithoutCaptureInput = {
   pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -1256,9 +1469,11 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
   blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["guide"]>
@@ -1278,9 +1493,11 @@ export type GuideSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
 }, ExtArgs["result"]["guide"]>
 
 export type GuideSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1298,9 +1515,11 @@ export type GuideSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
+  folderId?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
 }, ExtArgs["result"]["guide"]>
 
 export type GuideSelectScalar = {
@@ -1318,13 +1537,15 @@ export type GuideSelectScalar = {
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
+  folderId?: boolean
 }
 
-export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "pinnedAt" | "organizationId" | "captureId" | "createdById", ExtArgs["result"]["guide"]>
+export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "pinnedAt" | "organizationId" | "captureId" | "createdById" | "folderId", ExtArgs["result"]["guide"]>
 export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
   blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1332,11 +1553,13 @@ export type GuideIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
 }
 export type GuideIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
+  folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
 }
 
 export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1345,6 +1568,7 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     organization: Prisma.$OrganizationPayload<ExtArgs>
     capture: Prisma.$CapturePayload<ExtArgs> | null
     createdBy: Prisma.$UserPayload<ExtArgs>
+    folder: Prisma.$FolderPayload<ExtArgs> | null
     blocks: Prisma.$StepPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -1368,6 +1592,11 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     organizationId: string
     captureId: string | null
     createdById: string
+    /**
+     * Folder grouping within the workspace (null = uncategorized). Deleting the
+     * folder leaves the guide uncategorized rather than removing it.
+     */
+    folderId: string | null
   }, ExtArgs["result"]["guide"]>
   composites: {}
 }
@@ -1765,6 +1994,7 @@ export interface Prisma__GuideClient<T, Null = never, ExtArgs extends runtime.Ty
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   capture<T extends Prisma.Guide$captureArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$captureArgs<ExtArgs>>): Prisma.Prisma__CaptureClient<runtime.Types.Result.GetResult<Prisma.$CapturePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  folder<T extends Prisma.Guide$folderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$folderArgs<ExtArgs>>): Prisma.Prisma__FolderClient<runtime.Types.Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   blocks<T extends Prisma.Guide$blocksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$blocksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1809,6 +2039,7 @@ export interface GuideFieldRefs {
   readonly organizationId: Prisma.FieldRef<"Guide", 'String'>
   readonly captureId: Prisma.FieldRef<"Guide", 'String'>
   readonly createdById: Prisma.FieldRef<"Guide", 'String'>
+  readonly folderId: Prisma.FieldRef<"Guide", 'String'>
 }
     
 
@@ -2226,6 +2457,25 @@ export type Guide$captureArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.CaptureInclude<ExtArgs> | null
   where?: Prisma.CaptureWhereInput
+}
+
+/**
+ * Guide.folder
+ */
+export type Guide$folderArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Folder
+   */
+  select?: Prisma.FolderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Folder
+   */
+  omit?: Prisma.FolderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FolderInclude<ExtArgs> | null
+  where?: Prisma.FolderWhereInput
 }
 
 /**

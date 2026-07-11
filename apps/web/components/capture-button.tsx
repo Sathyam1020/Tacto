@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Plus, Video } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -11,15 +12,23 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import { TouchRing } from "@workspace/ui/components/touch-ring"
 
+import { api } from "@/lib/api"
 import { listTabs, startOnTab, type BrowserTab } from "@/lib/extension"
 
 /**
  * Navbar Capture button — opens a tab picker (tabs come from the extension),
  * and starts recording on the chosen tab. Replaces the old screen-share.
  */
-export function CaptureButton() {
+export function CaptureButton({
+  variant = "button",
+  folderId = null,
+}: {
+  /** "card" renders the dashed library placeholder tile instead of a button. */
+  variant?: "button" | "card"
+  /** Folder the resulting guide should land in (null = default folder). */
+  folderId?: string | null
+}) {
   const [open, setOpen] = React.useState(false)
   const [tabs, setTabs] = React.useState<BrowserTab[] | null>(null)
   const [loading, setLoading] = React.useState(false)
@@ -47,7 +56,14 @@ export function CaptureButton() {
     setStartingId(tab.id)
     setError(null)
     try {
-      await startOnTab(tab.id)
+      // Record the target folder server-side first (reliable even if the
+      // extension can't carry it), then start recording.
+      try {
+        await api.post("/captures/intent", { folderId: folderId ?? null })
+      } catch {
+        // Non-fatal: the capture still records; it just lands in the default.
+      }
+      await startOnTab(tab.id, folderId)
       setOpen(false)
       setStartedIn(tab.title)
       window.setTimeout(() => setStartedIn(null), 4000)
@@ -60,10 +76,25 @@ export function CaptureButton() {
 
   return (
     <>
-      <Button size="sm" onClick={openPicker}>
-        <TouchRing size="sm" tone="neutral" />
-        Capture
-      </Button>
+      {variant === "card" ? (
+        <button
+          onClick={openPicker}
+          className="group/add flex h-full min-h-[230px] w-full flex-col items-center justify-center gap-3 rounded-[14px] border border-dashed border-[var(--l-hairline-strong)] bg-[var(--l-placeholder)] text-muted-foreground transition-colors hover:border-[var(--l-hairline-strong)] hover:bg-[var(--l-placeholder-hover)] hover:text-foreground"
+        >
+          <span className="flex size-11 items-center justify-center rounded-full border border-[var(--l-hairline-strong)] bg-[var(--l-lift)] text-foreground transition-transform duration-200 group-hover/add:scale-105">
+            <Plus className="size-5" />
+          </span>
+          <span className="text-[13px] font-medium">New capture</span>
+          <span className="text-[11px] text-muted-foreground">
+            Record a workflow to add a guide
+          </span>
+        </button>
+      ) : (
+        <Button size="sm" onClick={openPicker}>
+          <Video className="size-4" />
+          New capture
+        </Button>
+      )}
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">

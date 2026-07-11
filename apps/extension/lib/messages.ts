@@ -11,7 +11,7 @@ export type ContentMessage =
 export type BridgeMessage =
   | { type: "CONNECT_TOKEN"; token: string }
   | { type: "LIST_TABS" }
-  | { type: "START_ON_TAB"; tabId: number }
+  | { type: "START_ON_TAB"; tabId: number; folderId?: string | null }
   | { type: "GET_CONNECTION" }
 
 /** popup → background */
