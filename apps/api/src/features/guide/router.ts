@@ -1,13 +1,18 @@
+import { importStepsFromText, translateGuide } from "@workspace/ai";
 import {
+  addTranslationSchema,
   guideCustomizationSchema,
   moveGuideSchema,
   setGuideFolderSchema,
+  TRANSLATION_LANGUAGES,
   updateGuideSchema,
 } from "@workspace/contracts/guide";
 import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
-import { Router } from "express";
+import express, { Router } from "express";
+import mammoth from "mammoth";
 import { nanoid } from "nanoid";
+import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { z } from "zod";
 
 import { sanitizeContent } from "../../lib/sanitize.js";
@@ -148,6 +153,181 @@ guideRouter.patch(
   }
 );
 
+// ── Import from a document (DOCX/PDF → AI steps) ──────────────────────────
+// The browser POSTs the raw file bytes; we extract text and let the AI
+// structure it into blocks. Nothing is persisted here — the editor stages the
+// returned blocks and saves them with the rest of the guide.
+const importKindSchema = z.object({ kind: z.enum(["docx", "pdf"]) });
+
+async function extractText(kind: "docx" | "pdf", buffer: Buffer): Promise<string> {
+  if (kind === "docx") {
+    const { value } = await mammoth.extractRawText({ buffer });
+    return value;
+  }
+  const { text } = await pdfParse(buffer);
+  return text;
+}
+
+/** Escape plain AI text for safe use inside a `<p>` (it contains no markup). */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+guideRouter.post(
+  "/api/guides/:id/import-document",
+  requireAuth,
+  requireWorkspace,
+  express.raw({ type: () => true, limit: "25mb" }),
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { kind } = importKindSchema.parse(req.query);
+
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+    const buffer = req.body as Buffer;
+    if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+      throw new AppError(400, "BAD_REQUEST", "No file was received");
+    }
+
+    let text: string;
+    try {
+      text = await extractText(kind, buffer);
+    } catch {
+      throw new AppError(422, "UNREADABLE", "Couldn't read that document");
+    }
+    if (!text.trim()) {
+      throw new AppError(422, "EMPTY", "No text could be read from that file");
+    }
+
+    const { blocks } = await importStepsFromText(text);
+    // Wrap each step's plain text as the HTML the editor stores.
+    res.json({
+      blocks: blocks.map((b) => ({
+        type: b.type,
+        content: `<p>${escapeHtml(b.text)}</p>`,
+      })),
+    });
+  }
+);
+
+// ── Translations (AI language versions) ──────────────────────────────────
+// Generated from the SAVED guide and stored per language; the public reader
+// offers a language switcher. Regenerate (re-POST) after editing the guide.
+guideRouter.get(
+  "/api/guides/:id/translations",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+    const translations = await prisma.guideTranslation.findMany({
+      where: { guideId: id },
+      orderBy: { language: "asc" },
+      select: {
+        language: true,
+        title: true,
+        summary: true,
+        steps: true,
+        published: true,
+      },
+    });
+    res.json({ translations });
+  }
+);
+
+guideRouter.post(
+  "/api/guides/:id/translations",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { language } = addTranslationSchema.parse(req.body);
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: {
+        id: true,
+        title: true,
+        summary: true,
+        blocks: {
+          orderBy: { position: "asc" },
+          select: { id: true, content: true },
+        },
+      },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+    const languageName =
+      TRANSLATION_LANGUAGES.find((l) => l.code === language)?.name ?? language;
+    // Key blocks by position, not id — the guide's Save recreates blocks with
+    // new ids, so position is the only stable handle a translation can use.
+    const ai = await translateGuide(
+      {
+        title: guide.title,
+        summary: guide.summary,
+        blocks: guide.blocks.map((b, i) => ({
+          id: String(i),
+          content: b.content,
+        })),
+      },
+      languageName
+    );
+    // Re-sanitize the model's HTML as defense in depth; store by index.
+    const steps = ai.blocks
+      .map((b) => ({
+        index: Number(b.id),
+        content: sanitizeContent(b.content),
+      }))
+      .filter((s) => Number.isInteger(s.index));
+
+    // A (re)generated translation is a DRAFT — it stays hidden from the public
+    // reader until the editor Saves the guide (which publishes translations).
+    const saved = await prisma.guideTranslation.upsert({
+      where: { guideId_language: { guideId: id, language } },
+      create: {
+        guideId: id,
+        language,
+        title: ai.title,
+        summary: ai.summary,
+        steps,
+        published: false,
+      },
+      update: { title: ai.title, summary: ai.summary, steps, published: false },
+      select: { language: true, title: true, updatedAt: true },
+    });
+    res.json({ translation: saved });
+  }
+);
+
+guideRouter.delete(
+  "/api/guides/:id/translations/:language",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const language = z.string().parse(req.params.language);
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+    await prisma.guideTranslation.deleteMany({
+      where: { guideId: id, language },
+    });
+    res.json({ ok: true });
+  }
+);
+
 // ── Update (bulk block replace) ──────────────────────────────────────────
 guideRouter.put(
   "/api/guides/:id",
@@ -182,6 +362,11 @@ guideRouter.put(
           // Preserve the click pointer across edits (not user-editable).
           clickRect: block.clickRect ?? undefined,
         })),
+      });
+      // Saving the guide publishes its translations to the public reader.
+      await tx.guideTranslation.updateMany({
+        where: { guideId: id },
+        data: { published: true },
       });
     });
 

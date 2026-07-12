@@ -21,6 +21,7 @@ import {
   type ImportedBlock,
 } from "@/components/import-steps-dialog"
 import { SortStepsDialog, type SortRow } from "@/components/sort-steps-dialog"
+import { TranslationsDialog } from "@/components/translations-dialog"
 import type { GuideDetail } from "@/lib/guides"
 import { downloadGuidePdf } from "@/lib/pdf"
 
@@ -35,6 +36,7 @@ export function GuideToolbar({
   sortRows,
   onReorder,
   onImport,
+  onDirty,
 }: {
   guide: GuideDetail
   /** The editor's working-copy customization (previewed live). */
@@ -47,10 +49,13 @@ export function GuideToolbar({
   onReorder: (orderedKeys: string[]) => void
   /** Append imported blocks into the editor's working copy (saved on Save). */
   onImport: (blocks: ImportedBlock[]) => void
+  /** Mark the editor dirty (e.g. a translation was generated). */
+  onDirty: () => void
 }) {
   const [customizeOpen, setCustomizeOpen] = React.useState(false)
   const [sortOpen, setSortOpen] = React.useState(false)
   const [importOpen, setImportOpen] = React.useState(false)
+  const [translateOpen, setTranslateOpen] = React.useState(false)
 
   const soon = (name: string) => toast.info(`${name} — coming soon`)
 
@@ -63,7 +68,7 @@ export function GuideToolbar({
     {
       icon: Languages,
       label: "Add translations",
-      onClick: () => soon("Translations"),
+      onClick: () => setTranslateOpen(true),
     },
     { icon: Mic, label: "Add voiceovers", onClick: () => soon("Voiceovers") },
     {
@@ -121,6 +126,13 @@ export function GuideToolbar({
         open={importOpen}
         onOpenChange={setImportOpen}
         onImport={onImport}
+      />
+
+      <TranslationsDialog
+        guide={guide}
+        open={translateOpen}
+        onOpenChange={setTranslateOpen}
+        onDirty={onDirty}
       />
     </>
   )

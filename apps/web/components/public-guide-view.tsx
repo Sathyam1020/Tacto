@@ -1,9 +1,20 @@
 "use client"
 
 import * as React from "react"
+import { Check, ChevronDown, Languages } from "lucide-react"
 import { DownloadIcon } from "@workspace/ui/components/download"
 
+import {
+  RTL_LANGUAGE_CODES,
+  TRANSLATION_LANGUAGES,
+} from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -36,10 +47,28 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
   const width = layoutMaxWidthClass(cust.general.pageLayout)
   const stepCount = guide.blocks.filter((b) => b.type === "STEP").length
 
+  // Language switcher — overlay a translation's text onto the base blocks
+  // (screenshots/layout are language-independent). null = original.
+  const [lang, setLang] = React.useState<string | null>(null)
+  const translations = guide.translations ?? []
+  const activeT = lang
+    ? (translations.find((t) => t.language === lang) ?? null)
+    : null
+  const displayBlocks = React.useMemo(() => {
+    if (!activeT) return guide.blocks
+    const map = new Map(activeT.steps.map((s) => [s.index, s.content]))
+    return guide.blocks.map((b, i) => ({ ...b, content: map.get(i) ?? b.content }))
+  }, [activeT, guide.blocks])
+  const displayTitle = activeT?.title ?? guide.title
+  const displaySummary = activeT ? activeT.summary : guide.summary
+  const isRtl =
+    cust.brand.rtl ||
+    (lang ? (RTL_LANGUAGE_CODES as readonly string[]).includes(lang) : false)
+
   return (
     <div
       className="min-h-svh"
-      dir={cust.brand.rtl ? "rtl" : undefined}
+      dir={isRtl ? "rtl" : undefined}
       style={
         {
           ["--primary" as string]: cust.brand.color,
@@ -65,6 +94,13 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             </div>
           )}
           <div className="flex items-center gap-2">
+            {translations.length > 0 && (
+              <LanguageSwitcher
+                translations={translations}
+                value={lang}
+                onChange={setLang}
+              />
+            )}
             {!lockedMode && <ViewModeToggle mode={mode} onChange={setMode} />}
             <Button
               size="sm"
@@ -80,11 +116,11 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
 
       <main className={cn("mx-auto px-6 py-14", width)}>
         <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
-          {guide.title}
+          {displayTitle}
         </h1>
-        {guide.summary && (
+        {displaySummary && (
           <p className="text-muted-foreground mt-4 text-lg leading-relaxed">
-            {guide.summary}
+            {displaySummary}
           </p>
         )}
         <p className="text-muted-foreground mt-4 border-b pb-6 font-mono text-xs">
@@ -93,7 +129,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
 
         <div className="mt-10">
           <GuideBody
-            blocks={guide.blocks}
+            blocks={displayBlocks}
             mode={effectiveMode}
             customization={cust}
           />
@@ -118,5 +154,48 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         </footer>
       </main>
     </div>
+  )
+}
+
+const LANG_NAME = new Map<string, string>(
+  TRANSLATION_LANGUAGES.map((l) => [l.code, l.name])
+)
+
+/** Original + available translated languages. */
+function LanguageSwitcher({
+  translations,
+  value,
+  onChange,
+}: {
+  translations: { language: string }[]
+  value: string | null
+  onChange: (lang: string | null) => void
+}) {
+  const label = value ? (LANG_NAME.get(value) ?? value) : "Original"
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
+        <Languages size={15} />
+        <span className="max-sm:hidden">{label}</span>
+        <ChevronDown className="size-4 opacity-60" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="max-h-64 overflow-y-auto">
+        <DropdownMenuItem onClick={() => onChange(null)}>
+          <span className="flex-1">Original</span>
+          {value === null && <Check className="text-primary size-4" />}
+        </DropdownMenuItem>
+        {translations.map((t) => (
+          <DropdownMenuItem
+            key={t.language}
+            onClick={() => onChange(t.language)}
+          >
+            <span className="flex-1">
+              {LANG_NAME.get(t.language) ?? t.language}
+            </span>
+            {value === t.language && <Check className="text-primary size-4" />}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

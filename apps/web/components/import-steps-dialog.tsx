@@ -47,7 +47,7 @@ export type ImportedBlock = {
   clickRect: ClickRect | null
 }
 
-type View = "picker" | "guides" | "steps" | "screenshots"
+type View = "picker" | "guides" | "steps" | "screenshots" | "docx" | "pdf"
 
 const TYPE_LABEL: Record<Exclude<BlockType, "STEP">, string> = {
   HEADING: "Heading",
@@ -124,6 +124,16 @@ export function ImportStepsDialog({
       desc: "Upload multiple screenshots at once",
       back: "picker",
     },
+    docx: {
+      title: "Import from DOCX",
+      desc: "We'll read the document and turn it into steps",
+      back: "picker",
+    },
+    pdf: {
+      title: "Import from PDF",
+      desc: "We'll read the document and turn it into steps",
+      back: "picker",
+    },
   }
   const h = header[view]
 
@@ -153,6 +163,8 @@ export function ImportStepsDialog({
           <SourcePicker
             onGuides={() => setView("guides")}
             onScreenshots={() => setView("screenshots")}
+            onDocx={() => setView("docx")}
+            onPdf={() => setView("pdf")}
           />
         )}
         {view === "guides" && (
@@ -170,6 +182,13 @@ export function ImportStepsDialog({
         {view === "screenshots" && (
           <FromScreenshots guideId={currentGuideId} onDone={finish} />
         )}
+        {(view === "docx" || view === "pdf") && (
+          <FromDocument
+            guideId={currentGuideId}
+            kind={view}
+            onDone={finish}
+          />
+        )}
       </DialogContent>
     </Dialog>
   )
@@ -180,11 +199,14 @@ export function ImportStepsDialog({
 function SourcePicker({
   onGuides,
   onScreenshots,
+  onDocx,
+  onPdf,
 }: {
   onGuides: () => void
   onScreenshots: () => void
+  onDocx: () => void
+  onPdf: () => void
 }) {
-  const soon = () => toast.info("AI document import — coming soon")
   return (
     <div className="space-y-2.5 p-6">
       <SourceCard
@@ -207,7 +229,7 @@ function SourcePicker({
         title="Import from DOCX"
         badge
         desc="Import steps from a Word document"
-        onClick={soon}
+        onClick={onDocx}
       />
       <SourceCard
         tint="bg-rose-500/10 text-rose-600 dark:text-rose-400"
@@ -215,7 +237,7 @@ function SourcePicker({
         title="Import from PDF"
         badge
         desc="Import steps from a PDF file"
-        onClick={soon}
+        onClick={onPdf}
       />
     </div>
   )
@@ -535,6 +557,93 @@ function FromScreenshots({
         multiple
         className="hidden"
         onChange={onFiles}
+      />
+    </div>
+  )
+}
+
+/** Upload a DOCX/PDF; the server extracts text and the AI structures steps. */
+function FromDocument({
+  guideId,
+  kind,
+  onDone,
+}: {
+  guideId: string
+  kind: "docx" | "pdf"
+  onDone: (blocks: ImportedBlock[]) => void
+}) {
+  const inputRef = React.useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = React.useState(false)
+  const accept =
+    kind === "docx"
+      ? ".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      : ".pdf,application/pdf"
+
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setBusy(true)
+    try {
+      const { data } = await api.post<{
+        blocks: { type: BlockType; content: string }[]
+      }>(`/guides/${guideId}/import-document?kind=${kind}`, file, {
+        headers: { "Content-Type": file.type || "application/octet-stream" },
+      })
+      const blocks: ImportedBlock[] = data.blocks.map((b) => ({
+        type: b.type,
+        content: b.content,
+        screenshotKey: null,
+        screenshotUrl: null,
+        elementLabel: null,
+        url: null,
+        clickRect: null,
+      }))
+      if (blocks.length === 0) {
+        toast.error("No steps found in that document")
+        return
+      }
+      onDone(blocks)
+    } catch {
+      toast.error("Couldn't import that document")
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="p-6">
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={busy}
+        className="border-border hover:border-primary/50 hover:bg-muted/40 flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-6 py-12 text-center transition-colors disabled:opacity-60"
+      >
+        {busy ? (
+          <>
+            <Loader2 className="text-muted-foreground size-6 animate-spin" />
+            <p className="text-sm">Reading the document…</p>
+            <p className="text-muted-foreground text-xs">
+              This can take a few seconds
+            </p>
+          </>
+        ) : (
+          <>
+            <FileText className="text-muted-foreground size-6" />
+            <p className="text-sm font-medium">
+              Choose a {kind.toUpperCase()} file
+            </p>
+            <p className="text-muted-foreground text-xs">
+              We&apos;ll turn its procedure into steps
+            </p>
+          </>
+        )}
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={onFile}
       />
     </div>
   )

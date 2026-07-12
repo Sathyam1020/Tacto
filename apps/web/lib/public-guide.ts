@@ -10,6 +10,14 @@ export type GuideComment = {
   createdAt: string
 }
 
+export type PublicTranslation = {
+  language: string
+  title: string
+  summary: string | null
+  /** Per-block content keyed by block position (index). */
+  steps: { index: number; content: string }[]
+}
+
 export type PublicGuide = {
   shareId: string
   title: string
@@ -19,6 +27,7 @@ export type PublicGuide = {
   customization: GuideCustomization | null
   reactions: GuideReactionCount[]
   comments: GuideComment[]
+  translations: PublicTranslation[]
   blocks: GuideBlock[]
 }
 

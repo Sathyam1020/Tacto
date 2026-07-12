@@ -209,6 +209,67 @@ export const commentInputSchema = z.object({
   anonId: z.string().max(64).nullish(),
 });
 
+/** Steps extracted from an uploaded document (DOCX/PDF) by the AI importer. */
+export const importedDocSchema = z.object({
+  blocks: z
+    .array(
+      z.object({
+        type: z.enum(["STEP", "HEADING"]),
+        /** Plain instruction/heading text (no markup). */
+        text: z.string(),
+      })
+    )
+    .max(300),
+});
+export type ImportedDoc = z.infer<typeof importedDocSchema>;
+
+// ── Translations ─────────────────────────────────────────────────────────
+
+/** The languages a guide can be translated into (code + display name). */
+export const TRANSLATION_LANGUAGES = [
+  { code: "es", name: "Spanish" },
+  { code: "fr", name: "French" },
+  { code: "de", name: "German" },
+  { code: "pt", name: "Portuguese" },
+  { code: "it", name: "Italian" },
+  { code: "nl", name: "Dutch" },
+  { code: "ja", name: "Japanese" },
+  { code: "ko", name: "Korean" },
+  { code: "zh", name: "Chinese (Simplified)" },
+  { code: "hi", name: "Hindi" },
+  { code: "ar", name: "Arabic" },
+  { code: "he", name: "Hebrew" },
+] as const;
+export type TranslationLanguageCode =
+  (typeof TRANSLATION_LANGUAGES)[number]["code"];
+
+/** Right-to-left languages — the public reader flips direction for these. */
+export const RTL_LANGUAGE_CODES = ["ar", "he", "ur", "fa"] as const;
+
+export const translationLanguageSchema = z.enum(
+  TRANSLATION_LANGUAGES.map((l) => l.code) as [string, ...string[]]
+);
+
+export const addTranslationSchema = z.object({
+  language: translationLanguageSchema,
+});
+
+/** AI translation output — mirrors the guide's translatable text. */
+export const guideTranslationAiSchema = z.object({
+  title: z.string(),
+  summary: z.string().nullable(),
+  blocks: z.array(z.object({ id: z.string(), content: z.string() })),
+});
+export type GuideTranslationAi = z.infer<typeof guideTranslationAiSchema>;
+
+/** A stored translation as returned to clients. */
+export type GuideTranslationDTO = {
+  language: string;
+  title: string;
+  summary: string | null;
+  steps: { blockId: string; content: string }[];
+};
+
 /** A block as returned to clients (screenshotUrl is presigned for display). */
 export const guideBlockSchema = z.object({
   id: z.string(),

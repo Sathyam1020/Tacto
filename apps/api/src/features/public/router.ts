@@ -65,7 +65,7 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
     .catch(() => {});
 
   const { allowReactions, allowComments } = feedbackFlags(guide.customization);
-  const [blocks, reactions, comments] = await Promise.all([
+  const [blocks, reactions, comments, translations] = await Promise.all([
     serializeBlocks(guide.blocks),
     allowReactions ? reactionCounts(guide.id) : Promise.resolve([]),
     allowComments
@@ -76,6 +76,11 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
           select: { id: true, authorName: true, body: true, createdAt: true },
         })
       : Promise.resolve([]),
+    prisma.guideTranslation.findMany({
+      where: { guideId: guide.id, published: true },
+      orderBy: { language: "asc" },
+      select: { language: true, title: true, summary: true, steps: true },
+    }),
   ]);
 
   res.json({
@@ -88,6 +93,7 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
       customization: await serializeCustomization(guide.customization),
       reactions,
       comments,
+      translations,
       blocks: blocks.map((block) => ({
         ...block,
         content: sanitizeContent(block.content),

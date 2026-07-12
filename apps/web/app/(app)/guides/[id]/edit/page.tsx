@@ -328,6 +328,7 @@ export default function GuideEditPage() {
           }))}
           onReorder={reorderBlocks}
           onImport={importBlocks}
+          onDirty={markDirty}
         />
       )}
       <div

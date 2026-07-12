@@ -277,10 +277,14 @@ model GuideTranslation {
   id        String   @id @default(uuid())
   guideId   String
   guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  /// Stored as a language code (e.g. "es", "fr", "ar").
   language  String
   title     String
+  summary   String?
   /// [{ blockId, content }] — translated per-step content.
   steps     Json
+  /// Hidden from the public reader until the editor Saves the guide.
+  published Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

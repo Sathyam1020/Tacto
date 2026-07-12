@@ -371,6 +371,86 @@ export function useDeleteGuide() {
   })
 }
 
+/** A guide's stored translation (full content for the editor preview). */
+export type GuideTranslationFull = {
+  language: string
+  title: string
+  summary: string | null
+  /** Per-block content keyed by block position (index). */
+  steps: { index: number; content: string }[]
+  /** False until the editor Saves the guide (hidden from the public reader). */
+  published: boolean
+}
+
+/** Translations that exist for a guide (editor list, with content). */
+export function useGuideTranslations(guideId: string) {
+  return useQuery({
+    queryKey: ["translations", guideId],
+    queryFn: async () => {
+      const { data } = await api.get<{
+        translations: GuideTranslationFull[]
+      }>(`/guides/${guideId}/translations`)
+      return data.translations
+    },
+    enabled: !!guideId,
+  })
+}
+
+/** Generate (or regenerate) a translation for a language. */
+export function useAddTranslation(guideId: string) {
+  const queryClient = useQueryClient()
+  const key = ["translations", guideId]
+  return useMutation({
+    mutationFn: async (language: string) => {
+      const { data } = await api.post<{
+        translation: { language: string; title: string }
+      }>(`/guides/${guideId}/translations`, { language })
+      return data.translation
+    },
+    // Show the language immediately (empty), fill it in when the AI returns.
+    onMutate: async (language) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<GuideTranslationFull[]>(key)
+      queryClient.setQueryData<GuideTranslationFull[]>(key, (old) => {
+        const list = old ?? []
+        if (list.some((t) => t.language === language)) return list
+        return [
+          ...list,
+          { language, title: "", summary: null, steps: [], published: false },
+        ]
+      })
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  })
+}
+
+/** Remove a translation. */
+export function useDeleteTranslation(guideId: string) {
+  const queryClient = useQueryClient()
+  const key = ["translations", guideId]
+  return useMutation({
+    mutationFn: async (language: string) => {
+      await api.delete(`/guides/${guideId}/translations/${language}`)
+    },
+    onMutate: async (language) => {
+      await queryClient.cancelQueries({ queryKey: key })
+      const prev = queryClient.getQueryData<GuideTranslationFull[]>(key)
+      queryClient.setQueryData<GuideTranslationFull[]>(key, (old) =>
+        (old ?? []).filter((t) => t.language !== language)
+      )
+      return { prev }
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  })
+}
+
 /**
  * Upload an image to R2 for a step's media: get a presigned URL, PUT the
  * file, return the object key the block should reference.
