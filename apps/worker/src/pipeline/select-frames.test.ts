@@ -47,7 +47,6 @@ function nav(over: Partial<CaptureEvent> = {}): CaptureEvent {
 const cases: {
   name: string;
   event: CaptureEvent;
-  terminal?: boolean;
   next?: CaptureEvent;
   frame: string | undefined;
   pointer: boolean;
@@ -87,24 +86,26 @@ const cases: {
     pointer: true,
   },
   {
-    name: "TERMINAL click + overlay appeared → after (result), no pointer",
+    // ShowResult removed: an overlay (dropdown/menu/listbox/destination chrome)
+    // never forces the after frame — a click always shows its control.
+    name: "click + overlay + urlChanged (the Message case) → before, pointer",
+    event: click({
+      frames: { before: "B", after: "A" },
+      settle: { mutated: true, overlayAppeared: true, urlChanged: true },
+    }),
+    frame: "B",
+    pointer: true,
+    source: "before",
+  },
+  {
+    name: "click + overlay in place (no nav) → before, pointer (no ShowResult)",
     event: click({
       frames: { before: "B", after: "A" },
       settle: { mutated: true, overlayAppeared: true },
     }),
-    terminal: true,
-    frame: "A",
-    pointer: false,
-  },
-  {
-    name: "TERMINAL click, mutated but NO overlay → before (structural gate)",
-    event: click({
-      frames: { before: "B", after: "A" },
-      settle: { mutated: true },
-    }),
-    terminal: true,
     frame: "B",
     pointer: true,
+    source: "before",
   },
   {
     name: "input, next is a click → BORROWS the click's before frame",
@@ -178,7 +179,7 @@ const cases: {
 
 let failures = 0;
 for (const c of cases) {
-  const got = selectFrame(c.event, { isTerminal: c.terminal, nextEvent: c.next });
+  const got = selectFrame(c.event, { nextEvent: c.next });
   try {
     assert.equal(got.screenshotId, c.frame, `${c.name} — frame`);
     assert.equal(got.showPointer, c.pointer, `${c.name} — pointer`);

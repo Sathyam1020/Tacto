@@ -26,7 +26,6 @@ export type FrameChoice = {
  *   LocateControl  (a click)        → before + pointer   — show WHERE to act
  *   ShowTypedValue (an input)       → the value frame     — show the value entered
  *   ShowDestination (a navigation)  → after              — show the page reached
- *   ShowResult (terminal + result)  → after              — show the completed state
  *
  * An INPUT's interaction completes when the value is committed, not while
  * typing. The immediately-following CLICK's `before` frame shows the field
@@ -37,17 +36,20 @@ export type FrameChoice = {
  * own `before` frame. This adds NO capture path — the borrowed frame already
  * exists.
  *
- * "click → before" is today's DEFAULT policy, not the final design: the long-term
- * job is answering the intent question above, and this is structured so richer
- * intents can be added without an event-type rewrite. Terminal ShowResult is
- * gated on a STRUCTURAL signal only (an overlay appeared on the last step) — no
- * text/keyword heuristics.
+ * Frame selection answers exactly ONE question — "which screenshot best supports
+ * this instruction?" — never "did the workflow complete?". Completion is a
+ * semantic judgment the recorder can't make from structural signals (an added
+ * dialog/menu/listbox is a dropdown, picker, or a destination page's chrome as
+ * often as a completion), so it does NOT live here. `settle` metadata
+ * (overlayAppeared, urlChanged, …) is still recorded for debugging and a future
+ * interaction classifier, but it no longer influences the chosen frame.
+ * "Published successfully"-style messaging belongs in the guide/editor layer.
  *
  * Pure, ordered, fixture-tested. NO LLM, NO vision, NO keyword matching.
  */
 export function selectFrame(
   event: CaptureEvent,
-  opts?: { isTerminal?: boolean; nextEvent?: CaptureEvent }
+  opts?: { nextEvent?: CaptureEvent }
 ): FrameChoice {
   const before = event.frames?.before;
   const after = event.frames?.after;
@@ -87,12 +89,6 @@ export function selectFrame(
       showPointer: hasBox,
       source: legacy ? "legacy" : "none",
     };
-  }
-
-  // ShowResult — ONLY on the terminal step, ONLY when an overlay appeared (a
-  // structural completion signal). No keyword/text heuristics.
-  if (opts?.isTerminal && after && event.settle?.overlayAppeared) {
-    return { screenshotId: after, showPointer: false, source: "after" };
   }
 
   // LocateControl — the default for every click: show the control + pointer.

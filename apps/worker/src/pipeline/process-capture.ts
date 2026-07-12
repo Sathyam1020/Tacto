@@ -141,15 +141,13 @@ export async function processCapture(captureId: string): Promise<void> {
               ? events[interaction.primaryEventIndex]
               : undefined;
             // Instruction-frame selection: choose the screenshot and whether a
-            // pointer belongs on it, by instructional intent. The terminal step
-            // may show a completed-state (overlay) result; an input borrows the
-            // immediately-following click's before frame (strict adjacency).
-            const isTerminal = index === synthesized.steps.length - 1;
+            // pointer belongs on it, by instructional intent. An input borrows
+            // the immediately-following click's before frame (strict adjacency).
             const nextEvent = interaction
               ? events[interaction.primaryEventIndex + 1]
               : undefined;
             const choice = sourceEvent
-              ? selectFrame(sourceEvent, { isTerminal, nextEvent })
+              ? selectFrame(sourceEvent, { nextEvent })
               : undefined;
             const showPointer = choice?.showPointer ?? false;
             // QA/debug: surface which frame each step used and where it came from
