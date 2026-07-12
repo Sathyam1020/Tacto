@@ -96,6 +96,13 @@ export type Capture = Prisma.CaptureModel
  */
 export type Guide = Prisma.GuideModel
 /**
+ * Model GuideDraft
+ * A guide's private working draft — one versioned JSON document per guide.
+ * The editor reads and autosaves this; the published Guide/Step rows are
+ * only changed by an explicit Publish. See DraftDocument in @workspace/contracts.
+ */
+export type GuideDraft = Prisma.GuideDraftModel
+/**
  * Model GuideTranslation
  * AI-translated copy of a guide's text (title + per-step content) in another
  * language. Screenshots are shared; only text is translated.

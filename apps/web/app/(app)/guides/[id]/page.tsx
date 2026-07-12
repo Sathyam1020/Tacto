@@ -174,6 +174,18 @@ export default function GuidePage() {
         } as React.CSSProperties
       }
     >
+      {guide.hasUnpublishedChanges && (
+        <Link
+          href={`/guides/${params.id}/edit`}
+          className="mb-6 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-700 transition-colors hover:bg-amber-500/15 dark:text-amber-400"
+        >
+          <SquarePenIcon size={15} />
+          <span className="font-medium">You have unpublished changes.</span>
+          <span className="text-amber-700/80 dark:text-amber-400/80">
+            Continue editing →
+          </span>
+        </Link>
+      )}
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-serif text-4xl leading-tight font-medium tracking-tight text-balance">
           {guide.title}

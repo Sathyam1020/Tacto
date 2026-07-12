@@ -262,6 +262,7 @@ model Guide {
   folder         Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   blocks       Step[]
+  draft        GuideDraft?
   translations GuideTranslation[]
   reactions    GuideReaction[]
   comments     GuideComment[]
@@ -269,6 +270,25 @@ model Guide {
   @@index([organizationId, status])
   @@index([organizationId, folderId])
   @@map("guide")
+}
+
+/// A guide's private working draft — one versioned JSON document per guide.
+/// The editor reads and autosaves this; the published Guide/Step rows are
+/// only changed by an explicit Publish. See DraftDocument in @workspace/contracts.
+model GuideDraft {
+  id              String   @id @default(uuid())
+  guideId         String   @unique
+  guide           Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  /// DraftDocument JSON (title, summary, blocks, customization).
+  document        Json
+  /// Optimistic-concurrency counter, bumped on every autosave.
+  version         Int      @default(1)
+  /// Audit: the user who last wrote the draft (no FK — metadata only).
+  updatedByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("guide_draft")
 }
 
 /// AI-translated copy of a guide's text (title + per-step content) in another
@@ -339,6 +359,10 @@ model CaptureIntent {
 /// `content` is sanitized HTML. Media/interaction fields apply to STEP only.
 model Step {
   id            String    @id @default(uuid())
+  /// Stable block identity, carried across publishes so references to a block
+  /// (drafts, translations, per-step features) survive a save. Assigned on
+  /// create; unique within a guide.
+  key           String    @default(uuid())
   type          BlockType @default(STEP)
   position      Int
   content       String
@@ -361,6 +385,7 @@ model Step {
   guideId String
   guide   Guide  @relation(fields: [guideId], references: [id], onDelete: Cascade)
 
+  @@unique([guideId, key])
   @@index([guideId, position])
   @@map("step")
 }

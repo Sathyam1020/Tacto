@@ -61,6 +61,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
   GuideReaction: 'GuideReaction',
   GuideComment: 'GuideComment',
@@ -235,6 +236,19 @@ export const GuideScalarFieldEnum = {
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
 
 
+export const GuideDraftScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  document: 'document',
+  version: 'version',
+  updatedByUserId: 'updatedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideDraftScalarFieldEnum = (typeof GuideDraftScalarFieldEnum)[keyof typeof GuideDraftScalarFieldEnum]
+
+
 export const GuideTranslationScalarFieldEnum = {
   id: 'id',
   guideId: 'guideId',
@@ -285,6 +299,7 @@ export type CaptureIntentScalarFieldEnum = (typeof CaptureIntentScalarFieldEnum)
 
 export const StepScalarFieldEnum = {
   id: 'id',
+  key: 'key',
   type: 'type',
   position: 'position',
   content: 'content',

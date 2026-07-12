@@ -27,27 +27,6 @@ export const blockTypeSchema = z.enum([
 ]);
 export type BlockType = z.infer<typeof blockTypeSchema>;
 
-/** A block as sent by the editor on save. `id` absent → newly created. */
-export const guideBlockInputSchema = z.object({
-  id: z.string().optional(),
-  type: blockTypeSchema,
-  content: z.string().max(20_000),
-  /** R2 object key of the block's screenshot (STEP blocks). */
-  screenshotKey: z.string().nullish(),
-  elementLabel: z.string().nullish(),
-  url: z.string().nullish(),
-  /** Preserved through edits so the click pointer survives (not edited). */
-  clickRect: clickRectSchema.nullish(),
-});
-export type GuideBlockInput = z.infer<typeof guideBlockInputSchema>;
-
-export const updateGuideSchema = z.object({
-  title: z.string().trim().min(1, "Give your guide a title").max(200),
-  summary: z.string().max(2000).nullish(),
-  blocks: z.array(guideBlockInputSchema).max(500),
-});
-export type UpdateGuideInput = z.infer<typeof updateGuideSchema>;
-
 /** Move a guide to another workspace (and a folder within it) the caller is a
  *  member of. Every guide belongs to a folder, so a destination folder is
  *  required. */
@@ -150,7 +129,11 @@ export const guideCustomizationSchema = z.object({
       buttonUrl: z.string(),
     }),
     backgroundMusic: z.object({
-      url: z.string().nullable(),
+      /** Persisted R2 key of the uploaded track. Defaulted so drafts saved
+       *  before this field existed still parse. */
+      key: z.string().nullable().default(null),
+      /** Display-only presigned URL — injected on read, stripped on write. */
+      url: z.string().nullable().default(null),
       volume: z.number().min(0).max(1),
     }),
   }),
@@ -189,10 +172,78 @@ export const DEFAULT_CUSTOMIZATION: GuideCustomization = {
     optimizeForMobile: false,
     autoplay: { enabled: false, delaySeconds: 3, loop: false },
     cta: { enabled: false, title: "", subtitle: "", buttonText: "", buttonUrl: "" },
-    backgroundMusic: { url: null, volume: 0.5 },
+    backgroundMusic: { key: null, url: null, volume: 0.5 },
   },
   feedback: { allowReactions: false, allowComments: false },
 };
+
+/** Merge a stored (possibly null/partial) customization with the defaults into
+ *  a complete object. Shared by the API (draft seeding) and the web renderers so
+ *  both resolve identically. */
+export function resolveCustomization(
+  raw: GuideCustomization | null | undefined
+): GuideCustomization {
+  const d = DEFAULT_CUSTOMIZATION;
+  const c = (raw ?? {}) as Partial<GuideCustomization>;
+  const w = (c.walkthroughView ?? {}) as Partial<
+    GuideCustomization["walkthroughView"]
+  >;
+  return {
+    general: {
+      ...d.general,
+      ...c.general,
+      hotspot: { ...d.general.hotspot, ...c.general?.hotspot },
+    },
+    brand: { ...d.brand, ...c.brand },
+    scrollView: { ...d.scrollView, ...c.scrollView },
+    walkthroughView: {
+      ...d.walkthroughView,
+      ...w,
+      autoplay: { ...d.walkthroughView.autoplay, ...w.autoplay },
+      cta: { ...d.walkthroughView.cta, ...w.cta },
+      backgroundMusic: {
+        ...d.walkthroughView.backgroundMusic,
+        ...w.backgroundMusic,
+      },
+    },
+    feedback: { ...d.feedback, ...c.feedback },
+  };
+}
+
+// ── Editor draft (private working document) ──────────────────────────────
+
+/** One block inside a draft document — durable fields only (no presigned
+ *  URLs). `key` is the block's stable identity (mirrors Step.key). */
+export const draftBlockSchema = z.object({
+  key: z.string().min(1),
+  type: blockTypeSchema,
+  content: z.string().max(20_000),
+  screenshotKey: z.string().nullable(),
+  elementLabel: z.string().nullable(),
+  url: z.string().nullable(),
+  clickRect: clickRectSchema.nullable(),
+  confidence: z.number().nullable(),
+});
+export type DraftBlock = z.infer<typeof draftBlockSchema>;
+
+/** The full working document autosaved to GuideDraft. `v` is the document
+ *  schema version (for migrate-on-read). */
+export const draftDocumentSchema = z.object({
+  v: z.literal(1),
+  title: z.string().max(200),
+  summary: z.string().max(2000).nullable(),
+  blocks: z.array(draftBlockSchema).max(500),
+  customization: guideCustomizationSchema,
+});
+export type DraftDocument = z.infer<typeof draftDocumentSchema>;
+
+/** Autosave body — the document plus the version the client last saw
+ *  (optimistic concurrency). */
+export const draftPatchSchema = z.object({
+  baseVersion: z.number().int().nonnegative(),
+  document: draftDocumentSchema,
+});
+export type DraftPatch = z.infer<typeof draftPatchSchema>;
 
 /** The fixed set of reactions a viewer can leave on a published guide. */
 export const REACTION_EMOJIS = ["👍", "❤️", "🎉", "😮", "🙌"] as const;

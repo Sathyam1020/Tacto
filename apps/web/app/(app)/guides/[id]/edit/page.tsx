@@ -5,21 +5,33 @@ import { useParams, useRouter } from "next/navigation"
 import {
   DEFAULT_CUSTOMIZATION,
   type BlockType,
-  type GuideBlockInput,
+  type DraftDocument,
   type GuideCustomization,
 } from "@workspace/contracts/guide"
-import { ArrowLeft, ImagePlus, Loader2, Trash2 } from "lucide-react"
+import {
+  ArrowLeft,
+  ImagePlus,
+  Loader2,
+  Redo2,
+  Trash2,
+  Undo2,
+  WifiOff,
+} from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { AddBlockMenu } from "@/components/add-block-menu"
@@ -33,28 +45,45 @@ import type { ImportedBlock } from "@/components/import-steps-dialog"
 import { useSetNavbar } from "@/components/navbar-context"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { authClient } from "@/lib/auth-client"
+import {
+  amend,
+  canRedo,
+  canUndo,
+  commit,
+  editCount,
+  initHistory,
+  redo,
+  undo,
+  type History,
+} from "@/lib/editor-history"
 import { guideFontFamily } from "@/lib/guide-fonts"
 import {
-  resolveCustomization,
+  clearDraftCache,
+  reconcileDraft,
+  readDraftCache,
+  writeDraftCache,
+} from "@/lib/draft-cache"
+import {
+  signMediaKeys,
+  useDiscardDraft,
   useGuide,
-  useUpdateGuide,
-  useUpdateGuideCustomization,
+  useGuideDraft,
+  usePublishDraft,
+  useSaveDraft,
   uploadStepMedia,
-  type ClickRect,
+  type DraftBlockClient,
+  type DraftDocumentClient,
+  type GuideDraftResponse,
 } from "@/lib/guides"
 
-/** Client-side editable block (has a stable key; `id` present if persisted). */
-type EditBlock = {
-  key: string
-  id?: string
-  type: BlockType
-  content: string
-  screenshotKey: string | null
-  screenshotUrl: string | null
-  elementLabel: string | null
-  url: string | null
-  clickRect: ClickRect | null
-  confidence: number | null
+/** The editor's in-memory block (draft block + a display URL). */
+type EditorBlock = DraftBlockClient
+/** The whole working document the editor edits and autosaves. */
+type EditorDoc = {
+  title: string
+  summary: string | null
+  blocks: EditorBlock[]
+  customization: GuideCustomization
 }
 
 const NEW_CONTENT: Record<BlockType, string> = {
@@ -65,150 +94,549 @@ const NEW_CONTENT: Record<BlockType, string> = {
   OUTCOME: "<p>The result appears</p>",
 }
 
+const EMPTY_DOC: EditorDoc = {
+  title: "",
+  summary: null,
+  blocks: [],
+  customization: DEFAULT_CUSTOMIZATION,
+}
+
+/** Coalesce typing into one undo step; debounce autosave. */
+const COALESCE_MS = 600
+const AUTOSAVE_MS = 1000
+
+type DraftStatus = "saving" | "saved" | "conflict" | "error" | "offline"
+
+/** The editor document with display URLs — the shape stored in the cache. */
+function toClientDoc(doc: EditorDoc): DraftDocumentClient {
+  return {
+    v: 1,
+    title: doc.title,
+    summary: doc.summary,
+    blocks: doc.blocks,
+    customization: doc.customization,
+  }
+}
+
+function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
+  return {
+    title: doc.title,
+    summary: doc.summary,
+    customization: doc.customization,
+    blocks: doc.blocks.map((b) => ({ ...b })),
+  }
+}
+
+/** Whether a save failure looks like an offline/network error. */
+function isOffline(err: unknown): boolean {
+  if (typeof navigator !== "undefined" && !navigator.onLine) return true
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "code" in err &&
+    (err as { code?: string }).code === "ERR_NETWORK"
+  )
+}
+
+/** The server's current version from a 409 conflict body. */
+function conflictVersion(err: unknown): number | null {
+  const v = (
+    err as {
+      response?: { data?: { error?: { currentVersion?: number } } }
+    }
+  )?.response?.data?.error?.currentVersion
+  return typeof v === "number" ? v : null
+}
+
+/** Strip display-only fields to the durable document that gets autosaved. */
+function toDraftDocument(doc: EditorDoc): DraftDocument {
+  return {
+    v: 1,
+    title: doc.title,
+    summary: doc.summary,
+    blocks: doc.blocks.map((b) => ({
+      key: b.key,
+      type: b.type,
+      content: b.content,
+      screenshotKey: b.screenshotKey,
+      elementLabel: b.elementLabel,
+      url: b.url,
+      clickRect: b.clickRect,
+      confidence: b.confidence,
+    })),
+    customization: doc.customization,
+  }
+}
+
+function fromDraft(res: GuideDraftResponse): EditorDoc {
+  return fromClientDoc(res.document)
+}
+
+function isConflict(err: unknown): boolean {
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    "response" in err &&
+    (err as { response?: { status?: number } }).response?.status === 409
+  )
+}
+
 export default function GuideEditPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
   const viewHref = `/guides/${params.id}`
 
   const { data: activeWorkspace } = authClient.useActiveOrganization()
-  const { data: guide, isPending } = useGuide(activeWorkspace?.id, params.id)
-  const updateGuide = useUpdateGuide(params.id)
-  const updateCustomization = useUpdateGuideCustomization(params.id)
+  const { data: guide } = useGuide(activeWorkspace?.id, params.id)
+  const draftQuery = useGuideDraft(activeWorkspace?.id, params.id)
 
-  // Customization is edited as a local draft (instant preview) and only
-  // persisted on Save — same as the blocks — so nothing goes live on the
-  // published guide until the editor explicitly saves.
-  const [customization, setCustomization] =
-    React.useState<GuideCustomization>(DEFAULT_CUSTOMIZATION)
-  const cust = customization
+  const saveDraft = useSaveDraft(params.id)
+  const discardDraft = useDiscardDraft(params.id)
+  const publishMutation = usePublishDraft(params.id)
 
-  const [title, setTitle] = React.useState("")
-  const [summary, setSummary] = React.useState<string | null>(null)
-  const [blocks, setBlocks] = React.useState<EditBlock[]>([])
+  const [history, setHistory] = React.useState<History<EditorDoc>>(() =>
+    initHistory(EMPTY_DOC)
+  )
+  const doc = history.present
+  const cust = doc.customization
+
+  const [seeded, setSeeded] = React.useState(false)
   const [editingKey, setEditingKey] = React.useState<string | null>(null)
-  const [dirty, setDirty] = React.useState(false)
-  const [confirmOpen, setConfirmOpen] = React.useState(false)
   const [uploadingKey, setUploadingKey] = React.useState<string | null>(null)
+  const [dirty, setDirty] = React.useState(false)
+  const [status, setStatus] = React.useState<DraftStatus>("saved")
+  const [savedAt, setSavedAt] = React.useState<number | null>(null)
+  const [now, setNow] = React.useState(0)
+  const [publishing, setPublishing] = React.useState(false)
+  const [leaveOpen, setLeaveOpen] = React.useState(false)
+  const [discardOpen, setDiscardOpen] = React.useState(false)
+  const [conflictOpen, setConflictOpen] = React.useState(false)
 
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const mediaTargetKey = React.useRef<string | null>(null)
   const initialized = React.useRef(false)
-
-  // Seed local state once when the guide loads.
-  React.useEffect(() => {
-    if (guide && !initialized.current) {
-      initialized.current = true
-      setTitle(guide.title)
-      setSummary(guide.summary)
-      setCustomization(resolveCustomization(guide.customization))
-      setBlocks(
-        guide.blocks.map((b) => ({
-          key: crypto.randomUUID(),
-          id: b.id,
-          type: b.type,
-          content: b.content,
-          screenshotKey: b.screenshotKey,
-          screenshotUrl: b.screenshotUrl,
-          elementLabel: b.elementLabel,
-          url: b.url,
-          clickRect: b.clickRect,
-          confidence: b.confidence,
-        }))
-      )
-    }
-  }, [guide])
-
-  // Ref mirror so the (stable) navbar handlers always see fresh state and
-  // the current mutation — without putting changing identities in deps,
-  // which would re-inject the navbar every render (infinite loop).
-  const latest = React.useRef({
-    title,
-    summary,
-    blocks,
-    customization,
-    dirty,
-    save: updateGuide.mutateAsync,
-    saveCustomization: updateCustomization.mutateAsync,
-  })
-  React.useEffect(() => {
-    latest.current = {
-      title,
-      summary,
-      blocks,
-      customization,
-      dirty,
-      save: updateGuide.mutateAsync,
-      saveCustomization: updateCustomization.mutateAsync,
-    }
+  const versionRef = React.useRef(0)
+  const presentRef = React.useRef(doc)
+  const savingRef = React.useRef(false)
+  const draftDirtyRef = React.useRef(false) // present changed since last save
+  const pausedRef = React.useRef(false) // stop autosave after a conflict
+  const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cacheTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const conflictVersionRef = React.useRef<number | null>(null)
+  const paintedRef = React.useRef(false) // painted from the local cache yet?
+  const lastText = React.useRef<{ field: string; at: number }>({
+    field: "",
+    at: 0,
   })
 
-  const markDirty = () => setDirty(true)
-
-  // Stage customization from the modal into the working copy (previewed live,
-  // persisted on Save).
-  function applyCustomization(next: GuideCustomization) {
-    setCustomization(next)
-    markDirty()
-  }
-
-  // Stable handlers ([] deps) — read everything from the ref.
-  const handleSave = React.useCallback(async () => {
-    const { title, summary, blocks, customization, save, saveCustomization } =
-      latest.current
-    const payload: {
-      title: string
-      summary: string | null
-      blocks: GuideBlockInput[]
-    } = {
-      title: title.trim() || "Untitled guide",
-      summary,
-      blocks: blocks.map((b) => ({
-        id: b.id,
-        type: b.type,
-        content: b.content,
-        screenshotKey: b.screenshotKey,
-        elementLabel: b.elementLabel,
-        url: b.url,
-        clickRect: b.clickRect,
-      })),
-    }
-    // Persist blocks + customization together so the published guide changes
-    // atomically on Save.
-    await Promise.all([save(payload), saveCustomization(customization)])
-    setDirty(false)
-    router.push(viewHref)
+  // ── Local cache (instant resume + offline buffer) ─────────────────────
+  const persistCache = React.useCallback((unsynced: boolean) => {
+    writeDraftCache(params.id, {
+      document: toClientDoc(presentRef.current),
+      version: versionRef.current,
+      unsynced,
+      savedAt: Date.now(),
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const scheduleCache = React.useCallback(() => {
+    if (cacheTimer.current) clearTimeout(cacheTimer.current)
+    cacheTimer.current = setTimeout(() => persistCache(true), 300)
+  }, [persistCache])
+  // The mutation fn via a ref so the autosave callbacks stay stable (react-query
+  // returns a fresh object each render). Mirrored in an effect, read only from
+  // the debounced flush (well after commit).
+  const saveDraftRef = React.useRef(saveDraft.mutateAsync)
+  React.useEffect(() => {
+    presentRef.current = doc
+    saveDraftRef.current = saveDraft.mutateAsync
+  })
+
+  // ── Autosave (debounced, optimistic-concurrency) ──────────────────────
+  // Drains all pending edits: if new edits arrive mid-save, the loop saves the
+  // latest present again. Stable identity (no unstable deps).
+  const flush = React.useCallback(async () => {
+    if (savingRef.current || pausedRef.current) return
+    savingRef.current = true
+    try {
+      while (draftDirtyRef.current && !pausedRef.current) {
+        draftDirtyRef.current = false
+        setStatus("saving")
+        try {
+          const res = await saveDraftRef.current({
+            document: toDraftDocument(presentRef.current),
+            baseVersion: versionRef.current,
+          })
+          versionRef.current = res.version
+          persistCache(false) // synced
+          setSavedAt(Date.now())
+          setStatus("saved")
+        } catch (err) {
+          draftDirtyRef.current = true // keep the change; retry later
+          persistCache(true) // unsynced — offline buffer / retry
+          if (isConflict(err)) {
+            pausedRef.current = true
+            conflictVersionRef.current = conflictVersion(err)
+            setStatus("conflict")
+            setConflictOpen(true)
+          } else if (isOffline(err)) {
+            setStatus("offline") // will retry on the `online` event
+          } else {
+            setStatus("error")
+          }
+          break
+        }
+      }
+    } finally {
+      savingRef.current = false
+    }
+  }, [persistCache])
+
+  const scheduleFlush = React.useCallback(() => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => void flush(), AUTOSAVE_MS)
+  }, [flush])
+
+  React.useEffect(() => {
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current)
+      if (cacheTimer.current) clearTimeout(cacheTimer.current)
+    }
+  }, [])
+
+  // Reconnect: resume autosaving any buffered edits.
+  React.useEffect(() => {
+    function onOnline() {
+      if (draftDirtyRef.current && !pausedRef.current) {
+        setStatus("saving")
+        void flush()
+      }
+    }
+    function onOffline() {
+      if (draftDirtyRef.current) setStatus("offline")
+    }
+    window.addEventListener("online", onOnline)
+    window.addEventListener("offline", onOffline)
+    return () => {
+      window.removeEventListener("online", onOnline)
+      window.removeEventListener("offline", onOffline)
+    }
+  }, [flush])
+
+  // Save-on-exit. On tab *switch* the page is alive, so do a proper async flush
+  // (keeps the version in sync). On real *unload*, sendBeacon is the only option
+  // (the POST /draft route accepts it — PATCH can't beacon). On bfcache restore,
+  // resync the version so a beaconed save doesn't look like a conflict.
+  React.useEffect(() => {
+    function beacon() {
+      if (!draftDirtyRef.current || pausedRef.current) return
+      try {
+        const body = JSON.stringify({
+          baseVersion: versionRef.current,
+          document: toDraftDocument(presentRef.current),
+        })
+        navigator.sendBeacon(
+          `/api/guides/${params.id}/draft`,
+          new Blob([body], { type: "application/json" })
+        )
+      } catch {
+        /* best-effort */
+      }
+    }
+    function onVisibility() {
+      if (document.visibilityState === "hidden") void flush()
+    }
+    function onPageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return
+      void latest.current.refetchDraft().then((res) => {
+        if (res.data) versionRef.current = res.data.version
+      })
+    }
+    window.addEventListener("pagehide", beacon)
+    document.addEventListener("visibilitychange", onVisibility)
+    window.addEventListener("pageshow", onPageShow)
+    return () => {
+      window.removeEventListener("pagehide", beacon)
+      document.removeEventListener("visibilitychange", onVisibility)
+      window.removeEventListener("pageshow", onPageShow)
+    }
+  }, [flush])
+
+  // ── Seeding (initial load + after discard) ────────────────────────────
+  const seed = React.useCallback((res: GuideDraftResponse) => {
+    setHistory(initHistory(fromDraft(res)))
+    versionRef.current = res.version
+    draftDirtyRef.current = false
+    pausedRef.current = false
+    conflictVersionRef.current = null
+    paintedRef.current = true
+    setDirty(res.isDirty)
+    setStatus("saved")
+    setSavedAt(Date.now())
+    setSeeded(true)
+    setConflictOpen(false)
+    // Mirror the authoritative server draft into the cache (synced).
+    writeDraftCache(params.id, {
+      document: res.document,
+      version: res.version,
+      unsynced: false,
+      savedAt: Date.now(),
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Re-sign a restored draft's images (in-memory URLs die on a hard reload).
+  const rehydrateImages = React.useCallback(
+    async (document: DraftDocumentClient) => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return
+      const keys = Array.from(
+        new Set(
+          document.blocks
+            .map((b) => b.screenshotKey)
+            .filter((k): k is string => !!k)
+        )
+      )
+      if (keys.length === 0) return
+      try {
+        const urls = await signMediaKeys(keys)
+        setHistory((h) => ({
+          ...h,
+          present: {
+            ...h.present,
+            blocks: h.present.blocks.map((b) =>
+              b.screenshotKey && urls[b.screenshotKey]
+                ? { ...b, screenshotUrl: urls[b.screenshotKey]! }
+                : b
+            ),
+          },
+        }))
+      } catch {
+        /* offline / transient — images stay as-is */
+      }
+    },
+    []
+  )
+
+  // Instant resume: paint from the local cache immediately (no skeleton).
+  React.useEffect(() => {
+    const cached = readDraftCache(params.id)
+    if (cached && !paintedRef.current) {
+      paintedRef.current = true
+      setHistory(initHistory(fromClientDoc(cached.document)))
+      versionRef.current = cached.version
+      setDirty(cached.unsynced)
+      setSeeded(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Reconcile with the authoritative server draft once it settles.
+  React.useEffect(() => {
+    if (!draftQuery.data || draftQuery.isFetching || initialized.current) return
+    initialized.current = true
+    const server = draftQuery.data
+    const cached = readDraftCache(params.id)
+    const decision = reconcileDraft(cached, server.version)
+    if (decision === "server" || !cached) {
+      seed(server)
+      return
+    }
+    if (!paintedRef.current) {
+      paintedRef.current = true
+      setHistory(initHistory(fromClientDoc(cached.document)))
+      versionRef.current = cached.version
+      setSeeded(true)
+    }
+    void rehydrateImages(cached.document)
+    if (decision === "cache") {
+      setDirty(true)
+      draftDirtyRef.current = true
+      scheduleFlush() // push local offline edits up
+    } else {
+      conflictVersionRef.current = server.version
+      pausedRef.current = true
+      setDirty(true)
+      setStatus("conflict")
+      setConflictOpen(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftQuery.data, draftQuery.isFetching])
+
+  // Relative-time ticker for the draft status.
+  React.useEffect(() => {
+    setNow(Date.now())
+    const t = setInterval(() => setNow(Date.now()), 5000)
+    return () => clearInterval(t)
+  }, [])
+
+  // ── Edit application (history + dirty + autosave) ──────────────────────
+  const applyEdit = React.useCallback(
+    (
+      producer: (doc: EditorDoc) => EditorDoc,
+      coalesceField?: "title" | "summary"
+    ) => {
+      let coalesce = false
+      if (coalesceField) {
+        const t = Date.now()
+        coalesce =
+          lastText.current.field === coalesceField &&
+          t - lastText.current.at < COALESCE_MS
+        lastText.current = { field: coalesceField, at: t }
+      }
+      setHistory((h) =>
+        (coalesce ? amend : commit)(h, producer(h.present))
+      )
+      setDirty(true)
+      draftDirtyRef.current = true
+      scheduleFlush()
+      scheduleCache()
+    },
+    [scheduleFlush, scheduleCache]
+  )
+
+  const markDirty = React.useCallback(() => setDirty(true), [])
+
+  const doUndo = React.useCallback(() => {
+    setHistory((h) => (canUndo(h) ? undo(h) : h))
+    setDirty(true)
+    draftDirtyRef.current = true
+    scheduleFlush()
+    scheduleCache()
+  }, [scheduleFlush, scheduleCache])
+
+  const doRedo = React.useCallback(() => {
+    setHistory((h) => (canRedo(h) ? redo(h) : h))
+    setDirty(true)
+    draftDirtyRef.current = true
+    scheduleFlush()
+    scheduleCache()
+  }, [scheduleFlush, scheduleCache])
+
+  // Keyboard undo/redo — but never hijack text-field / rich-editor undo.
+  React.useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey
+      if (!mod || e.key.toLowerCase() !== "z") return
+      const el = document.activeElement as HTMLElement | null
+      if (
+        el &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.isContentEditable)
+      ) {
+        return
+      }
+      e.preventDefault()
+      if (e.shiftKey) doRedo()
+      else doUndo()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [doUndo, doRedo])
+
+  // ── Stable actions for the navbar (read live state from a ref) ─────────
+  const latest = React.useRef({
+    present: doc,
+    dirty,
+    publish: publishMutation.mutateAsync,
+    discard: discardDraft.mutateAsync,
+    refetchDraft: draftQuery.refetch,
+  })
+  React.useEffect(() => {
+    latest.current = {
+      present: doc,
+      dirty,
+      publish: publishMutation.mutateAsync,
+      discard: discardDraft.mutateAsync,
+      refetchDraft: draftQuery.refetch,
+    }
+  })
+
   const handleBack = React.useCallback(() => {
-    if (latest.current.dirty) setConfirmOpen(true)
+    if (latest.current.dirty) setLeaveOpen(true)
     else router.push(viewHref)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const saving = updateGuide.isPending || updateCustomization.isPending
-  // Deps are primitives only (saving) → injected once + on save state change.
-  useSetNavbar(
-    {
-      minimal: true,
-      leftActions: (
-        <Button variant="ghost" size="sm" onClick={handleBack}>
-          <ArrowLeft className="size-4" />
-          Back
-        </Button>
-      ),
-      actions: (
-        <Button size="sm" onClick={handleSave} disabled={saving}>
-          {saving ? "Saving…" : "Save"}
-        </Button>
-      ),
-    },
-    [handleBack, handleSave, saving]
-  )
+  const handlePublish = React.useCallback(async () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    setPublishing(true)
+    try {
+      // Ensure the server draft reflects the latest edits before publishing:
+      // wait out any in-flight autosave, then flush anything still pending.
+      for (let i = 0; savingRef.current && i < 60; i++) {
+        await new Promise((r) => setTimeout(r, 50))
+      }
+      await flush()
+      // Apply that draft to the published content (server-side, transactional)
+      // and delete it.
+      await latest.current.publish()
+      clearDraftCache(params.id)
+      setDirty(false)
+      router.push(viewHref)
+    } finally {
+      setPublishing(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // ── Block operations ─────────────────────────────────────────────────
+  async function confirmDiscard() {
+    await latest.current.discard()
+    const res = await latest.current.refetchDraft()
+    if (res.data) seed(res.data)
+    setDirty(false)
+    setDiscardOpen(false)
+  }
+
+  async function leaveKeepingDraft() {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    await flush()
+    router.push(viewHref)
+  }
+
+  async function leaveDiscardingDraft() {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    await latest.current.discard().catch(() => {})
+    clearDraftCache(params.id)
+    router.push(viewHref)
+  }
+
+  // Conflict resolution — take the server's version, or overwrite with mine.
+  async function resolveReload() {
+    const res = await latest.current.refetchDraft()
+    if (res.data) seed(res.data)
+    else {
+      pausedRef.current = false
+      setStatus("saved")
+      setConflictOpen(false)
+    }
+  }
+
+  async function resolveOverwrite() {
+    const v = conflictVersionRef.current
+    if (v == null) return void resolveReload()
+    try {
+      const res = await saveDraftRef.current({
+        document: toDraftDocument(presentRef.current),
+        baseVersion: v,
+      })
+      versionRef.current = res.version
+      pausedRef.current = false
+      draftDirtyRef.current = false
+      persistCache(false)
+      setSavedAt(Date.now())
+      setStatus("saved")
+      setConflictOpen(false)
+    } catch (err) {
+      if (isConflict(err)) conflictVersionRef.current = conflictVersion(err)
+      else setStatus("error")
+    }
+  }
+
+  // ── Block operations (all route through applyEdit) ────────────────────
   function insertBlock(index: number, type: BlockType) {
-    const block: EditBlock = {
+    const block: EditorBlock = {
       key: crypto.randomUUID(),
       type,
       content: NEW_CONTENT[type],
@@ -219,59 +647,57 @@ export default function GuideEditPage() {
       clickRect: null,
       confidence: null,
     }
-    setBlocks((prev) => [
-      ...prev.slice(0, index),
-      block,
-      ...prev.slice(index),
-    ])
+    applyEdit((d) => ({
+      ...d,
+      blocks: [...d.blocks.slice(0, index), block, ...d.blocks.slice(index)],
+    }))
     setEditingKey(block.key)
-    markDirty()
   }
 
   function updateContent(key: string, content: string) {
-    setBlocks((prev) =>
-      prev.map((b) => (b.key === key ? { ...b, content } : b))
-    )
+    applyEdit((d) => ({
+      ...d,
+      blocks: d.blocks.map((b) => (b.key === key ? { ...b, content } : b)),
+    }))
     setEditingKey(null)
-    markDirty()
   }
 
   function deleteBlock(key: string) {
-    setBlocks((prev) => prev.filter((b) => b.key !== key))
-    markDirty()
+    applyEdit((d) => ({ ...d, blocks: d.blocks.filter((b) => b.key !== key) }))
   }
 
-  // Append imported blocks (from another guide or screenshots) into the
-  // working copy — staged, persisted on Save.
   function importBlocks(imported: ImportedBlock[]) {
-    setBlocks((prev) => [
-      ...prev,
-      ...imported.map((b) => ({
-        key: crypto.randomUUID(),
-        id: undefined,
-        type: b.type,
-        content: b.content,
-        screenshotKey: b.screenshotKey,
-        screenshotUrl: b.screenshotUrl,
-        elementLabel: b.elementLabel,
-        url: b.url,
-        clickRect: b.clickRect,
-        confidence: null,
-      })),
-    ])
-    markDirty()
+    applyEdit((d) => ({
+      ...d,
+      blocks: [
+        ...d.blocks,
+        ...imported.map((b) => ({
+          key: crypto.randomUUID(),
+          type: b.type,
+          content: b.content,
+          screenshotKey: b.screenshotKey,
+          screenshotUrl: b.screenshotUrl,
+          elementLabel: b.elementLabel,
+          url: b.url,
+          clickRect: b.clickRect,
+          confidence: null,
+        })),
+      ],
+    }))
   }
 
-  // Apply a new block order (by key) from the Sort steps dialog.
   function reorderBlocks(orderedKeys: string[]) {
-    setBlocks((prev) => {
-      const byKey = new Map(prev.map((b) => [b.key, b]))
+    applyEdit((d) => {
+      const byKey = new Map(d.blocks.map((b) => [b.key, b]))
       const next = orderedKeys
         .map((k) => byKey.get(k))
-        .filter((b): b is EditBlock => !!b)
-      return next.length === prev.length ? next : prev
+        .filter((b): b is EditorBlock => !!b)
+      return next.length === d.blocks.length ? { ...d, blocks: next } : d
     })
-    markDirty()
+  }
+
+  function applyCustomization(next: GuideCustomization) {
+    applyEdit((d) => ({ ...d, customization: next }))
   }
 
   function pickMedia(key: string) {
@@ -282,26 +708,84 @@ export default function GuideEditPage() {
   async function onMediaSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     const key = mediaTargetKey.current
-    e.target.value = "" // allow re-selecting the same file
+    e.target.value = ""
     if (!file || !key) return
     setUploadingKey(key)
     try {
       const objectKey = await uploadStepMedia(params.id, file)
       const previewUrl = URL.createObjectURL(file)
-      setBlocks((prev) =>
-        prev.map((b) =>
+      applyEdit((d) => ({
+        ...d,
+        blocks: d.blocks.map((b) =>
           b.key === key
             ? { ...b, screenshotKey: objectKey, screenshotUrl: previewUrl }
             : b
-        )
-      )
-      markDirty()
+        ),
+      }))
     } finally {
       setUploadingKey(null)
     }
   }
 
-  if (isPending) {
+  // ── Navbar ────────────────────────────────────────────────────────────
+  const cU = canUndo(history)
+  const cR = canRedo(history)
+  const count = editCount(history)
+  useSetNavbar(
+    {
+      minimal: true,
+      leftActions: (
+        <div className="flex min-w-0 items-center gap-3">
+          <Button variant="ghost" size="sm" onClick={handleBack}>
+            <ArrowLeft className="size-4" />
+            Back
+          </Button>
+          {seeded && <DraftStatusLabel status={status} savedAt={savedAt} now={now} />}
+        </div>
+      ),
+      actions: (
+        <div className="flex items-center gap-1.5">
+          <NavIcon label="Undo" onClick={doUndo} disabled={!cU}>
+            <Undo2 className="size-4" />
+          </NavIcon>
+          <NavIcon label="Redo" onClick={doRedo} disabled={!cR}>
+            <Redo2 className="size-4" />
+          </NavIcon>
+          <span className="text-muted-foreground mr-1 ml-0.5 font-mono text-xs tabular-nums">
+            {count} {count === 1 ? "change" : "changes"}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setDiscardOpen(true)}
+            disabled={!dirty || publishing}
+          >
+            Discard draft
+          </Button>
+          <Button size="sm" onClick={handlePublish} disabled={publishing}>
+            {publishing ? "Updating…" : "Update guide"}
+          </Button>
+        </div>
+      ),
+    },
+    [
+      handleBack,
+      doUndo,
+      doRedo,
+      handlePublish,
+      seeded,
+      status,
+      savedAt,
+      now,
+      cU,
+      cR,
+      count,
+      dirty,
+      publishing,
+    ]
+  )
+
+  if (!seeded) {
     return (
       <div className="mx-auto max-w-2xl">
         <Skeleton className="h-10 w-3/4" />
@@ -311,16 +795,16 @@ export default function GuideEditPage() {
     )
   }
 
-  const numbered = withStepNumbers(blocks)
+  const numbered = withStepNumbers(doc.blocks)
 
   return (
     <GuideCustomizationProvider value={cust}>
       {guide && (
         <GuideToolbar
           guide={guide}
-          customization={customization}
+          customization={cust}
           onCustomizationChange={applyCustomization}
-          sortRows={blocks.map((b) => ({
+          sortRows={doc.blocks.map((b) => ({
             key: b.key,
             type: b.type,
             content: b.content,
@@ -344,84 +828,226 @@ export default function GuideEditPage() {
           } as React.CSSProperties
         }
       >
-      {/* Editable title — auto-grows so long headings wrap and show fully */}
-      <textarea
-        value={title}
-        onChange={(e) => {
-          setTitle(e.target.value)
-          markDirty()
-        }}
-        rows={1}
-        placeholder="Untitled guide"
-        className="placeholder:text-muted-foreground/40 w-full resize-none bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none [field-sizing:content]"
-      />
+        {/* Editable title — auto-grows so long headings wrap and show fully */}
+        <textarea
+          value={doc.title}
+          onChange={(e) =>
+            applyEdit((d) => ({ ...d, title: e.target.value }), "title")
+          }
+          rows={1}
+          placeholder="Untitled guide"
+          className="placeholder:text-muted-foreground/40 w-full resize-none bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none [field-sizing:content]"
+        />
 
-      {/* Editable subheading / description */}
-      <textarea
-        value={summary ?? ""}
-        onChange={(e) => {
-          setSummary(e.target.value || null)
-          markDirty()
-        }}
-        rows={1}
-        placeholder="Add a description (optional)"
-        className="placeholder:text-muted-foreground/40 text-muted-foreground mt-3 w-full resize-none bg-transparent text-lg leading-relaxed outline-none [field-sizing:content]"
-      />
+        {/* Editable subheading / description */}
+        <textarea
+          value={doc.summary ?? ""}
+          onChange={(e) =>
+            applyEdit(
+              (d) => ({ ...d, summary: e.target.value || null }),
+              "summary"
+            )
+          }
+          rows={1}
+          placeholder="Add a description (optional)"
+          className="placeholder:text-muted-foreground/40 text-muted-foreground mt-3 w-full resize-none bg-transparent text-lg leading-relaxed outline-none [field-sizing:content]"
+        />
 
-      <div className="mt-10">
-        <AddBlockMenu onAdd={(type) => insertBlock(0, type)} />
-        {numbered.map((block, index) => (
-          <React.Fragment key={block.key}>
-            <EditableBlock
-              block={block}
-              stepNumber={block.stepNumber}
-              editing={editingKey === block.key}
-              uploading={uploadingKey === block.key}
-              onStartEdit={() => setEditingKey(block.key)}
-              onSaveContent={(html) => updateContent(block.key, html)}
-              onCancelEdit={() => setEditingKey(null)}
-              onDelete={() => deleteBlock(block.key)}
-              onAddMedia={() => pickMedia(block.key)}
-            />
-            <AddBlockMenu onAdd={(type) => insertBlock(index + 1, type)} />
-          </React.Fragment>
-        ))}
-      </div>
+        <div className="mt-10">
+          <AddBlockMenu onAdd={(type) => insertBlock(0, type)} />
+          {numbered.map((block, index) => (
+            <React.Fragment key={block.key}>
+              <EditableBlock
+                block={block}
+                stepNumber={block.stepNumber}
+                editing={editingKey === block.key}
+                uploading={uploadingKey === block.key}
+                onStartEdit={() => setEditingKey(block.key)}
+                onSaveContent={(html) => updateContent(block.key, html)}
+                onCancelEdit={() => setEditingKey(null)}
+                onDelete={() => deleteBlock(block.key)}
+                onAddMedia={() => pickMedia(block.key)}
+              />
+              <AddBlockMenu onAdd={(type) => insertBlock(index + 1, type)} />
+            </React.Fragment>
+          ))}
+        </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/png,image/jpeg,image/webp,image/gif"
-        className="hidden"
-        onChange={onMediaSelected}
-      />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/gif"
+          className="hidden"
+          onChange={onMediaSelected}
+        />
 
-      {/* Discard-changes confirmation */}
-      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl font-medium tracking-tight">
-              Discard changes?
-            </DialogTitle>
-            <DialogDescription>
-              You have unsaved edits. Leaving now will lose them.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)}>
-              Keep editing
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => router.push(viewHref)}
-            >
-              Discard
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* Leave editor */}
+        <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-serif text-xl font-medium tracking-tight">
+                Leave editor?
+              </DialogTitle>
+              <DialogDescription>
+                Your changes are saved as a private draft. They won&apos;t be
+                visible until you update the guide.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button variant="ghost" onClick={() => setLeaveOpen(false)}>
+                Continue editing
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  setLeaveOpen(false)
+                  void leaveDiscardingDraft()
+                }}
+              >
+                Discard draft
+              </Button>
+              <Button onClick={() => void leaveKeepingDraft()}>
+                Leave &amp; keep draft
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Discard draft (from the navbar) */}
+        <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle className="font-serif text-xl font-medium tracking-tight">
+                Discard draft?
+              </DialogTitle>
+              <DialogDescription>
+                This deletes your draft and reverts the editor to the published
+                guide. This can&apos;t be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setDiscardOpen(false)}>
+                Keep editing
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => void confirmDiscard()}
+                disabled={discardDraft.isPending}
+              >
+                Discard draft
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Conflict — the draft changed on another device. Must be resolved. */}
+        <Dialog open={conflictOpen} onOpenChange={() => {}}>
+          <DialogContent className="sm:max-w-md" showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle className="font-serif text-xl font-medium tracking-tight">
+                Edited on another device
+              </DialogTitle>
+              <DialogDescription>
+                This guide&apos;s draft changed somewhere else. Keep the changes
+                you made here, or load the other version instead.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button variant="outline" onClick={() => void resolveReload()}>
+                Load their version
+              </Button>
+              <Button onClick={() => void resolveOverwrite()}>
+                Keep my changes
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </GuideCustomizationProvider>
+  )
+}
+
+/** Relative "Draft saved …" indicator in the navbar. */
+function DraftStatusLabel({
+  status,
+  savedAt,
+  now,
+}: {
+  status: DraftStatus
+  savedAt: number | null
+  now: number
+}) {
+  if (status === "saving") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <Loader2 className="size-3 animate-spin" />
+        Saving draft…
+      </span>
+    )
+  }
+  if (status === "offline") {
+    return (
+      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+        <WifiOff className="size-3" />
+        Offline — saved on this device
+      </span>
+    )
+  }
+  if (status === "conflict") {
+    return (
+      <span className="text-xs font-medium text-amber-600 dark:text-amber-400">
+        Edited elsewhere
+      </span>
+    )
+  }
+  if (status === "error") {
+    return <span className="text-destructive text-xs">Couldn&apos;t save draft</span>
+  }
+  if (savedAt == null) return null
+  return (
+    <span className="text-muted-foreground text-xs">
+      Draft saved {formatAgo(savedAt, now)}
+    </span>
+  )
+}
+
+function formatAgo(ts: number, now: number): string {
+  const s = Math.max(0, Math.round((now - ts) / 1000))
+  if (s < 5) return "just now"
+  if (s < 60) return `${s}s ago`
+  const m = Math.round(s / 60)
+  if (m < 60) return `${m}m ago`
+  return `${Math.round(m / 60)}h ago`
+}
+
+function NavIcon({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  disabled: boolean
+  children: React.ReactNode
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            aria-label={label}
+            onClick={onClick}
+            disabled={disabled}
+          />
+        }
+      >
+        {children}
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -436,7 +1062,7 @@ function EditableBlock({
   onDelete,
   onAddMedia,
 }: {
-  block: EditBlock & { stepNumber?: number }
+  block: EditorBlock & { stepNumber?: number }
   stepNumber?: number
   editing: boolean
   uploading: boolean

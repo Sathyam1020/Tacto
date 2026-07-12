@@ -10,6 +10,8 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Volume2,
+  VolumeX,
 } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
@@ -51,6 +53,42 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
   const autoplay = wv.autoplay
   const [playing, setPlaying] = React.useState(autoplay.enabled)
   React.useEffect(() => setPlaying(autoplay.enabled), [autoplay.enabled])
+
+  // Background music — loops during the walkthrough. Browsers block autoplay of
+  // sound until a gesture, so we also start it on the first click.
+  const music = wv.backgroundMusic
+  const audioRef = React.useRef<HTMLAudioElement>(null)
+  const [musicOn, setMusicOn] = React.useState(false)
+  React.useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = music.volume
+  }, [music.volume])
+  React.useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !music.url) return
+    audio.volume = music.volume
+    void audio.play().then(() => setMusicOn(true)).catch(() => {})
+    function onGesture() {
+      if (audio && audio.paused) {
+        void audio.play().then(() => setMusicOn(true)).catch(() => {})
+      }
+      window.removeEventListener("pointerdown", onGesture)
+    }
+    window.addEventListener("pointerdown", onGesture)
+    return () => {
+      window.removeEventListener("pointerdown", onGesture)
+      audio.pause()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [music.url])
+  const toggleMusic = React.useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    if (audio.paused) void audio.play().then(() => setMusicOn(true)).catch(() => {})
+    else {
+      audio.pause()
+      setMusicOn(false)
+    }
+  }, [])
 
   // Manual navigation. `viaClick` = the viewer clicked the on-image target,
   // so the transition is snappier than an arrow press.
@@ -144,6 +182,18 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
 
   const chromeActions = (
     <>
+      {music.url && (
+        <ChromeButton
+          label={musicOn ? "Mute music" : "Play music"}
+          onClick={toggleMusic}
+        >
+          {musicOn ? (
+            <Volume2 className="size-3.5" />
+          ) : (
+            <VolumeX className="size-3.5" />
+          )}
+        </ChromeButton>
+      )}
       {autoplay.enabled && (
         <ChromeButton
           label={playing ? "Pause" : "Play"}
@@ -181,6 +231,10 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
           "bg-background flex h-full max-w-none items-center justify-center px-6"
       )}
     >
+      {music.url && (
+        // eslint-disable-next-line jsx-a11y/media-has-caption
+        <audio ref={audioRef} src={music.url} loop preload="auto" />
+      )}
       <div className={cn("w-full", fullscreen && "max-w-6xl")}>
         <div className="bg-card overflow-hidden rounded-xl border">
           <ChromeBar actions={chromeActions} />

@@ -1,15 +1,17 @@
+import { isDeepStrictEqual } from "node:util";
+
 import { importStepsFromText, translateGuide } from "@workspace/ai";
 import {
   addTranslationSchema,
-  guideCustomizationSchema,
+  draftDocumentSchema,
+  draftPatchSchema,
   moveGuideSchema,
   setGuideFolderSchema,
   TRANSLATION_LANGUAGES,
-  updateGuideSchema,
 } from "@workspace/contracts/guide";
 import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
-import express, { Router } from "express";
+import express, { Router, type Request, type Response } from "express";
 import mammoth from "mammoth";
 import { nanoid } from "nanoid";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
@@ -19,8 +21,12 @@ import { sanitizeContent } from "../../lib/sanitize.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
+import { publishDraft } from "./publish-draft.js";
 import {
   blockSelect,
+  buildDraftDocument,
+  draftDocumentForClient,
+  draftSourceSelect,
   serializeBlocks,
   serializeCustomization,
 } from "./serialize.js";
@@ -112,6 +118,31 @@ guideRouter.get(
     });
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
 
+    // Whether an unpublished draft with changes exists (for the viewer's
+    // "edits in progress" indicator). A fresh draft equals published → not
+    // flagged.
+    const existingDraft = await prisma.guideDraft.findUnique({
+      where: { guideId: id },
+      select: { document: true },
+    });
+    let hasUnpublishedChanges = false;
+    if (existingDraft) {
+      const parsed = draftDocumentSchema.safeParse(existingDraft.document);
+      if (parsed.success) {
+        hasUnpublishedChanges = !isDeepStrictEqual(
+          parsed.data,
+          buildDraftDocument(guide)
+        );
+      } else {
+        // A malformed/stale draft must never break the guide page.
+        console.error(
+          `[guide ${id}] draft parse failed:`,
+          z.prettifyError(parsed.error)
+        );
+        hasUnpublishedChanges = true;
+      }
+    }
+
     res.json({
       guide: {
         id: guide.id,
@@ -121,6 +152,7 @@ guideRouter.get(
         shareId: guide.shareId,
         publishedAt: guide.publishedAt,
         viewCount: guide.viewCount,
+        hasUnpublishedChanges,
         captureSource: guide.capture?.source ?? null,
         createdAt: guide.createdAt,
         customization: await serializeCustomization(guide.customization),
@@ -130,26 +162,163 @@ guideRouter.get(
   }
 );
 
-// ── Customization (published-view theme/layout/hotspot/walkthrough) ───────
-guideRouter.patch(
-  "/api/guides/:id/customization",
+// ── Draft (private working document) ──────────────────────────────────────
+// The editor reads/writes only the draft; published Guide/Step rows are
+// unchanged until Publish. GET is get-or-create (seed from published).
+guideRouter.get(
+  "/api/guides/:id/draft",
   requireAuth,
   requireWorkspace,
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
-    const customization = guideCustomizationSchema.parse(req.body);
-    // The logo URL is a display-only presigned value — never persist it (it
-    // expires); only the stable logoKey is stored.
-    customization.brand.logoUrl = null;
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true, ...draftSourceSelect },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
 
+    const published = buildDraftDocument(guide);
+    let draft = await prisma.guideDraft.findUnique({
+      where: { guideId: id },
+      select: { document: true, version: true },
+    });
+    if (!draft) {
+      try {
+        draft = await prisma.guideDraft.create({
+          data: {
+            guideId: id,
+            document: published,
+            updatedByUserId: req.user!.id,
+          },
+          select: { document: true, version: true },
+        });
+      } catch {
+        // Lost a create race — re-read the winner.
+        draft = await prisma.guideDraft.findUnique({
+          where: { guideId: id },
+          select: { document: true, version: true },
+        });
+        if (!draft) throw new AppError(500, "DRAFT_ERROR", "Could not open draft");
+      }
+    }
+
+    // Recover a malformed/stale draft by reseeding it from the published guide,
+    // rather than 500-ing the editor.
+    const parsed = draftDocumentSchema.safeParse(draft.document);
+    let document = published;
+    let version = draft.version;
+    if (parsed.success) {
+      document = parsed.data;
+    } else {
+      console.error(
+        `[guide ${id}] draft parse failed, reseeding:`,
+        z.prettifyError(parsed.error)
+      );
+      const reseeded = await prisma.guideDraft.update({
+        where: { guideId: id },
+        data: {
+          document: published,
+          version: { increment: 1 },
+          updatedByUserId: req.user!.id,
+        },
+        select: { version: true },
+      });
+      version = reseeded.version;
+    }
+    res.json({
+      document: await draftDocumentForClient(document),
+      version,
+      isDirty: !isDeepStrictEqual(document, published),
+    });
+  }
+);
+
+// Autosave the draft (optimistic concurrency). Shared by PATCH and POST — the
+// POST variant exists so the editor can flush on tab-close via sendBeacon,
+// which can only issue POSTs.
+async function handleDraftSave(req: Request, res: Response): Promise<void> {
+  const { id } = idParamSchema.parse(req.params);
+  const { baseVersion, document } = draftPatchSchema.parse(req.body);
+  const guide = await prisma.guide.findFirst({
+    where: { id, organizationId: req.workspace!.id, deletedAt: null },
+    select: { id: true },
+  });
+  if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+  const result = await prisma.guideDraft.updateMany({
+    where: { guideId: id, version: baseVersion },
+    data: { document, version: { increment: 1 }, updatedByUserId: req.user!.id },
+  });
+  if (result.count === 0) {
+    const current = await prisma.guideDraft.findUnique({
+      where: { guideId: id },
+      select: { version: true },
+    });
+    if (!current) {
+      throw new AppError(404, "NO_DRAFT", "No draft to save — reopen the editor");
+    }
+    // Return the current version so the client can offer overwrite/reload.
+    res.status(409).json({
+      error: {
+        code: "CONFLICT",
+        message: "This guide was edited elsewhere",
+        currentVersion: current.version,
+      },
+    });
+    return;
+  }
+  const updated = await prisma.guideDraft.findUnique({
+    where: { guideId: id },
+    select: { version: true, updatedAt: true },
+  });
+  res.json({ version: updated!.version, updatedAt: updated!.updatedAt });
+}
+
+guideRouter.patch(
+  "/api/guides/:id/draft",
+  requireAuth,
+  requireWorkspace,
+  handleDraftSave
+);
+guideRouter.post(
+  "/api/guides/:id/draft",
+  requireAuth,
+  requireWorkspace,
+  handleDraftSave
+);
+
+guideRouter.delete(
+  "/api/guides/:id/draft",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
     const guide = await prisma.guide.findFirst({
       where: { id, organizationId: req.workspace!.id, deletedAt: null },
       select: { id: true },
     });
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+    await prisma.guideDraft.deleteMany({ where: { guideId: id } });
+    res.json({ ok: true });
+  }
+);
 
-    await prisma.guide.update({ where: { id }, data: { customization } });
-    res.json({ customization: await serializeCustomization(customization) });
+// Publish: apply the draft to the guide's published content (blocks reconciled
+// by key), publish translations, and delete the draft — transactionally.
+// Visibility (status/shareId) is unchanged; that's the separate Share action.
+guideRouter.post(
+  "/api/guides/:id/publish-draft",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+    await publishDraft(id);
+    res.json({ ok: true });
   }
 );
 
@@ -328,58 +497,7 @@ guideRouter.delete(
   }
 );
 
-// ── Update (bulk block replace) ──────────────────────────────────────────
-guideRouter.put(
-  "/api/guides/:id",
-  requireAuth,
-  requireWorkspace,
-  async (req, res) => {
-    const { id } = idParamSchema.parse(req.params);
-    const input = updateGuideSchema.parse(req.body);
-
-    const guide = await prisma.guide.findFirst({
-      where: { id, organizationId: req.workspace!.id, deletedAt: null },
-      select: { id: true },
-    });
-    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
-
-    // Replace all blocks transactionally — add/edit/delete/reorder in one go.
-    await prisma.$transaction(async (tx) => {
-      await tx.guide.update({
-        where: { id },
-        data: { title: input.title, summary: input.summary ?? null },
-      });
-      await tx.step.deleteMany({ where: { guideId: id } });
-      await tx.step.createMany({
-        data: input.blocks.map((block, index) => ({
-          guideId: id,
-          type: block.type,
-          position: index + 1,
-          content: sanitizeContent(block.content),
-          screenshotUrl: block.screenshotKey ?? null, // column stores the key
-          elementLabel: block.elementLabel ?? null,
-          url: block.url ?? null,
-          // Preserve the click pointer across edits (not user-editable).
-          clickRect: block.clickRect ?? undefined,
-        })),
-      });
-      // Saving the guide publishes its translations to the public reader.
-      await tx.guideTranslation.updateMany({
-        where: { guideId: id },
-        data: { published: true },
-      });
-    });
-
-    const blocks = await prisma.step.findMany({
-      where: { guideId: id },
-      orderBy: { position: "asc" },
-      select: blockSelect,
-    });
-    res.json({ blocks: await serializeBlocks(blocks) });
-  }
-);
-
-// ── Publish / unpublish ──────────────────────────────────────────────────
+// ── Publish / unpublish (visibility) ──────────────────────────────────────
 guideRouter.post(
   "/api/guides/:id/publish",
   requireAuth,

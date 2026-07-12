@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "seed:capture": "node scripts/seed-capture.mjs"
+    "seed:capture": "node scripts/seed-capture.mjs",
+    "test": "tsx --env-file=.env src/features/guide/draft.test.ts && tsx --env-file=.env src/features/guide/publish-draft.test.ts"
   },
   "dependencies": {
     "@workspace/ai": "*",

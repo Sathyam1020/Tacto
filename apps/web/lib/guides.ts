@@ -1,9 +1,9 @@
 import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
-  DEFAULT_CUSTOMIZATION,
   type BlockType,
-  type GuideBlockInput,
+  type DraftBlock,
+  type DraftDocument,
   type GuideCustomization,
 } from "@workspace/contracts/guide"
 import axios from "axios"
@@ -66,39 +66,14 @@ export type GuideDetail = {
   captureSource: "EXTENSION" | "VIDEO_UPLOAD" | "IMPORT" | null
   createdAt: string
   customization: GuideCustomization | null
+  /** True when a private draft has edits not yet published. */
+  hasUnpublishedChanges: boolean
   blocks: GuideBlock[]
 }
 
-/** Merge stored (possibly null/partial) customization with defaults. */
-export function resolveCustomization(
-  raw: GuideCustomization | null | undefined
-): GuideCustomization {
-  const d = DEFAULT_CUSTOMIZATION
-  const c = (raw ?? {}) as Partial<GuideCustomization>
-  const w = (c.walkthroughView ?? {}) as Partial<
-    GuideCustomization["walkthroughView"]
-  >
-  return {
-    general: {
-      ...d.general,
-      ...c.general,
-      hotspot: { ...d.general.hotspot, ...c.general?.hotspot },
-    },
-    brand: { ...d.brand, ...c.brand },
-    scrollView: { ...d.scrollView, ...c.scrollView },
-    walkthroughView: {
-      ...d.walkthroughView,
-      ...w,
-      autoplay: { ...d.walkthroughView.autoplay, ...w.autoplay },
-      cta: { ...d.walkthroughView.cta, ...w.cta },
-      backgroundMusic: {
-        ...d.walkthroughView.backgroundMusic,
-        ...w.backgroundMusic,
-      },
-    },
-    feedback: { ...d.feedback, ...c.feedback },
-  }
-}
+/** Merge stored (possibly null/partial) customization with defaults.
+ *  Re-exported from contracts so the server and web resolve identically. */
+export { resolveCustomization } from "@workspace/contracts/guide"
 
 /** Workspace-keyed so switching workspaces refetches, never bleeds. */
 export function useGuides(workspaceId: string | undefined) {
@@ -184,34 +159,79 @@ export function useGuide(workspaceId: string | undefined, guideId: string) {
   })
 }
 
-/** Save the published-view customization for a guide. */
-export function useUpdateGuideCustomization(guideId: string) {
-  const queryClient = useQueryClient()
-  return useMutation({
-    mutationFn: async (customization: GuideCustomization) => {
-      const { data } = await api.patch<{ customization: GuideCustomization }>(
-        `/guides/${guideId}/customization`,
-        customization
+// ── Editor draft ───────────────────────────────────────────────────────────
+
+/** A draft block as returned to the editor (durable fields + a display URL). */
+export type DraftBlockClient = DraftBlock & { screenshotUrl: string | null }
+export type DraftDocumentClient = Omit<DraftDocument, "blocks"> & {
+  blocks: DraftBlockClient[]
+}
+export type GuideDraftResponse = {
+  document: DraftDocumentClient
+  version: number
+  /** Whether the draft differs from the published guide (unpublished changes). */
+  isDirty: boolean
+}
+
+/**
+ * Get-or-create the guide's draft, seeded from the published content. Fetched
+ * fresh on each editor mount (so another session/device resumes correctly),
+ * then the editor owns the state locally — no refetch mid-edit.
+ */
+export function useGuideDraft(
+  workspaceId: string | undefined,
+  guideId: string
+) {
+  return useQuery({
+    queryKey: ["draft", guideId],
+    queryFn: async () => {
+      const { data } = await api.get<GuideDraftResponse>(
+        `/guides/${guideId}/draft`
       )
-      return data.customization
+      return data
     },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["guide"] })
+    enabled: !!workspaceId && !!guideId,
+    // Always read the true server version on open; never resume from a stale
+    // cache (which would desync the autosave version → spurious 409).
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export type SaveDraftVars = { document: DraftDocument; baseVersion: number }
+
+/** Autosave the draft with optimistic concurrency. Throws on 409 conflict. */
+export function useSaveDraft(guideId: string) {
+  return useMutation({
+    mutationFn: async ({ document, baseVersion }: SaveDraftVars) => {
+      const { data } = await api.patch<{ version: number; updatedAt: string }>(
+        `/guides/${guideId}/draft`,
+        { document, baseVersion }
+      )
+      return data
     },
   })
 }
 
-/** Save the whole guide (title, summary, ordered blocks) in one write. */
-export function useUpdateGuide(guideId: string) {
+/** Discard the draft (revert to the published guide). */
+export function useDiscardDraft(guideId: string) {
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete(`/guides/${guideId}/draft`)
+    },
+  })
+}
+
+/**
+ * Publish the draft: apply it to the guide's published content (server-side,
+ * transactionally) and delete the draft. Visibility (Share) is unaffected.
+ */
+export function usePublishDraft(guideId: string) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: async (payload: {
-      title: string
-      summary: string | null
-      blocks: GuideBlockInput[]
-    }) => {
-      const { data } = await api.put(`/guides/${guideId}`, payload)
-      return data
+    mutationFn: async () => {
+      await api.post(`/guides/${guideId}/publish-draft`)
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["guide"] })
@@ -467,4 +487,17 @@ export async function uploadStepMedia(
     headers: { "Content-Type": file.type },
   })
   return data.key
+}
+
+/** Presign R2 keys for display — re-hydrates a cached draft's images whose
+ *  in-memory URLs died on a reload. */
+export async function signMediaKeys(
+  keys: string[]
+): Promise<Record<string, string>> {
+  if (keys.length === 0) return {}
+  const { data } = await api.post<{ urls: Record<string, string> }>(
+    "/media/sign",
+    { keys }
+  )
+  return data.urls
 }

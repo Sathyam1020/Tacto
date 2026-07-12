@@ -195,6 +195,8 @@ export function CustomizeGuideDialog({
 
   const [logoUploading, setLogoUploading] = React.useState(false)
   const logoInputRef = React.useRef<HTMLInputElement>(null)
+  const [musicUploading, setMusicUploading] = React.useState(false)
+  const musicInputRef = React.useRef<HTMLInputElement>(null)
 
   // Immutable section updaters.
   const g = draft.general
@@ -232,6 +234,27 @@ export function CustomizeGuideDialog({
       toast.error("Couldn't upload logo")
     } finally {
       setLogoUploading(false)
+    }
+  }
+
+  async function onMusicSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ""
+    if (!file) return
+    setMusicUploading(true)
+    try {
+      const key = await uploadStepMedia(guideId, file)
+      setWalk({
+        backgroundMusic: {
+          ...w.backgroundMusic,
+          key,
+          url: URL.createObjectURL(file),
+        },
+      })
+    } catch {
+      toast.error("Couldn't upload track")
+    } finally {
+      setMusicUploading(false)
     }
   }
 
@@ -482,6 +505,77 @@ export function CustomizeGuideDialog({
                   onCheckedChange={(v) => setWalk({ optimizeForMobile: v })}
                 />
               </Field>
+
+              {/* Background music */}
+              <div className="py-4">
+                <Field
+                  label="Background music"
+                  desc="Plays on loop during the interactive walkthrough"
+                >
+                  <div className="flex items-center gap-2">
+                    {w.backgroundMusic.url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          setWalk({
+                            backgroundMusic: {
+                              ...w.backgroundMusic,
+                              key: null,
+                              url: null,
+                            },
+                          })
+                        }
+                      >
+                        Remove
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={musicUploading}
+                      onClick={() => musicInputRef.current?.click()}
+                    >
+                      {musicUploading
+                        ? "Uploading…"
+                        : w.backgroundMusic.url
+                          ? "Replace"
+                          : "Upload track"}
+                    </Button>
+                    <input
+                      ref={musicInputRef}
+                      type="file"
+                      accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/mp4,.mp3,.wav,.ogg,.m4a"
+                      className="hidden"
+                      onChange={onMusicSelected}
+                    />
+                  </div>
+                </Field>
+                {w.backgroundMusic.url && (
+                  <div className="mt-1 flex items-center gap-3 rounded-lg bg-muted/50 p-4">
+                    <span className="text-sm whitespace-nowrap">Volume</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.05}
+                      value={w.backgroundMusic.volume}
+                      onChange={(e) =>
+                        setWalk({
+                          backgroundMusic: {
+                            ...w.backgroundMusic,
+                            volume: Number(e.target.value),
+                          },
+                        })
+                      }
+                      className="accent-primary flex-1"
+                    />
+                    <span className="text-muted-foreground w-9 text-right font-mono text-xs tabular-nums">
+                      {Math.round(w.backgroundMusic.volume * 100)}%
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {/* Autoplay */}
               <div className="py-4">

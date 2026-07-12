@@ -394,6 +394,7 @@ export const ModelName = {
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
   GuideReaction: 'GuideReaction',
   GuideComment: 'GuideComment',
@@ -414,7 +415,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1158,6 +1159,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GuideDraft: {
+      payload: Prisma.$GuideDraftPayload<ExtArgs>
+      fields: Prisma.GuideDraftFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideDraftFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideDraftFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        findFirst: {
+          args: Prisma.GuideDraftFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideDraftFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        findMany: {
+          args: Prisma.GuideDraftFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>[]
+        }
+        create: {
+          args: Prisma.GuideDraftCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        createMany: {
+          args: Prisma.GuideDraftCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideDraftCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>[]
+        }
+        delete: {
+          args: Prisma.GuideDraftDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        update: {
+          args: Prisma.GuideDraftUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideDraftDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideDraftUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideDraftUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideDraftUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideDraftPayload>
+        }
+        aggregate: {
+          args: Prisma.GuideDraftAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuideDraft>
+        }
+        groupBy: {
+          args: Prisma.GuideDraftGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideDraftGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideDraftCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideDraftCountAggregateOutputType> | number
+        }
+      }
+    }
     GuideTranslation: {
       payload: Prisma.$GuideTranslationPayload<ExtArgs>
       fields: Prisma.GuideTranslationFieldRefs
@@ -1718,6 +1793,19 @@ export const GuideScalarFieldEnum = {
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
 
 
+export const GuideDraftScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  document: 'document',
+  version: 'version',
+  updatedByUserId: 'updatedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideDraftScalarFieldEnum = (typeof GuideDraftScalarFieldEnum)[keyof typeof GuideDraftScalarFieldEnum]
+
+
 export const GuideTranslationScalarFieldEnum = {
   id: 'id',
   guideId: 'guideId',
@@ -1768,6 +1856,7 @@ export type CaptureIntentScalarFieldEnum = (typeof CaptureIntentScalarFieldEnum)
 
 export const StepScalarFieldEnum = {
   id: 'id',
+  key: 'key',
   type: 'type',
   position: 'position',
   content: 'content',
@@ -2093,6 +2182,7 @@ export type GlobalOmitConfig = {
   invitation?: Prisma.InvitationOmit
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
+  guideDraft?: Prisma.GuideDraftOmit
   guideTranslation?: Prisma.GuideTranslationOmit
   guideReaction?: Prisma.GuideReactionOmit
   guideComment?: Prisma.GuideCommentOmit

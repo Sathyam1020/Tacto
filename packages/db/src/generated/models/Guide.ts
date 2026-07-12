@@ -306,6 +306,7 @@ export type GuideWhereInput = {
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   blocks?: Prisma.StepListRelationFilter
+  draft?: Prisma.XOR<Prisma.GuideDraftNullableScalarRelationFilter, Prisma.GuideDraftWhereInput> | null
   translations?: Prisma.GuideTranslationListRelationFilter
   reactions?: Prisma.GuideReactionListRelationFilter
   comments?: Prisma.GuideCommentListRelationFilter
@@ -333,6 +334,7 @@ export type GuideOrderByWithRelationInput = {
   createdBy?: Prisma.UserOrderByWithRelationInput
   folder?: Prisma.FolderOrderByWithRelationInput
   blocks?: Prisma.StepOrderByRelationAggregateInput
+  draft?: Prisma.GuideDraftOrderByWithRelationInput
   translations?: Prisma.GuideTranslationOrderByRelationAggregateInput
   reactions?: Prisma.GuideReactionOrderByRelationAggregateInput
   comments?: Prisma.GuideCommentOrderByRelationAggregateInput
@@ -363,6 +365,7 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   createdBy?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   folder?: Prisma.XOR<Prisma.FolderNullableScalarRelationFilter, Prisma.FolderWhereInput> | null
   blocks?: Prisma.StepListRelationFilter
+  draft?: Prisma.XOR<Prisma.GuideDraftNullableScalarRelationFilter, Prisma.GuideDraftWhereInput> | null
   translations?: Prisma.GuideTranslationListRelationFilter
   reactions?: Prisma.GuideReactionListRelationFilter
   comments?: Prisma.GuideCommentListRelationFilter
@@ -432,6 +435,7 @@ export type GuideCreateInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -455,6 +459,7 @@ export type GuideUncheckedCreateInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -478,6 +483,7 @@ export type GuideUpdateInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -501,6 +507,7 @@ export type GuideUncheckedUpdateInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -809,6 +816,20 @@ export type EnumGuideStatusFieldUpdateOperationsInput = {
   set?: $Enums.GuideStatus
 }
 
+export type GuideCreateNestedOneWithoutDraftInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutDraftInput, Prisma.GuideUncheckedCreateWithoutDraftInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutDraftInput
+  connect?: Prisma.GuideWhereUniqueInput
+}
+
+export type GuideUpdateOneRequiredWithoutDraftNestedInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutDraftInput, Prisma.GuideUncheckedCreateWithoutDraftInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutDraftInput
+  upsert?: Prisma.GuideUpsertWithoutDraftInput
+  connect?: Prisma.GuideWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuideUpdateToOneWithWhereWithoutDraftInput, Prisma.GuideUpdateWithoutDraftInput>, Prisma.GuideUncheckedUpdateWithoutDraftInput>
+}
+
 export type GuideCreateNestedOneWithoutTranslationsInput = {
   create?: Prisma.XOR<Prisma.GuideCreateWithoutTranslationsInput, Prisma.GuideUncheckedCreateWithoutTranslationsInput>
   connectOrCreate?: Prisma.GuideCreateOrConnectWithoutTranslationsInput
@@ -882,6 +903,7 @@ export type GuideCreateWithoutCreatedByInput = {
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -904,6 +926,7 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   captureId?: string | null
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -974,6 +997,7 @@ export type GuideCreateWithoutOrganizationInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -996,6 +1020,7 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -1044,6 +1069,7 @@ export type GuideCreateWithoutFolderInput = {
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -1066,6 +1092,7 @@ export type GuideUncheckedCreateWithoutFolderInput = {
   captureId?: string | null
   createdById: string
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -1114,6 +1141,7 @@ export type GuideCreateWithoutCaptureInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -1136,6 +1164,7 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -1167,6 +1196,114 @@ export type GuideUpdateManyWithWhereWithoutCaptureInput = {
   data: Prisma.XOR<Prisma.GuideUpdateManyMutationInput, Prisma.GuideUncheckedUpdateManyWithoutCaptureInput>
 }
 
+export type GuideCreateWithoutDraftInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
+  capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
+  createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
+  reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
+  comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
+}
+
+export type GuideUncheckedCreateWithoutDraftInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organizationId: string
+  captureId?: string | null
+  createdById: string
+  folderId?: string | null
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
+  reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
+  comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
+}
+
+export type GuideCreateOrConnectWithoutDraftInput = {
+  where: Prisma.GuideWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuideCreateWithoutDraftInput, Prisma.GuideUncheckedCreateWithoutDraftInput>
+}
+
+export type GuideUpsertWithoutDraftInput = {
+  update: Prisma.XOR<Prisma.GuideUpdateWithoutDraftInput, Prisma.GuideUncheckedUpdateWithoutDraftInput>
+  create: Prisma.XOR<Prisma.GuideCreateWithoutDraftInput, Prisma.GuideUncheckedCreateWithoutDraftInput>
+  where?: Prisma.GuideWhereInput
+}
+
+export type GuideUpdateToOneWithWhereWithoutDraftInput = {
+  where?: Prisma.GuideWhereInput
+  data: Prisma.XOR<Prisma.GuideUpdateWithoutDraftInput, Prisma.GuideUncheckedUpdateWithoutDraftInput>
+}
+
+export type GuideUpdateWithoutDraftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
+  capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
+  reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
+  comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
+}
+
+export type GuideUncheckedUpdateWithoutDraftInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
+  reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
+  comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
+}
+
 export type GuideCreateWithoutTranslationsInput = {
   id?: string
   title: string
@@ -1185,6 +1322,7 @@ export type GuideCreateWithoutTranslationsInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
 }
@@ -1207,6 +1345,7 @@ export type GuideUncheckedCreateWithoutTranslationsInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
 }
@@ -1245,6 +1384,7 @@ export type GuideUpdateWithoutTranslationsInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
 }
@@ -1267,6 +1407,7 @@ export type GuideUncheckedUpdateWithoutTranslationsInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
 }
@@ -1289,6 +1430,7 @@ export type GuideCreateWithoutReactionsInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
 }
@@ -1311,6 +1453,7 @@ export type GuideUncheckedCreateWithoutReactionsInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
 }
@@ -1349,6 +1492,7 @@ export type GuideUpdateWithoutReactionsInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
 }
@@ -1371,6 +1515,7 @@ export type GuideUncheckedUpdateWithoutReactionsInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
 }
@@ -1393,6 +1538,7 @@ export type GuideCreateWithoutCommentsInput = {
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
   blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
 }
@@ -1415,6 +1561,7 @@ export type GuideUncheckedCreateWithoutCommentsInput = {
   createdById: string
   folderId?: string | null
   blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
 }
@@ -1453,6 +1600,7 @@ export type GuideUpdateWithoutCommentsInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
 }
@@ -1475,6 +1623,7 @@ export type GuideUncheckedUpdateWithoutCommentsInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
 }
@@ -1496,6 +1645,7 @@ export type GuideCreateWithoutBlocksInput = {
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
@@ -1518,6 +1668,7 @@ export type GuideUncheckedCreateWithoutBlocksInput = {
   captureId?: string | null
   createdById: string
   folderId?: string | null
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
   translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
@@ -1556,6 +1707,7 @@ export type GuideUpdateWithoutBlocksInput = {
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -1578,6 +1730,7 @@ export type GuideUncheckedUpdateWithoutBlocksInput = {
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -1618,6 +1771,7 @@ export type GuideUpdateWithoutCreatedByInput = {
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -1640,6 +1794,7 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -1698,6 +1853,7 @@ export type GuideUpdateWithoutOrganizationInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -1720,6 +1876,7 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -1778,6 +1935,7 @@ export type GuideUpdateWithoutFolderInput = {
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -1800,6 +1958,7 @@ export type GuideUncheckedUpdateWithoutFolderInput = {
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -1858,6 +2017,7 @@ export type GuideUpdateWithoutCaptureInput = {
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
   blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
@@ -1880,6 +2040,7 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
   translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
@@ -1983,6 +2144,7 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
   blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
+  draft?: boolean | Prisma.Guide$draftArgs<ExtArgs>
   translations?: boolean | Prisma.Guide$translationsArgs<ExtArgs>
   reactions?: boolean | Prisma.Guide$reactionsArgs<ExtArgs>
   comments?: boolean | Prisma.Guide$commentsArgs<ExtArgs>
@@ -2061,6 +2223,7 @@ export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   folder?: boolean | Prisma.Guide$folderArgs<ExtArgs>
   blocks?: boolean | Prisma.Guide$blocksArgs<ExtArgs>
+  draft?: boolean | Prisma.Guide$draftArgs<ExtArgs>
   translations?: boolean | Prisma.Guide$translationsArgs<ExtArgs>
   reactions?: boolean | Prisma.Guide$reactionsArgs<ExtArgs>
   comments?: boolean | Prisma.Guide$commentsArgs<ExtArgs>
@@ -2087,6 +2250,7 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     createdBy: Prisma.$UserPayload<ExtArgs>
     folder: Prisma.$FolderPayload<ExtArgs> | null
     blocks: Prisma.$StepPayload<ExtArgs>[]
+    draft: Prisma.$GuideDraftPayload<ExtArgs> | null
     translations: Prisma.$GuideTranslationPayload<ExtArgs>[]
     reactions: Prisma.$GuideReactionPayload<ExtArgs>[]
     comments: Prisma.$GuideCommentPayload<ExtArgs>[]
@@ -2521,6 +2685,7 @@ export interface Prisma__GuideClient<T, Null = never, ExtArgs extends runtime.Ty
   createdBy<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   folder<T extends Prisma.Guide$folderArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$folderArgs<ExtArgs>>): Prisma.Prisma__FolderClient<runtime.Types.Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   blocks<T extends Prisma.Guide$blocksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$blocksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StepPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  draft<T extends Prisma.Guide$draftArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$draftArgs<ExtArgs>>): Prisma.Prisma__GuideDraftClient<runtime.Types.Result.GetResult<Prisma.$GuideDraftPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   translations<T extends Prisma.Guide$translationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$translationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuideTranslationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reactions<T extends Prisma.Guide$reactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$reactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuideReactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   comments<T extends Prisma.Guide$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuideCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -3029,6 +3194,25 @@ export type Guide$blocksArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.StepScalarFieldEnum | Prisma.StepScalarFieldEnum[]
+}
+
+/**
+ * Guide.draft
+ */
+export type Guide$draftArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GuideDraft
+   */
+  select?: Prisma.GuideDraftSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GuideDraft
+   */
+  omit?: Prisma.GuideDraftOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GuideDraftInclude<ExtArgs> | null
+  where?: Prisma.GuideDraftWhereInput
 }
 
 /**
