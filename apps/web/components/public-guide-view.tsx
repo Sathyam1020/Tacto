@@ -105,7 +105,14 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => void downloadGuidePdf(guide)}
+              onClick={() =>
+                void downloadGuidePdf({
+                  title: displayTitle,
+                  summary: displaySummary,
+                  blocks: displayBlocks,
+                  customization: guide.customization,
+                })
+              }
             >
               <DownloadIcon size={15} />
               PDF

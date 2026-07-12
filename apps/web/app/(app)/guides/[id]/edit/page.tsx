@@ -57,6 +57,7 @@ import {
   type History,
 } from "@/lib/editor-history"
 import { guideFontFamily } from "@/lib/guide-fonts"
+import { downloadGuidePdf } from "@/lib/pdf"
 import {
   clearDraftCache,
   reconcileDraft,
@@ -497,6 +498,17 @@ export default function GuideEditPage() {
 
   const markDirty = React.useCallback(() => setDirty(true), [])
 
+  // Export the current draft (what the editor shows), not the published guide.
+  const exportPdf = React.useCallback(() => {
+    const d = latest.current.present
+    void downloadGuidePdf({
+      title: d.title,
+      summary: d.summary,
+      blocks: d.blocks,
+      customization: d.customization,
+    })
+  }, [])
+
   const doUndo = React.useCallback(() => {
     setHistory((h) => (canUndo(h) ? undo(h) : h))
     setDirty(true)
@@ -813,6 +825,7 @@ export default function GuideEditPage() {
           onReorder={reorderBlocks}
           onImport={importBlocks}
           onDirty={markDirty}
+          onExport={exportPdf}
         />
       )}
       <div

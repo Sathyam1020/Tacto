@@ -23,7 +23,6 @@ import {
 import { SortStepsDialog, type SortRow } from "@/components/sort-steps-dialog"
 import { TranslationsDialog } from "@/components/translations-dialog"
 import type { GuideDetail } from "@/lib/guides"
-import { downloadGuidePdf } from "@/lib/pdf"
 
 /**
  * Floating actions bar shown below the navbar on the guide editor — the home
@@ -37,6 +36,7 @@ export function GuideToolbar({
   onReorder,
   onImport,
   onDirty,
+  onExport,
 }: {
   guide: GuideDetail
   /** The editor's working-copy customization (previewed live). */
@@ -51,6 +51,8 @@ export function GuideToolbar({
   onImport: (blocks: ImportedBlock[]) => void
   /** Mark the editor dirty (e.g. a translation was generated). */
   onDirty: () => void
+  /** Export the current draft to PDF (reflects unsaved edits). */
+  onExport: () => void
 }) {
   const [customizeOpen, setCustomizeOpen] = React.useState(false)
   const [sortOpen, setSortOpen] = React.useState(false)
@@ -84,7 +86,7 @@ export function GuideToolbar({
     {
       icon: Download,
       label: "Export Guide",
-      onClick: () => void downloadGuidePdf(guide),
+      onClick: onExport,
     },
   ]
 
