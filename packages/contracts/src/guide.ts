@@ -10,7 +10,13 @@ import { clickRectSchema } from "./capture.js";
  * sanitizes it on save).
  */
 
-export const blockTypeSchema = z.enum(["STEP", "HEADING", "TIP", "ALERT"]);
+export const blockTypeSchema = z.enum([
+  "STEP",
+  "HEADING",
+  "TIP",
+  "ALERT",
+  "OUTCOME",
+]);
 export type BlockType = z.infer<typeof blockTypeSchema>;
 
 /** A block as sent by the editor on save. `id` absent → newly created. */

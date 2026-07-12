@@ -10,7 +10,7 @@ import type { ClickRect } from "@/lib/guides"
  */
 
 type PdfBlock = {
-  type: "STEP" | "HEADING" | "TIP" | "ALERT"
+  type: "STEP" | "HEADING" | "TIP" | "ALERT" | "OUTCOME"
   content: string
   screenshotUrl: string | null
   clickRect: ClickRect | null
@@ -105,7 +105,10 @@ export async function downloadGuidePdf(guide: {
     pdf.text(lines, margin, y + 12)
     y += lines.length * 16 + 10
 
-    if (block.type === "STEP" && block.screenshotUrl) {
+    if (
+      (block.type === "STEP" || block.type === "OUTCOME") &&
+      block.screenshotUrl
+    ) {
       try {
         const img = await loadImage(block.screenshotUrl)
         const drawH = (img.naturalHeight / img.naturalWidth) * contentW

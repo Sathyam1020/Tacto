@@ -226,6 +226,21 @@ export const synthesizedStepSchema = z.object({
     ),
 });
 
+/**
+ * Outcome of the FINAL view-opening action — the material for a presentation-only
+ * "Outcome step" ("The conversation opens"). A structured object (not a bare
+ * string) so it can gain fields later without a contract change. The recorder
+ * knows the destination deterministically; the model only writes the wording.
+ */
+export const synthesizedResultSchema = z.object({
+  text: z
+    .string()
+    .describe(
+      "Short confirmation of what the user now sees — never an instruction (e.g. 'The conversation opens')"
+    ),
+});
+export type SynthesizedResult = z.infer<typeof synthesizedResultSchema>;
+
 export const synthesizedGuideSchema = z.object({
   title: z
     .string()
@@ -234,6 +249,12 @@ export const synthesizedGuideSchema = z.object({
     .string()
     .describe("One or two sentences on what this guide accomplishes"),
   steps: z.array(synthesizedStepSchema).min(1),
+  // nullable (not optional): strict structured outputs require every property.
+  result: synthesizedResultSchema
+    .nullable()
+    .describe(
+      "Outcome confirmation for a final view-opening action, or null when the guide's last action doesn't open a new view"
+    ),
 });
 
 export type SynthesizedGuide = z.infer<typeof synthesizedGuideSchema>;

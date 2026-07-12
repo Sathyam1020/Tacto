@@ -191,6 +191,9 @@ enum BlockType {
   HEADING
   TIP
   ALERT
+  // Outcome/result: a confirmation of what the user now sees after the final
+  // view-opening action (no action, no pointer). Presentation-only.
+  OUTCOME
 }
 
 /// Immutable raw material: the recorded event log. Never edited after

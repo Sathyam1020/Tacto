@@ -1,5 +1,5 @@
 import type { BlockType } from "@workspace/contracts/guide"
-import { Info, TriangleAlert } from "lucide-react"
+import { Check, Info, TriangleAlert } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { StepMarker } from "@workspace/ui/components/step-marker"
@@ -60,6 +60,33 @@ export function BlockView({
             <TriangleAlert className="size-3" />
           </span>
           <RichText html={block.content} className="text-amber-ink text-sm" />
+        </div>
+      )
+
+    case "OUTCOME":
+      // Presentation-only confirmation of the final result — no number, no
+      // pointer, distinct "you'll now see" treatment.
+      return (
+        <div className="flex gap-5">
+          <div className="relative flex flex-col items-center">
+            <span className="mt-0.5 flex size-8 items-center justify-center rounded-full bg-[var(--l-success)]/15 text-[var(--l-success)] ring-1 ring-[var(--l-success)]/30">
+              <Check className="size-4" strokeWidth={2.5} />
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+              You'll now see
+            </p>
+            <RichText html={block.content} className="mt-1 text-[17px]" />
+            {block.screenshotUrl && (
+              <ScreenshotFrame
+                src={block.screenshotUrl}
+                clickRect={null}
+                controls
+                className="mt-4"
+              />
+            )}
+          </div>
         </div>
       )
 

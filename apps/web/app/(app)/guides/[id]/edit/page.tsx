@@ -49,6 +49,7 @@ const NEW_CONTENT: Record<BlockType, string> = {
   HEADING: "<p>New heading</p>",
   TIP: "<p>Add a tip</p>",
   ALERT: "<p>Add an alert</p>",
+  OUTCOME: "<p>The result appears</p>",
 }
 
 export default function GuideEditPage() {

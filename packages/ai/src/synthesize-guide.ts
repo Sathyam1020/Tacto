@@ -30,7 +30,8 @@ Rules:
 - NEVER invent an action that is not in the list. Accuracy over polish.
 - Masked values ("•••") are sensitive — refer to them by field name ("Enter the password"), never by value.
 - For each step, report the interaction index/indexes it came from (0-based, from the list below) in sourceIndexes.
-- Title: short and task-oriented. Summary: one or two sentences on what the workflow accomplishes.`;
+- Title: short and task-oriented. Summary: one or two sentences on what the workflow accomplishes.
+- result: If — and ONLY if — the FINAL interaction opens a new view (it's annotated "→ navigates to X"), set result.text to a short confirmation of what the user now sees ("The conversation opens", "The article opens"). It is NOT an instruction and must not tell the user to do anything. Otherwise set result to null. Never write a result for any interaction other than the last.`;
 
 function describeEvent(event: CaptureEvent): string {
   switch (event.type) {

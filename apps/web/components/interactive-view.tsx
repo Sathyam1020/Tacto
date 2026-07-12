@@ -25,7 +25,7 @@ import type { GuideBlock } from "@/lib/guides"
  */
 export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
   const slides = React.useMemo(
-    () => blocks.filter((b) => b.type === "STEP"),
+    () => blocks.filter((b) => b.type === "STEP" || b.type === "OUTCOME"),
     [blocks]
   )
   const [index, setIndex] = React.useState(0)

@@ -40,7 +40,8 @@ export const BlockType = {
   STEP: 'STEP',
   HEADING: 'HEADING',
   TIP: 'TIP',
-  ALERT: 'ALERT'
+  ALERT: 'ALERT',
+  OUTCOME: 'OUTCOME'
 } as const
 
 export type BlockType = (typeof BlockType)[keyof typeof BlockType]

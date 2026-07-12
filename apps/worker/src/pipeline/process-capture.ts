@@ -122,6 +122,28 @@ export async function processCapture(captureId: string): Promise<void> {
       const folderId =
         capture.folderId ??
         (await ensureDefaultFolder(tx, capture.organizationId));
+
+      // Deterministic Outcome step: if the FINAL interaction opened a new view
+      // (absorbedNavigation) AND synthesis wrote a confirmation, append a
+      // presentation-only block showing the destination. It never changes any
+      // action step's frame — frame selection stays frozen.
+      const terminal = interactions[interactions.length - 1];
+      const outcomeText = synthesized.result?.text?.trim() || null;
+      const lastIdx = terminal?.eventIndexes[terminal.eventIndexes.length - 1];
+      const destEvent = lastIdx !== undefined ? events[lastIdx] : undefined;
+      const outcomeFrame =
+        destEvent?.frames?.after ??
+        destEvent?.frames?.before ??
+        (terminal ? events[terminal.primaryEventIndex]?.frames?.after : undefined) ??
+        (terminal ? events[terminal.primaryEventIndex]?.frames?.before : undefined) ??
+        null;
+      const emitOutcome = !!(terminal?.absorbedNavigation && outcomeText);
+      if (emitOutcome) {
+        console.log(
+          `[${captureId}]   outcome: frame=${outcomeFrame?.split("/").pop() ?? "none"} "${outcomeText}"`
+        );
+      }
+
       const guide = await tx.guide.create({
       data: {
         title: synthesized.title,
@@ -131,7 +153,8 @@ export async function processCapture(captureId: string): Promise<void> {
         createdById: capture.createdById,
         folderId,
         blocks: {
-          create: synthesized.steps.map((step, index) => {
+          create: [
+            ...synthesized.steps.map((step, index) => {
             // Trace the step back through its interaction to the primary source
             // event for element metadata + frame selection.
             const firstIx = step.sourceIndexes[0];
@@ -177,6 +200,22 @@ export async function processCapture(captureId: string): Promise<void> {
               confidence: sourceEvent?.confidence ?? null,
             };
           }),
+            ...(emitOutcome
+              ? [
+                  {
+                    type: "OUTCOME" as const,
+                    position: synthesized.steps.length + 1,
+                    content: markdownToHtml(outcomeText!),
+                    elementLabel: null,
+                    url: terminal!.absorbedNavigation!.url,
+                    screenshotUrl: outcomeFrame,
+                    boundingBox: undefined,
+                    clickRect: undefined,
+                    confidence: null,
+                  },
+                ]
+              : []),
+          ],
         },
       },
     });
