@@ -142,12 +142,23 @@ export async function processCapture(captureId: string): Promise<void> {
               : undefined;
             // Instruction-frame selection: choose the screenshot and whether a
             // pointer belongs on it, by instructional intent. The terminal step
-            // may show a completed-state (overlay) result instead of the control.
+            // may show a completed-state (overlay) result; an input borrows the
+            // immediately-following click's before frame (strict adjacency).
             const isTerminal = index === synthesized.steps.length - 1;
+            const nextEvent = interaction
+              ? events[interaction.primaryEventIndex + 1]
+              : undefined;
             const choice = sourceEvent
-              ? selectFrame(sourceEvent, { isTerminal })
+              ? selectFrame(sourceEvent, { isTerminal, nextEvent })
               : undefined;
             const showPointer = choice?.showPointer ?? false;
+            // QA/debug: surface which frame each step used and where it came from
+            // (its own before/after, or borrowed from the next click).
+            console.log(
+              `[${captureId}]   step ${index + 1} [${sourceEvent?.type ?? "?"}]: ` +
+                `frame=${choice?.screenshotId?.split("/").pop() ?? "none"} ` +
+                `source=${choice?.source ?? "none"} pointer=${showPointer}`
+            );
             return {
               type: "STEP" as const,
               position: index + 1,

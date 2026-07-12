@@ -48,8 +48,10 @@ const cases: {
   name: string;
   event: CaptureEvent;
   terminal?: boolean;
+  next?: CaptureEvent;
   frame: string | undefined;
   pointer: boolean;
+  source?: string;
 }[] = [
   {
     name: "plain click, no mutation → before, pointer",
@@ -105,19 +107,35 @@ const cases: {
     pointer: true,
   },
   {
-    name: "text input → after (typed value), pointer",
-    event: input({
-      frames: { before: "B", after: "A" },
-      settle: { mutated: true },
-    }),
-    frame: "A",
+    name: "input, next is a click → BORROWS the click's before frame",
+    event: input({ frames: { before: "IB", after: "IA" } }),
+    next: click({ frames: { before: "CB", after: "CA" } }),
+    frame: "CB",
     pointer: true,
+    source: "borrowed-next-click",
   },
   {
-    name: "input with no after → before, pointer",
-    event: input({ frames: { before: "B" } }),
-    frame: "B",
+    name: "input, next is a navigation → fall back to input's own before",
+    event: input({ frames: { before: "IB", after: "IA" } }),
+    next: nav({ frames: { before: "NB" } }),
+    frame: "IB",
     pointer: true,
+    source: "before",
+  },
+  {
+    name: "input, no following event → fall back to input's own before",
+    event: input({ frames: { before: "IB", after: "IA" } }),
+    frame: "IB",
+    pointer: true,
+    source: "before",
+  },
+  {
+    name: "input, next click has no before frame → fall back to input's before",
+    event: input({ frames: { before: "IB" } }),
+    next: click({ frames: { after: "CA" } }),
+    frame: "IB",
+    pointer: true,
+    source: "before",
   },
   {
     name: "navigation → after (destination), no pointer",
@@ -160,10 +178,11 @@ const cases: {
 
 let failures = 0;
 for (const c of cases) {
-  const got = selectFrame(c.event, { isTerminal: c.terminal });
+  const got = selectFrame(c.event, { isTerminal: c.terminal, nextEvent: c.next });
   try {
     assert.equal(got.screenshotId, c.frame, `${c.name} — frame`);
     assert.equal(got.showPointer, c.pointer, `${c.name} — pointer`);
+    if (c.source) assert.equal(got.source, c.source, `${c.name} — source`);
     console.log(`✓ ${c.name}`);
   } catch (e) {
     failures++;
