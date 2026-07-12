@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { BarChart3, Info, Share2 } from "lucide-react"
+import { ArrowLeft, BarChart3, Info, Share2 } from "lucide-react"
 
 import { DownloadIcon } from "@workspace/ui/components/download"
 import { SquarePenIcon } from "@workspace/ui/components/square-pen"
@@ -55,6 +55,26 @@ export default function GuidePage() {
   useSetNavbar(
     {
       title: guide?.title ?? "Guide",
+      // Primary back button at the leftmost, then the guide title.
+      leftActions: guide ? (
+        <div className="flex min-w-0 items-center gap-2.5">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  size="icon-sm"
+                  aria-label="Back to library"
+                  onClick={() => router.push("/home")}
+                />
+              }
+            >
+              <ArrowLeft className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Back</TooltipContent>
+          </Tooltip>
+          <span className="truncate text-sm font-medium">{guide.title}</span>
+        </div>
+      ) : null,
       actions: guide ? (
         <div className="flex items-center gap-2">
           <ViewModeToggle mode={mode} onChange={setMode} />
