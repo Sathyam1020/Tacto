@@ -40,6 +40,27 @@ export function serializeBlocks(blocks: BlockRow[]) {
   return Promise.all(blocks.map(serializeBlock));
 }
 
+/**
+ * Serialize a guide's customization for clients: presign the stored logo key
+ * into a display-only `brand.logoUrl` (like screenshots). The raw `logoKey`
+ * stays so the editor round-trips it on save; the presigned URL is never
+ * persisted (see the PATCH handler, which nulls it before writing).
+ */
+export async function serializeCustomization(
+  raw: unknown
+): Promise<unknown | null> {
+  if (!raw || typeof raw !== "object") return null;
+  const c = raw as { brand?: { logoKey?: string | null } };
+  const logoKey = c.brand?.logoKey ?? null;
+  return {
+    ...c,
+    brand: {
+      ...c.brand,
+      logoUrl: logoKey ? await presignGet(logoKey) : null,
+    },
+  };
+}
+
 export const blockSelect = {
   id: true,
   type: true,

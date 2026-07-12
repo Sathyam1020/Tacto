@@ -1,11 +1,23 @@
 "use client"
 
 import * as React from "react"
-import { Minus, Plus } from "lucide-react"
+import { Minus, MousePointer2, Plus } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useGuideCustomization } from "@/components/guide-customization-context"
 import type { ClickRect } from "@/lib/guides"
+
+type ImageScaling = "fit-to-width" | "native-size"
+
+/** Tailwind width for a screenshot img under the List view's image scaling.
+ *  Native size shows the image at its intrinsic size (capped to container,
+ *  centered); fit-to-width stretches it to fill. */
+function imgClass(scaling: ImageScaling): string {
+  return scaling === "native-size"
+    ? "mx-auto block max-w-full"
+    : "block w-full"
+}
 
 /**
  * A captured screenshot in a subtle browser frame, with an animated click
@@ -40,17 +52,37 @@ export function ScreenshotFrame({
   chromeActions?: React.ReactNode
   className?: string
 }) {
+  const { scrollView } = useGuideCustomization()
   const cx = clickRect ? (clickRect.x + clickRect.w / 2) * 100 : null
   const cy = clickRect ? (clickRect.y + clickRect.h / 2) * 100 : null
 
   if (controls) {
+    // List view. When Initial Zoom > 1, screenshots auto-zoom toward the
+    // hotspot as they scroll into view; otherwise they get manual zoom/pan.
+    if (scrollView.initialZoom > 1 && cx !== null && cy !== null) {
+      return (
+        <ScrollZoomFrame
+          src={src}
+          cx={cx}
+          cy={cy}
+          clickRect={clickRect}
+          chrome={chrome}
+          className={className}
+          level={scrollView.initialZoom}
+          delay={scrollView.zoomDelay}
+          imageScaling={scrollView.imageScaling}
+        />
+      )
+    }
     return (
       <ZoomableFrame
         src={src}
         cx={cx}
         cy={cy}
+        clickRect={clickRect}
         chrome={chrome}
         className={className}
+        imageScaling={scrollView.imageScaling}
       />
     )
   }
@@ -85,8 +117,85 @@ export function ScreenshotFrame({
           )}
         </div>
         {cx !== null && cy !== null && (
-          <Marker leftPct={cx} topPct={cy} counterScale={1} />
+          <Marker leftPct={cx} topPct={cy} counterScale={1} rect={clickRect} />
         )}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Scroll-triggered zoom (List view): when the frame scrolls into view, after
+ * `delay` seconds it eases a zoom toward the hotspot to `level`, and eases back
+ * out when it leaves. No manual controls — this is the ambient scroll effect.
+ */
+function ScrollZoomFrame({
+  src,
+  cx,
+  cy,
+  clickRect,
+  chrome,
+  className,
+  level,
+  delay,
+  imageScaling,
+}: {
+  src: string
+  cx: number
+  cy: number
+  clickRect?: ClickRect | null
+  chrome: boolean
+  className?: string
+  level: number
+  delay: number
+  imageScaling: ImageScaling
+}) {
+  const [zoomed, setZoomed] = React.useState(false)
+  const viewRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const el = viewRef.current
+    if (!el) return
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          timer = setTimeout(() => setZoomed(true), Math.max(0, delay) * 1000)
+        } else {
+          if (timer) clearTimeout(timer)
+          setZoomed(false)
+        }
+      },
+      { threshold: 0.55 }
+    )
+    io.observe(el)
+    return () => {
+      if (timer) clearTimeout(timer)
+      io.disconnect()
+    }
+  }, [delay])
+
+  return (
+    <div className={cn("bg-card overflow-hidden rounded-xl border", className)}>
+      {chrome && <ChromeBar />}
+      <div ref={viewRef} className="relative overflow-hidden">
+        <div
+          style={{
+            transform: zoomed ? `scale(${level})` : "scale(1)",
+            transformOrigin: `${cx}% ${cy}%`,
+            transition: "transform 700ms cubic-bezier(0.22, 1, 0.36, 1)",
+            willChange: "transform",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={src} alt="" className={imgClass(imageScaling)} />
+          <Marker
+            leftPct={cx}
+            topPct={cy}
+            counterScale={zoomed ? 1 / level : 1}
+            rect={clickRect}
+          />
+        </div>
       </div>
     </div>
   )
@@ -97,14 +206,18 @@ function ZoomableFrame({
   src,
   cx,
   cy,
+  clickRect,
   chrome,
   className,
+  imageScaling,
 }: {
   src: string
   cx: number | null
   cy: number | null
+  clickRect?: ClickRect | null
   chrome: boolean
   className?: string
+  imageScaling: ImageScaling
 }) {
   // Zoom + pan live in one state object so a single pure updater can move
   // both together (nesting setState was double-applying under StrictMode).
@@ -220,10 +333,18 @@ function ZoomableFrame({
             src={src}
             alt=""
             draggable={false}
-            className="pointer-events-none block w-full select-none"
+            className={cn(
+              "pointer-events-none select-none",
+              imgClass(imageScaling)
+            )}
           />
           {cx !== null && cy !== null && (
-            <Marker leftPct={cx} topPct={cy} counterScale={1 / zoom} />
+            <Marker
+              leftPct={cx}
+              topPct={cy}
+              counterScale={1 / zoom}
+              rect={clickRect}
+            />
           )}
         </div>
 
@@ -295,39 +416,84 @@ function Highlight({ rect }: { rect: ClickRect }) {
 }
 
 /**
- * The Datum reticle — the signature click mark: a surveyor's crosshair
- * (ticks + ring + core) with a radar ping. It marks the exact point of the
- * interaction on every screenshot.
+ * The click hotspot — one of four styles chosen in Customization (Default
+ * reticle / Glowing Circle / Cursor / Highlight Box), scaled by the hotspot
+ * size setting. `counterScale` compensates for the frame's own zoom; `rect` is
+ * used by the box style. Color follows the guide's accent (--primary).
  */
 function Marker({
   leftPct,
   topPct,
   counterScale,
+  rect,
 }: {
   leftPct: number
   topPct: number
   counterScale: number
+  rect?: ClickRect | null
 }) {
+  const { type, size } = useGuideCustomization().general.hotspot
+  const scale = counterScale * size
+
+  // Highlight Box: a rounded outline around the target region.
+  if (type === "highlight-box" && rect) {
+    const pad = 0.008 * size
+    return (
+      <div
+        className="pointer-events-none absolute rounded-md ring-2 ring-[var(--primary)]"
+        style={{
+          left: `${Math.max(0, (rect.x - pad) * 100)}%`,
+          top: `${Math.max(0, (rect.y - pad) * 100)}%`,
+          width: `${(rect.w + pad * 2) * 100}%`,
+          height: `${(rect.h + pad * 2) * 100}%`,
+          boxShadow:
+            "0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent)",
+        }}
+      />
+    )
+  }
+
   return (
     <span
       className="text-primary pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
       style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
-      <span className="block" style={{ transform: `scale(${counterScale})` }}>
-        <span className="relative flex size-5 items-center justify-center">
-          {/* radar ping */}
-          <span className="animate-click-ripple absolute inset-1 rounded-full border border-current motion-reduce:hidden" />
-          {/* crosshair ticks */}
-          <span className="absolute top-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
-          <span className="absolute bottom-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
-          <span className="absolute top-1/2 left-0 h-px w-1.5 -translate-y-1/2 bg-current" />
-          <span className="absolute top-1/2 right-0 h-px w-1.5 -translate-y-1/2 bg-current" />
-          {/* fixed ring */}
-          <span className="absolute inset-1 rounded-full border border-current" />
-          {/* core */}
-          <span className="animate-click-core size-1.5 rounded-full bg-current shadow-[0_0_0_2px_white] motion-reduce:animate-none" />
-        </span>
+      <span className="block" style={{ transform: `scale(${scale})` }}>
+        <HotspotGlyph type={type} />
       </span>
+    </span>
+  )
+}
+
+/**
+ * The visual for a point-style hotspot (reticle / glowing circle / cursor),
+ * in `currentColor`. Shared by the static Marker and the walkthrough's
+ * traveling pointer. (Highlight Box is a region, handled by its callers.)
+ */
+export function HotspotGlyph({ type }: { type: string }) {
+  if (type === "glowing-circle") {
+    return (
+      <span className="relative flex size-5 items-center justify-center">
+        <span className="animate-click-ripple absolute inset-0 rounded-full bg-current opacity-30 motion-reduce:hidden" />
+        <span className="size-4 rounded-full bg-current shadow-[0_0_12px_2px_var(--primary)] ring-2 ring-white/70" />
+      </span>
+    )
+  }
+  if (type === "cursor") {
+    return (
+      <MousePointer2 className="size-5 fill-current drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)]" />
+    )
+  }
+  // Default reticle.
+  return (
+    <span className="relative flex size-5 items-center justify-center">
+      <span className="animate-click-ripple absolute inset-1 rounded-full border border-current motion-reduce:hidden" />
+      <span className="absolute top-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
+      <span className="absolute bottom-0 left-1/2 h-1.5 w-px -translate-x-1/2 bg-current" />
+      <span className="absolute top-1/2 left-0 h-px w-1.5 -translate-y-1/2 bg-current" />
+      <span className="absolute top-1/2 right-0 h-px w-1.5 -translate-y-1/2 bg-current" />
+      <span className="absolute inset-1 rounded-full border border-current" />
+      <span className="animate-click-core size-1.5 rounded-full bg-current shadow-[0_0_0_2px_white] motion-reduce:animate-none" />
     </span>
   )
 }

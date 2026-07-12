@@ -1,10 +1,24 @@
+import type { GuideCustomization } from "@workspace/contracts/guide"
+
 import type { GuideBlock } from "@/lib/guides"
 
+export type GuideReactionCount = { emoji: string; count: number }
+export type GuideComment = {
+  id: string
+  authorName: string
+  body: string
+  createdAt: string
+}
+
 export type PublicGuide = {
+  shareId: string
   title: string
   summary: string | null
   workspaceName: string
   publishedAt: string | null
+  customization: GuideCustomization | null
+  reactions: GuideReactionCount[]
+  comments: GuideComment[]
   blocks: GuideBlock[]
 }
 

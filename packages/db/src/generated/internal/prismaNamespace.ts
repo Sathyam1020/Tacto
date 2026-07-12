@@ -394,6 +394,9 @@ export const ModelName = {
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideTranslation: 'GuideTranslation',
+  GuideReaction: 'GuideReaction',
+  GuideComment: 'GuideComment',
   CaptureIntent: 'CaptureIntent',
   Step: 'Step'
 } as const
@@ -411,7 +414,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "captureIntent" | "step"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1155,6 +1158,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    GuideTranslation: {
+      payload: Prisma.$GuideTranslationPayload<ExtArgs>
+      fields: Prisma.GuideTranslationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideTranslationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideTranslationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        findFirst: {
+          args: Prisma.GuideTranslationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideTranslationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        findMany: {
+          args: Prisma.GuideTranslationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>[]
+        }
+        create: {
+          args: Prisma.GuideTranslationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        createMany: {
+          args: Prisma.GuideTranslationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideTranslationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>[]
+        }
+        delete: {
+          args: Prisma.GuideTranslationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        update: {
+          args: Prisma.GuideTranslationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideTranslationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideTranslationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideTranslationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideTranslationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideTranslationPayload>
+        }
+        aggregate: {
+          args: Prisma.GuideTranslationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuideTranslation>
+        }
+        groupBy: {
+          args: Prisma.GuideTranslationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideTranslationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideTranslationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideTranslationCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuideReaction: {
+      payload: Prisma.$GuideReactionPayload<ExtArgs>
+      fields: Prisma.GuideReactionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideReactionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideReactionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        findFirst: {
+          args: Prisma.GuideReactionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideReactionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        findMany: {
+          args: Prisma.GuideReactionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>[]
+        }
+        create: {
+          args: Prisma.GuideReactionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        createMany: {
+          args: Prisma.GuideReactionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideReactionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>[]
+        }
+        delete: {
+          args: Prisma.GuideReactionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        update: {
+          args: Prisma.GuideReactionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideReactionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideReactionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideReactionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideReactionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideReactionPayload>
+        }
+        aggregate: {
+          args: Prisma.GuideReactionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuideReaction>
+        }
+        groupBy: {
+          args: Prisma.GuideReactionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideReactionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideReactionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideReactionCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuideComment: {
+      payload: Prisma.$GuideCommentPayload<ExtArgs>
+      fields: Prisma.GuideCommentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideCommentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideCommentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        findFirst: {
+          args: Prisma.GuideCommentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideCommentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        findMany: {
+          args: Prisma.GuideCommentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>[]
+        }
+        create: {
+          args: Prisma.GuideCommentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        createMany: {
+          args: Prisma.GuideCommentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideCommentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>[]
+        }
+        delete: {
+          args: Prisma.GuideCommentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        update: {
+          args: Prisma.GuideCommentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideCommentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideCommentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideCommentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideCommentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideCommentPayload>
+        }
+        aggregate: {
+          args: Prisma.GuideCommentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuideComment>
+        }
+        groupBy: {
+          args: Prisma.GuideCommentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideCommentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideCommentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideCommentCountAggregateOutputType> | number
+        }
+      }
+    }
     CaptureIntent: {
       payload: Prisma.$CaptureIntentPayload<ExtArgs>
       fields: Prisma.CaptureIntentFieldRefs
@@ -1483,6 +1708,7 @@ export const GuideScalarFieldEnum = {
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
   pinnedAt: 'pinnedAt',
+  customization: 'customization',
   organizationId: 'organizationId',
   captureId: 'captureId',
   createdById: 'createdById',
@@ -1490,6 +1716,42 @@ export const GuideScalarFieldEnum = {
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const GuideTranslationScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  language: 'language',
+  title: 'title',
+  steps: 'steps',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideTranslationScalarFieldEnum = (typeof GuideTranslationScalarFieldEnum)[keyof typeof GuideTranslationScalarFieldEnum]
+
+
+export const GuideReactionScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  emoji: 'emoji',
+  anonId: 'anonId',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideReactionScalarFieldEnum = (typeof GuideReactionScalarFieldEnum)[keyof typeof GuideReactionScalarFieldEnum]
+
+
+export const GuideCommentScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  authorName: 'authorName',
+  authorId: 'authorId',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideCommentScalarFieldEnum = (typeof GuideCommentScalarFieldEnum)[keyof typeof GuideCommentScalarFieldEnum]
 
 
 export const CaptureIntentScalarFieldEnum = {
@@ -1513,6 +1775,8 @@ export const StepScalarFieldEnum = {
   boundingBox: 'boundingBox',
   clickRect: 'clickRect',
   confidence: 'confidence',
+  settings: 'settings',
+  voiceoverUrl: 'voiceoverUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   guideId: 'guideId'
@@ -1535,6 +1799,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -1820,6 +2091,9 @@ export type GlobalOmitConfig = {
   invitation?: Prisma.InvitationOmit
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
+  guideTranslation?: Prisma.GuideTranslationOmit
+  guideReaction?: Prisma.GuideReactionOmit
+  guideComment?: Prisma.GuideCommentOmit
   captureIntent?: Prisma.CaptureIntentOmit
   step?: Prisma.StepOmit
 }

@@ -33,7 +33,10 @@ import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
 import { authClient } from "@/lib/auth-client"
 import { formatDate } from "@/lib/format"
-import { useGuide } from "@/lib/guides"
+import { layoutMaxWidthClass } from "@/components/guide-customization-context"
+import { guideFontFamily } from "@/lib/guide-fonts"
+import { resolveCustomization, useGuide } from "@/lib/guides"
+import { cn } from "@workspace/ui/lib/utils"
 import { downloadGuidePdf } from "@/lib/pdf"
 
 /** Guide viewer — list/interactive modes + navbar action cluster. */
@@ -48,6 +51,26 @@ export default function GuidePage() {
   } = useGuide(activeWorkspace?.id, params.id)
 
   const [mode, setMode] = React.useState<ViewMode>("list")
+  const cust = React.useMemo(
+    () => resolveCustomization(guide?.customization ?? null),
+    [guide?.customization]
+  )
+  const dv = cust.general.defaultView
+  const lockedMode: ViewMode | null =
+    dv === "only-scroll" ? "list" : dv === "only-walkthrough" ? "interactive" : null
+  const effectiveMode = lockedMode ?? mode
+  // Apply the default view once the guide loads.
+  const inited = React.useRef(false)
+  React.useEffect(() => {
+    if (guide && !inited.current) {
+      inited.current = true
+      setMode(
+        dv === "walkthrough-default" || dv === "only-walkthrough"
+          ? "interactive"
+          : "list"
+      )
+    }
+  }, [guide, dv])
   const [shareOpen, setShareOpen] = React.useState(false)
   const [analyticsOpen, setAnalyticsOpen] = React.useState(false)
   const [infoOpen, setInfoOpen] = React.useState(false)
@@ -77,7 +100,9 @@ export default function GuidePage() {
       ) : null,
       actions: guide ? (
         <div className="flex items-center gap-2">
-          <ViewModeToggle mode={mode} onChange={setMode} />
+          {!lockedMode && (
+            <ViewModeToggle mode={mode} onChange={setMode} />
+          )}
           <IconButton label="Analytics" onClick={() => setAnalyticsOpen(true)}>
             <BarChart3 className="size-4" />
           </IconButton>
@@ -105,7 +130,7 @@ export default function GuidePage() {
         </div>
       ) : null,
     },
-    [guide?.title, guide?.status, mode, params.id]
+    [guide?.title, guide?.status, mode, lockedMode, params.id]
   )
 
   if (isPending) {
@@ -139,7 +164,16 @@ export default function GuidePage() {
   const stepCount = guide.blocks.filter((b) => b.type === "STEP").length
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div
+      className={cn("mx-auto", layoutMaxWidthClass(cust.general.pageLayout))}
+      dir={cust.brand.rtl ? "rtl" : undefined}
+      style={
+        {
+          ["--primary" as string]: cust.brand.color,
+          fontFamily: guideFontFamily(cust.brand.font),
+        } as React.CSSProperties
+      }
+    >
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-serif text-4xl leading-tight font-medium tracking-tight text-balance">
           {guide.title}
@@ -167,7 +201,11 @@ export default function GuidePage() {
       </p>
 
       <div className="mt-10">
-        <GuideBody blocks={guide.blocks} mode={mode} />
+        <GuideBody
+          blocks={guide.blocks}
+          mode={effectiveMode}
+          customization={cust}
+        />
       </div>
 
       <div className="mt-16 border-t pt-6 font-mono text-xs text-muted-foreground">

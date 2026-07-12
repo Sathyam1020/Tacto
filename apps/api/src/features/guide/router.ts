@@ -1,4 +1,5 @@
 import {
+  guideCustomizationSchema,
   moveGuideSchema,
   setGuideFolderSchema,
   updateGuideSchema,
@@ -13,7 +14,11 @@ import { sanitizeContent } from "../../lib/sanitize.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
-import { blockSelect, serializeBlocks } from "./serialize.js";
+import {
+  blockSelect,
+  serializeBlocks,
+  serializeCustomization,
+} from "./serialize.js";
 
 const idParamSchema = z.object({ id: z.string() });
 
@@ -113,9 +118,33 @@ guideRouter.get(
         viewCount: guide.viewCount,
         captureSource: guide.capture?.source ?? null,
         createdAt: guide.createdAt,
+        customization: await serializeCustomization(guide.customization),
         blocks: await serializeBlocks(guide.blocks),
       },
     });
+  }
+);
+
+// ── Customization (published-view theme/layout/hotspot/walkthrough) ───────
+guideRouter.patch(
+  "/api/guides/:id/customization",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const customization = guideCustomizationSchema.parse(req.body);
+    // The logo URL is a display-only presigned value — never persist it (it
+    // expires); only the stable logoKey is stored.
+    customization.brand.logoUrl = null;
+
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+    await prisma.guide.update({ where: { id }, data: { customization } });
+    res.json({ customization: await serializeCustomization(customization) });
   }
 );
 

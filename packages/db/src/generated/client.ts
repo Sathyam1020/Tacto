@@ -96,6 +96,22 @@ export type Capture = Prisma.CaptureModel
  */
 export type Guide = Prisma.GuideModel
 /**
+ * Model GuideTranslation
+ * AI-translated copy of a guide's text (title + per-step content) in another
+ * language. Screenshots are shared; only text is translated.
+ */
+export type GuideTranslation = Prisma.GuideTranslationModel
+/**
+ * Model GuideReaction
+ * A reaction on a published guide from an anonymous viewer (localStorage id).
+ */
+export type GuideReaction = Prisma.GuideReactionModel
+/**
+ * Model GuideComment
+ * A comment on a guide (team members in-app, or public viewers if allowed).
+ */
+export type GuideComment = Prisma.GuideCommentModel
+/**
  * Model CaptureIntent
  * Ephemeral hint: the folder the user's next extension capture should land in.
  * The web sets it at record-start (the extension can't reliably carry state

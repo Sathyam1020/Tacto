@@ -61,6 +61,9 @@ export const ModelName = {
   Invitation: 'Invitation',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideTranslation: 'GuideTranslation',
+  GuideReaction: 'GuideReaction',
+  GuideComment: 'GuideComment',
   CaptureIntent: 'CaptureIntent',
   Step: 'Step'
 } as const
@@ -222,6 +225,7 @@ export const GuideScalarFieldEnum = {
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',
   pinnedAt: 'pinnedAt',
+  customization: 'customization',
   organizationId: 'organizationId',
   captureId: 'captureId',
   createdById: 'createdById',
@@ -229,6 +233,42 @@ export const GuideScalarFieldEnum = {
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const GuideTranslationScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  language: 'language',
+  title: 'title',
+  steps: 'steps',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type GuideTranslationScalarFieldEnum = (typeof GuideTranslationScalarFieldEnum)[keyof typeof GuideTranslationScalarFieldEnum]
+
+
+export const GuideReactionScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  emoji: 'emoji',
+  anonId: 'anonId',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideReactionScalarFieldEnum = (typeof GuideReactionScalarFieldEnum)[keyof typeof GuideReactionScalarFieldEnum]
+
+
+export const GuideCommentScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  authorName: 'authorName',
+  authorId: 'authorId',
+  body: 'body',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideCommentScalarFieldEnum = (typeof GuideCommentScalarFieldEnum)[keyof typeof GuideCommentScalarFieldEnum]
 
 
 export const CaptureIntentScalarFieldEnum = {
@@ -252,6 +292,8 @@ export const StepScalarFieldEnum = {
   boundingBox: 'boundingBox',
   clickRect: 'clickRect',
   confidence: 'confidence',
+  settings: 'settings',
+  voiceoverUrl: 'voiceoverUrl',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   guideId: 'guideId'
@@ -274,6 +316,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

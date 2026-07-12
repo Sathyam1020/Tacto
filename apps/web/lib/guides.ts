@@ -1,8 +1,10 @@
 import * as React from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import type {
-  BlockType,
-  GuideBlockInput,
+import {
+  DEFAULT_CUSTOMIZATION,
+  type BlockType,
+  type GuideBlockInput,
+  type GuideCustomization,
 } from "@workspace/contracts/guide"
 import axios from "axios"
 import { toast } from "sonner"
@@ -63,7 +65,39 @@ export type GuideDetail = {
   viewCount: number
   captureSource: "EXTENSION" | "VIDEO_UPLOAD" | "IMPORT" | null
   createdAt: string
+  customization: GuideCustomization | null
   blocks: GuideBlock[]
+}
+
+/** Merge stored (possibly null/partial) customization with defaults. */
+export function resolveCustomization(
+  raw: GuideCustomization | null | undefined
+): GuideCustomization {
+  const d = DEFAULT_CUSTOMIZATION
+  const c = (raw ?? {}) as Partial<GuideCustomization>
+  const w = (c.walkthroughView ?? {}) as Partial<
+    GuideCustomization["walkthroughView"]
+  >
+  return {
+    general: {
+      ...d.general,
+      ...c.general,
+      hotspot: { ...d.general.hotspot, ...c.general?.hotspot },
+    },
+    brand: { ...d.brand, ...c.brand },
+    scrollView: { ...d.scrollView, ...c.scrollView },
+    walkthroughView: {
+      ...d.walkthroughView,
+      ...w,
+      autoplay: { ...d.walkthroughView.autoplay, ...w.autoplay },
+      cta: { ...d.walkthroughView.cta, ...w.cta },
+      backgroundMusic: {
+        ...d.walkthroughView.backgroundMusic,
+        ...w.backgroundMusic,
+      },
+    },
+    feedback: { ...d.feedback, ...c.feedback },
+  }
 }
 
 /** Workspace-keyed so switching workspaces refetches, never bleeds. */
@@ -147,6 +181,23 @@ export function useGuide(workspaceId: string | undefined, guideId: string) {
       return data.guide
     },
     enabled: !!workspaceId && !!guideId,
+  })
+}
+
+/** Save the published-view customization for a guide. */
+export function useUpdateGuideCustomization(guideId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (customization: GuideCustomization) => {
+      const { data } = await api.patch<{ customization: GuideCustomization }>(
+        `/guides/${guideId}/customization`,
+        customization
+      )
+      return data.customization
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["guide"] })
+    },
   })
 }
 

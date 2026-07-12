@@ -246,6 +246,9 @@ model Guide {
   deletedAt   DateTime?
   /// When pinned to the top of the workspace list (null = not pinned).
   pinnedAt    DateTime?
+  /// Published-view customization (theme, hotspot, layout, walkthrough, …).
+  /// Null = defaults. Shape lives in @workspace/contracts/guide.
+  customization Json?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -258,11 +261,59 @@ model Guide {
   folderId       String?
   folder         Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
-  blocks Step[]
+  blocks       Step[]
+  translations GuideTranslation[]
+  reactions    GuideReaction[]
+  comments     GuideComment[]
 
   @@index([organizationId, status])
   @@index([organizationId, folderId])
   @@map("guide")
+}
+
+/// AI-translated copy of a guide's text (title + per-step content) in another
+/// language. Screenshots are shared; only text is translated.
+model GuideTranslation {
+  id        String   @id @default(uuid())
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  language  String
+  title     String
+  /// [{ blockId, content }] — translated per-step content.
+  steps     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([guideId, language])
+  @@map("guide_translation")
+}
+
+/// A reaction on a published guide from an anonymous viewer (localStorage id).
+model GuideReaction {
+  id        String   @id @default(uuid())
+  guideId   String
+  guide     Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  emoji     String
+  anonId    String
+  createdAt DateTime @default(now())
+
+  @@unique([guideId, anonId, emoji])
+  @@index([guideId])
+  @@map("guide_reaction")
+}
+
+/// A comment on a guide (team members in-app, or public viewers if allowed).
+model GuideComment {
+  id          String   @id @default(uuid())
+  guideId     String
+  guide       Guide    @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  authorName  String
+  authorId    String?
+  body        String
+  createdAt   DateTime @default(now())
+
+  @@index([guideId, createdAt])
+  @@map("guide_comment")
 }
 
 /// Ephemeral hint: the folder the user's next extension capture should land in.
@@ -296,6 +347,10 @@ model Step {
   clickRect     Json?
   /// 0–1; below ~0.7 the editor flags the step for review (video imports).
   confidence    Float?
+  /// Per-step overrides of the guide customization: { imageScaling?, zoomLevel? }.
+  settings      Json?
+  /// R2 key of a per-step voiceover (reserved; the voiceover feature is later).
+  voiceoverUrl  String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

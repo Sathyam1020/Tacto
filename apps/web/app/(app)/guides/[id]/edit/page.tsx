@@ -2,7 +2,12 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import type { BlockType, GuideBlockInput } from "@workspace/contracts/guide"
+import {
+  DEFAULT_CUSTOMIZATION,
+  type BlockType,
+  type GuideBlockInput,
+  type GuideCustomization,
+} from "@workspace/contracts/guide"
 import { ArrowLeft, ImagePlus, Loader2, Trash2 } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -14,18 +19,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { AddBlockMenu } from "@/components/add-block-menu"
 import { BlockView, withStepNumbers } from "@/components/block-view"
+import {
+  GuideCustomizationProvider,
+  layoutMaxWidthClass,
+} from "@/components/guide-customization-context"
+import { GuideToolbar } from "@/components/guide-toolbar"
+import type { ImportedBlock } from "@/components/import-steps-dialog"
 import { useSetNavbar } from "@/components/navbar-context"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { authClient } from "@/lib/auth-client"
+import { guideFontFamily } from "@/lib/guide-fonts"
 import {
+  resolveCustomization,
   useGuide,
   useUpdateGuide,
+  useUpdateGuideCustomization,
   uploadStepMedia,
   type ClickRect,
 } from "@/lib/guides"
@@ -60,6 +73,14 @@ export default function GuideEditPage() {
   const { data: activeWorkspace } = authClient.useActiveOrganization()
   const { data: guide, isPending } = useGuide(activeWorkspace?.id, params.id)
   const updateGuide = useUpdateGuide(params.id)
+  const updateCustomization = useUpdateGuideCustomization(params.id)
+
+  // Customization is edited as a local draft (instant preview) and only
+  // persisted on Save — same as the blocks — so nothing goes live on the
+  // published guide until the editor explicitly saves.
+  const [customization, setCustomization] =
+    React.useState<GuideCustomization>(DEFAULT_CUSTOMIZATION)
+  const cust = customization
 
   const [title, setTitle] = React.useState("")
   const [summary, setSummary] = React.useState<string | null>(null)
@@ -79,6 +100,7 @@ export default function GuideEditPage() {
       initialized.current = true
       setTitle(guide.title)
       setSummary(guide.summary)
+      setCustomization(resolveCustomization(guide.customization))
       setBlocks(
         guide.blocks.map((b) => ({
           key: crypto.randomUUID(),
@@ -103,24 +125,36 @@ export default function GuideEditPage() {
     title,
     summary,
     blocks,
+    customization,
     dirty,
     save: updateGuide.mutateAsync,
+    saveCustomization: updateCustomization.mutateAsync,
   })
   React.useEffect(() => {
     latest.current = {
       title,
       summary,
       blocks,
+      customization,
       dirty,
       save: updateGuide.mutateAsync,
+      saveCustomization: updateCustomization.mutateAsync,
     }
   })
 
   const markDirty = () => setDirty(true)
 
+  // Stage customization from the modal into the working copy (previewed live,
+  // persisted on Save).
+  function applyCustomization(next: GuideCustomization) {
+    setCustomization(next)
+    markDirty()
+  }
+
   // Stable handlers ([] deps) — read everything from the ref.
   const handleSave = React.useCallback(async () => {
-    const { title, summary, blocks, save } = latest.current
+    const { title, summary, blocks, customization, save, saveCustomization } =
+      latest.current
     const payload: {
       title: string
       summary: string | null
@@ -138,7 +172,9 @@ export default function GuideEditPage() {
         clickRect: b.clickRect,
       })),
     }
-    await save(payload)
+    // Persist blocks + customization together so the published guide changes
+    // atomically on Save.
+    await Promise.all([save(payload), saveCustomization(customization)])
     setDirty(false)
     router.push(viewHref)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -150,7 +186,7 @@ export default function GuideEditPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const saving = updateGuide.isPending
+  const saving = updateGuide.isPending || updateCustomization.isPending
   // Deps are primitives only (saving) → injected once + on save state change.
   useSetNavbar(
     {
@@ -205,6 +241,39 @@ export default function GuideEditPage() {
     markDirty()
   }
 
+  // Append imported blocks (from another guide or screenshots) into the
+  // working copy — staged, persisted on Save.
+  function importBlocks(imported: ImportedBlock[]) {
+    setBlocks((prev) => [
+      ...prev,
+      ...imported.map((b) => ({
+        key: crypto.randomUUID(),
+        id: undefined,
+        type: b.type,
+        content: b.content,
+        screenshotKey: b.screenshotKey,
+        screenshotUrl: b.screenshotUrl,
+        elementLabel: b.elementLabel,
+        url: b.url,
+        clickRect: b.clickRect,
+        confidence: null,
+      })),
+    ])
+    markDirty()
+  }
+
+  // Apply a new block order (by key) from the Sort steps dialog.
+  function reorderBlocks(orderedKeys: string[]) {
+    setBlocks((prev) => {
+      const byKey = new Map(prev.map((b) => [b.key, b]))
+      const next = orderedKeys
+        .map((k) => byKey.get(k))
+        .filter((b): b is EditBlock => !!b)
+      return next.length === prev.length ? next : prev
+    })
+    markDirty()
+  }
+
   function pickMedia(key: string) {
     mediaTargetKey.current = key
     fileInputRef.current?.click()
@@ -245,7 +314,35 @@ export default function GuideEditPage() {
   const numbered = withStepNumbers(blocks)
 
   return (
-    <div className="mx-auto max-w-2xl pb-24">
+    <GuideCustomizationProvider value={cust}>
+      {guide && (
+        <GuideToolbar
+          guide={guide}
+          customization={customization}
+          onCustomizationChange={applyCustomization}
+          sortRows={blocks.map((b) => ({
+            key: b.key,
+            type: b.type,
+            content: b.content,
+            screenshotUrl: b.screenshotUrl,
+          }))}
+          onReorder={reorderBlocks}
+          onImport={importBlocks}
+        />
+      )}
+      <div
+        className={cn(
+          "mx-auto pb-24",
+          layoutMaxWidthClass(cust.general.pageLayout)
+        )}
+        dir={cust.brand.rtl ? "rtl" : undefined}
+        style={
+          {
+            ["--primary" as string]: cust.brand.color,
+            fontFamily: guideFontFamily(cust.brand.font),
+          } as React.CSSProperties
+        }
+      >
       {/* Editable title — auto-grows so long headings wrap and show fully */}
       <textarea
         value={title}
@@ -322,7 +419,8 @@ export default function GuideEditPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+    </GuideCustomizationProvider>
   )
 }
 

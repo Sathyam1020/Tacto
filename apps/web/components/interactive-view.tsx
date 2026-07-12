@@ -1,49 +1,77 @@
 "use client"
 
 import * as React from "react"
-import { AnimatePresence, m, useReducedMotion } from "motion/react"
+import { m, useReducedMotion } from "motion/react"
 import {
   ChevronLeft,
   ChevronRight,
   Maximize2,
   Minimize2,
+  Pause,
+  Play,
   RotateCcw,
 } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useGuideCustomization } from "@/components/guide-customization-context"
 import { RichText } from "@/components/rich-text"
-import { ScreenshotFrame } from "@/components/screenshot-frame"
+import { HotspotGlyph } from "@/components/screenshot-frame"
 import type { GuideBlock } from "@/lib/guides"
 
+const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
 /**
- * Interactive walkthrough — one STEP at a time: the screenshot with the target
- * focus-ringed, a pointer on the click, and a Guidejar-style callout anchored
- * beside it. Click the pointer, the callout arrows, the bottom nav, or the
- * arrow keys to advance. Restart + full-screen live in the browser chrome.
- * (Headings/tips/alerts are a list-view concept and don't appear here.)
+ * Interactive walkthrough — one STEP at a time on a single stage. The
+ * screenshot zooms toward the click, a pointer sits on it, and a compact
+ * Guidejar-style callout floats beside it with its tail locked onto the
+ * pointer. Advancing carries the pointer and callout from the previous step's
+ * position to the current one; clicking the on-image target advances faster
+ * than the arrows. Click the target, the callout arrows, the bottom nav, or the
+ * arrow keys to move. (Headings/tips/alerts are a list-view concept and don't
+ * appear here.)
  */
 export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
+  const wv = useGuideCustomization().walkthroughView
+  const hotspot = useGuideCustomization().general.hotspot
   const slides = React.useMemo(
     () => blocks.filter((b) => b.type === "STEP" || b.type === "OUTCOME"),
     [blocks]
   )
   const [index, setIndex] = React.useState(0)
-  const [dir, setDir] = React.useState(1)
+  // Whether the last move came from clicking the on-image target (snappier).
+  const [fast, setFast] = React.useState(false)
   const [fullscreen, setFullscreen] = React.useState(false)
+  // Reserve the image's height so remounting the screenshot on step change
+  // never collapses the layout (which would clamp the page scroll toward top).
+  const [stageH, setStageH] = React.useState<number>()
   const reduce = useReducedMotion()
   const rootRef = React.useRef<HTMLDivElement>(null)
 
+  const autoplay = wv.autoplay
+  const [playing, setPlaying] = React.useState(autoplay.enabled)
+  React.useEffect(() => setPlaying(autoplay.enabled), [autoplay.enabled])
+
+  // Manual navigation. `viaClick` = the viewer clicked the on-image target,
+  // so the transition is snappier than an arrow press.
   const go = React.useCallback(
-    (delta: number) => {
-      setDir(delta > 0 ? 1 : -1)
+    (delta: number, viaClick = false) => {
+      setPlaying(false)
+      setFast(viaClick)
       setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1))
     },
     [slides.length]
   )
 
+  const jumpTo = React.useCallback((i: number) => {
+    setPlaying(false)
+    setFast(false)
+    setIndex(i)
+  }, [])
+
   const restart = React.useCallback(() => {
-    setDir(-1)
+    setPlaying(false)
+    setFast(false)
     setIndex(0)
   }, [])
 
@@ -52,6 +80,24 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     if (document.fullscreenElement) void document.exitFullscreen()
     else void rootRef.current?.requestFullscreen().catch(() => {})
   }, [])
+
+  // Autoplay — advance on a timer at the normal (non-click) speed.
+  React.useEffect(() => {
+    if (!playing) return
+    const t = setTimeout(
+      () => {
+        setFast(false)
+        if (index >= slides.length - 1) {
+          if (autoplay.loop) setIndex(0)
+          else setPlaying(false)
+        } else {
+          setIndex(index + 1)
+        }
+      },
+      Math.max(0.5, autoplay.delaySeconds) * 1000
+    )
+    return () => clearTimeout(t)
+  }, [playing, index, slides.length, autoplay.loop, autoplay.delaySeconds])
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -83,22 +129,33 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
   const hasShot = !!slide.screenshotUrl
   const rect = hasShot ? slide.clickRect : null
 
-  // Float the callout beside the pointer, on the roomier side, clamped in.
+  // Pointer center (percent of the image). Falls back to the middle.
   const cx = rect ? (rect.x + rect.w / 2) * 100 : 50
   const cy = rect ? (rect.y + rect.h / 2) * 100 : 50
-  const onRight = cx <= 55
-  const clamp = (n: number, lo: number, hi: number) =>
-    Math.min(hi, Math.max(lo, n))
-  const calloutStyle: React.CSSProperties = {
-    top: `${clamp(cy, 18, 82)}%`,
-    transform: "translateY(-50%)",
-    ...(onRight
-      ? { left: `calc(${clamp(cx, 2, 55)}% + 30px)` }
-      : { right: `calc(${clamp(100 - cx, 2, 55)}% + 30px)` }),
-  }
+  // Callout goes on the side with more room; tail points back at the pointer.
+  const onRight = cx <= 50
+  const effZoom = rect && wv.zoomLevel > 1 ? wv.zoomLevel : 1
+
+  const travelT = { duration: reduce ? 0 : fast ? 0.28 : 0.5, ease: EASE }
+  const zoomInT = reduce
+    ? { duration: 0 }
+    : { delay: fast ? 0.08 : 0.22, duration: 0.7, ease: EASE }
+  const fadeT = { duration: reduce ? 0 : fast ? 0.14 : 0.26 }
 
   const chromeActions = (
     <>
+      {autoplay.enabled && (
+        <ChromeButton
+          label={playing ? "Pause" : "Play"}
+          onClick={() => setPlaying((p) => !p)}
+        >
+          {playing ? (
+            <Pause className="size-3.5" />
+          ) : (
+            <Play className="size-3.5" />
+          )}
+        </ChromeButton>
+      )}
       <ChromeButton label="Restart" onClick={restart}>
         <RotateCcw className="size-3.5" />
       </ChromeButton>
@@ -115,20 +172,6 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     </>
   )
 
-  const callout = (
-    <Callout
-      style={calloutStyle}
-      onRight={onRight}
-      html={slide.content}
-      index={index}
-      total={slides.length}
-      atStart={atStart}
-      atEnd={atEnd}
-      onPrev={() => go(-1)}
-      onNext={() => go(1)}
-    />
-  )
-
   return (
     <div
       ref={rootRef}
@@ -139,45 +182,116 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
       )}
     >
       <div className={cn("w-full", fullscreen && "max-w-6xl")}>
-        <AnimatePresence mode="wait" initial={false} custom={dir}>
-          <m.div
-            key={slide.id}
-            custom={dir}
-            initial={{ opacity: 0, x: reduce ? 0 : dir * 28 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: reduce ? 0 : dir * -28 }}
-            transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {hasShot ? (
-              <div className="relative">
-                <ScreenshotFrame
-                  src={slide.screenshotUrl!}
-                  clickRect={rect}
-                  highlight
-                  zoom={rect ? 1.1 : undefined}
-                  onAdvance={atEnd ? undefined : () => go(1)}
-                  chromeActions={chromeActions}
-                />
-                {callout}
-              </div>
-            ) : (
-              <div className="bg-card overflow-hidden rounded-xl border">
-                <div className="flex items-center justify-between border-b px-3 py-2.5">
-                  <span className="text-muted-foreground font-mono text-[10px] tracking-widest uppercase">
-                    Step {index + 1} / {slides.length}
-                  </span>
-                  <div className="flex items-center gap-0.5">{chromeActions}</div>
-                </div>
-                <div className="flex min-h-[280px] items-center justify-center p-10">
-                  <RichText
-                    html={slide.content}
-                    className="max-w-lg text-center text-xl [overflow-wrap:anywhere]"
+        <div className="bg-card overflow-hidden rounded-xl border">
+          <ChromeBar actions={chromeActions} />
+
+          {hasShot ? (
+            // The stage: image + pointer + callout share one coordinate space
+            // (percent of the image), so the tail always lands on the pointer.
+            <div className="relative" style={{ minHeight: stageH }}>
+              {/* Image — clips its own zoom; everything else floats above it. */}
+              <div className="overflow-hidden">
+                <m.div
+                  key={slide.id}
+                  initial={{ scale: 1, opacity: 0.5 }}
+                  animate={{ scale: effZoom, opacity: 1 }}
+                  transition={{
+                    scale: effZoom > 1 ? zoomInT : { duration: 0 },
+                    opacity: fadeT,
+                  }}
+                  style={{ transformOrigin: `${cx}% ${cy}%` }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={slide.screenshotUrl!}
+                    alt=""
+                    className="block w-full"
+                    onLoad={(e) => setStageH(e.currentTarget.offsetHeight)}
                   />
-                </div>
+                </m.div>
               </div>
-            )}
-          </m.div>
-        </AnimatePresence>
+
+              {/* Click target — advances (snappier) when tapped. */}
+              {rect && !atEnd && (
+                <m.button
+                  aria-label="Next step"
+                  onClick={() => go(1, true)}
+                  className="absolute z-[15] cursor-pointer"
+                  initial={false}
+                  animate={{
+                    left: `${Math.max(0, (rect.x - 0.02) * 100)}%`,
+                    top: `${Math.max(0, (rect.y - 0.02) * 100)}%`,
+                    width: `${(rect.w + 0.04) * 100}%`,
+                    height: `${(rect.h + 0.04) * 100}%`,
+                  }}
+                  transition={travelT}
+                />
+              )}
+
+              {/* Traveling pointer. */}
+              {rect &&
+                (hotspot.type === "highlight-box" ? (
+                  <m.div
+                    className="pointer-events-none absolute z-10 rounded-md ring-2 ring-[var(--primary)]"
+                    initial={false}
+                    animate={{
+                      left: `${Math.max(0, (rect.x - 0.008 * hotspot.size) * 100)}%`,
+                      top: `${Math.max(0, (rect.y - 0.008 * hotspot.size) * 100)}%`,
+                      width: `${(rect.w + 0.016 * hotspot.size) * 100}%`,
+                      height: `${(rect.h + 0.016 * hotspot.size) * 100}%`,
+                    }}
+                    transition={travelT}
+                    style={{
+                      boxShadow:
+                        "0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent)",
+                    }}
+                  />
+                ) : (
+                  <m.div
+                    className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 text-primary"
+                    initial={false}
+                    animate={{ left: `${cx}%`, top: `${cy}%` }}
+                    transition={travelT}
+                  >
+                    <span
+                      className="block"
+                      style={{ transform: `scale(${hotspot.size})` }}
+                    >
+                      <HotspotGlyph type={hotspot.type} />
+                    </span>
+                  </m.div>
+                ))}
+
+              {/* Callout — floats beside the pointer, tail on the pointer. */}
+              {wv.textAnnotations && (
+                <Callout
+                  cx={cx}
+                  cy={cy}
+                  onRight={onRight}
+                  transition={travelT}
+                  html={slide.content}
+                  index={index}
+                  total={slides.length}
+                  atStart={atStart}
+                  atEnd={atEnd}
+                  showCounter={wv.showStepCounter}
+                  markdown={wv.useMarkdown}
+                  optimizeForMobile={wv.optimizeForMobile}
+                  onPrev={() => go(-1)}
+                  onNext={() => go(1)}
+                />
+              )}
+            </div>
+          ) : (
+            // Steps without a screenshot — the instruction, centered.
+            <div className="flex min-h-[280px] items-center justify-center p-10">
+              <RichText
+                html={slide.content}
+                className="max-w-lg text-center text-xl [overflow-wrap:anywhere]"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Bottom nav — prev · counter · next, plus a dot scrubber. */}
         <div className="mt-5 flex items-center justify-center gap-4">
@@ -197,10 +311,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
             <button
               key={s.id}
               aria-label={`Go to ${i + 1}`}
-              onClick={() => {
-                setDir(i > index ? 1 : -1)
-                setIndex(i)
-              }}
+              onClick={() => jumpTo(i)}
               className={
                 i === index
                   ? "bg-primary h-1.5 w-6 rounded-full transition-all"
@@ -209,75 +320,152 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
             />
           ))}
         </div>
+
+        {wv.cta.enabled && atEnd && <CtaCard cta={wv.cta} />}
       </div>
     </div>
   )
 }
 
-/** The Guidejar-style instruction bubble — primary card, tail, counter, nav. */
+/** First block/line of rich-text HTML — used when Markdown is disabled. */
+function firstLine(html: string): string {
+  const p = html.match(/<p[^>]*>[\s\S]*?<\/p>/i)
+  if (p) return p[0]
+  return html.split(/<br\s*\/?>|\n/i)[0] ?? html
+}
+
+/** The compact instruction bubble, positioned at the pointer with a tail. */
 function Callout({
-  style,
+  cx,
+  cy,
   onRight,
+  transition,
   html,
   index,
   total,
   atStart,
   atEnd,
+  showCounter,
+  markdown,
+  optimizeForMobile,
   onPrev,
   onNext,
 }: {
-  style: React.CSSProperties
+  cx: number
+  cy: number
   onRight: boolean
+  transition: { duration: number; ease?: [number, number, number, number] }
   html: string
   index: number
   total: number
   atStart: boolean
   atEnd: boolean
+  showCounter: boolean
+  markdown: boolean
+  optimizeForMobile: boolean
   onPrev: () => void
   onNext: () => void
 }) {
+  const GAP = 34
+  // "Use Markdown" off → show only the first line as plain text.
+  const displayHtml = markdown ? html : firstLine(html)
   return (
-    <div
-      className="bg-primary text-primary-foreground group/callout absolute z-20 w-64 max-w-[75%] rounded-xl shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10 transition-[box-shadow] hover:ring-2 hover:ring-[var(--primary-hover)]"
-      style={style}
+    <m.div
+      // The box is the positioned element: its vertical center sits on the
+      // pointer (translateY -50%) and it's pushed to the roomier side, so the
+      // tail (at the box's vertical center) lands exactly on the pointer.
+      className={cn(
+        "bg-primary text-primary-foreground absolute z-20 w-[236px] max-w-[70%] rounded-xl p-3 shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10 transition-[box-shadow] duration-150",
+        // Guidejar-style hover outline — same accent, softer, with a small gap.
+        "hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-transparent",
+        // Mobile: dock to the bottom of the stage instead of floating.
+        optimizeForMobile &&
+          "max-md:![transform:none] max-md:!inset-x-3 max-md:!top-auto max-md:!bottom-3 max-md:!w-auto max-md:!max-w-none"
+      )}
+      initial={false}
+      animate={{ left: `${cx}%`, top: `${cy}%` }}
+      transition={transition}
+      style={{
+        transform: onRight
+          ? `translateY(-50%) translateX(${GAP}px)`
+          : `translateY(-50%) translateX(calc(-100% - ${GAP}px))`,
+      }}
     >
-      {/* Tail pointing back at the click. */}
+      {/* Tail pointing back at the pointer. */}
       <span
         aria-hidden
         className={cn(
           "bg-primary absolute top-1/2 size-3 -translate-y-1/2 rotate-45",
-          onRight ? "-left-1" : "-right-1"
+          onRight ? "-left-1" : "-right-1",
+          optimizeForMobile && "max-md:hidden"
         )}
       />
-      <div className="relative p-3.5">
-        <RichText
-          html={html}
-          className="text-[15px] leading-snug font-semibold [overflow-wrap:anywhere]"
-        />
-        <div className="mt-3 flex items-center justify-between">
+      <RichText
+        html={displayHtml}
+        className="text-sm leading-snug font-semibold [overflow-wrap:anywhere]"
+      />
+      <div className="mt-2.5 flex items-center justify-between gap-2">
+        {showCounter ? (
           <span className="text-primary-foreground/70 font-mono text-[11px] tabular-nums">
             {index + 1} / {total}
           </span>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={onPrev}
-              disabled={atStart}
-              aria-label="Previous step"
-              className="flex size-7 items-center justify-center rounded-md bg-white/15 transition hover:bg-white/25 active:scale-90 disabled:opacity-40"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <button
-              onClick={onNext}
-              disabled={atEnd}
-              aria-label="Next step"
-              className="text-primary flex size-7 items-center justify-center rounded-md bg-white shadow-sm transition hover:bg-white/90 active:scale-90 disabled:opacity-40"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
+        ) : (
+          <span />
+        )}
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={onPrev}
+            disabled={atStart}
+            aria-label="Previous step"
+            className="flex size-6 items-center justify-center rounded-md bg-white/15 transition hover:bg-white/25 active:scale-90 disabled:opacity-40"
+          >
+            <ChevronLeft className="size-4" />
+          </button>
+          <button
+            onClick={onNext}
+            disabled={atEnd}
+            aria-label="Next step"
+            className="text-primary flex size-6 items-center justify-center rounded-md bg-white shadow-sm transition hover:bg-white/90 active:scale-90 disabled:opacity-40"
+          >
+            <ChevronRight className="size-4" />
+          </button>
         </div>
       </div>
+    </m.div>
+  )
+}
+
+/** The end-of-walkthrough call-to-action (Interactive view). */
+function CtaCard({
+  cta,
+}: {
+  cta: {
+    title: string
+    subtitle: string
+    buttonText: string
+    buttonUrl: string
+  }
+}) {
+  const hasButton = !!cta.buttonText && !!cta.buttonUrl
+  if (!cta.title && !cta.subtitle && !hasButton) return null
+  return (
+    <div className="bg-card mt-6 rounded-xl border p-6 text-center">
+      {cta.title && (
+        <h3 className="text-lg font-semibold tracking-tight">{cta.title}</h3>
+      )}
+      {cta.subtitle && (
+        <p className="text-muted-foreground mt-1 text-sm">{cta.subtitle}</p>
+      )}
+      {hasButton && (
+        <a
+          href={cta.buttonUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-primary text-primary-foreground mt-4 inline-flex items-center rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+        >
+          {cta.buttonText}
+        </a>
+      )}
     </div>
   )
 }
@@ -305,7 +493,20 @@ function NavButton({
   )
 }
 
-/** A control in the screenshot's chrome bar (restart / full screen). */
+/** The screenshot's chrome bar — traffic-light dots + right-aligned actions. */
+function ChromeBar({ actions }: { actions?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-1.5 border-b px-3 py-2.5">
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-line-2 size-2 rounded-full" />
+      <span className="bg-sheet ml-2 h-4 flex-1 rounded-full border" />
+      {actions && <div className="flex items-center gap-0.5 pl-1">{actions}</div>}
+    </div>
+  )
+}
+
+/** A control in the screenshot's chrome bar (play / restart / full screen). */
 function ChromeButton({
   label,
   onClick,
