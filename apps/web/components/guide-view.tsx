@@ -8,7 +8,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { BlockView, withStepNumbers } from "@/components/block-view"
 import { GuideCustomizationProvider } from "@/components/guide-customization-context"
 import { InteractiveView } from "@/components/interactive-view"
-import type { GuideBlock } from "@/lib/guides"
+import type { GuideBlock, WalkthroughItemClient } from "@/lib/guides"
 
 export type ViewMode = "list" | "interactive"
 
@@ -19,10 +19,14 @@ export function GuideBody({
   blocks,
   mode,
   customization,
+  interactive,
 }: {
   blocks: GuideBlock[]
   mode: ViewMode
   customization: GuideCustomization
+  /** The Interactive tree's items. When present, the interactive mode renders
+   *  from this independent tree instead of the List blocks. */
+  interactive?: WalkthroughItemClient[]
 }) {
   const numbered = withStepNumbers(blocks)
   const listRef = React.useRef<HTMLDivElement>(null)
@@ -33,11 +37,10 @@ export function GuideBody({
     (customization.general.pageLayout === "extremely-narrow" ||
       customization.general.pageLayout === "narrow" ||
       customization.general.pageLayout === "moderate")
-
   return (
     <GuideCustomizationProvider value={customization}>
       {mode === "interactive" ? (
-        <InteractiveView blocks={blocks} />
+        <InteractiveView blocks={blocks} items={interactive} />
       ) : (
         <>
           {navBarOn && stepTotal > 0 && (
@@ -91,7 +94,10 @@ function ListNavBar({
       setActive(Math.min(total, Math.max(1, Math.ceil(frac * total) || 1)))
     }
     update()
-    document.addEventListener("scroll", update, { passive: true, capture: true })
+    document.addEventListener("scroll", update, {
+      passive: true,
+      capture: true,
+    })
     window.addEventListener("resize", update)
     return () => {
       document.removeEventListener("scroll", update, { capture: true })
@@ -100,13 +106,13 @@ function ListNavBar({
   }, [containerRef, total])
 
   return (
-    <div className="bg-card/70 supports-[backdrop-filter]:bg-card/50 sticky top-2 z-30 mb-6 flex items-center gap-3 rounded-full border px-4 py-2 backdrop-blur">
-      <span className="text-muted-foreground shrink-0 font-mono text-xs tabular-nums">
+    <div className="sticky top-2 z-30 mb-6 flex items-center gap-3 rounded-full border bg-card/70 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-card/50">
+      <span className="shrink-0 font-mono text-xs text-muted-foreground tabular-nums">
         Step {active} / {total}
       </span>
-      <div className="bg-muted relative h-1 flex-1 overflow-hidden rounded-full">
+      <div className="relative h-1 flex-1 overflow-hidden rounded-full bg-muted">
         <div
-          className="bg-primary absolute inset-y-0 left-0 rounded-full transition-[width] duration-200"
+          className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-200"
           style={{ width: `${Math.round(progress * 100)}%` }}
         />
       </div>
@@ -118,18 +124,28 @@ function ListNavBar({
 export function ViewModeToggle({
   mode,
   onChange,
+  size = "sm",
 }: {
   mode: ViewMode
   onChange: (mode: ViewMode) => void
+  /** "sm" for the compact public toggle, "lg" for the editor's mode switcher. */
+  size?: "sm" | "lg"
 }) {
+  const lg = size === "lg"
   return (
-    <div className="bg-muted inline-flex items-center rounded-lg p-0.5">
+    <div
+      className={cn(
+        "inline-flex items-center rounded-xl bg-muted",
+        lg ? "p-1" : "rounded-lg p-0.5"
+      )}
+    >
       {(["list", "interactive"] as const).map((m) => (
         <button
           key={m}
           onClick={() => onChange(m)}
           className={cn(
-            "rounded-md px-3 py-1 text-xs font-medium capitalize transition-colors",
+            "rounded-lg font-medium capitalize transition-colors",
+            lg ? "px-4 py-1.5 text-sm" : "rounded-md px-3 py-1 text-xs",
             mode === m
               ? "bg-card text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"

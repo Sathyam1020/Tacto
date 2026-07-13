@@ -19,7 +19,25 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useGuideCustomization } from "@/components/guide-customization-context"
 import { RichText } from "@/components/rich-text"
 import { HotspotGlyph } from "@/components/screenshot-frame"
-import type { GuideBlock } from "@/lib/guides"
+import type {
+  ClickRect,
+  GuideBlock,
+  WalkthroughItemClient,
+} from "@/lib/guides"
+
+type WalkthroughSlide = Exclude<WalkthroughItemClient, { kind: "step" }>
+type SlideDestination = WalkthroughSlide["buttons"][number]["destination"]
+/** A single frame in the walkthrough — a step (screenshot + callout) or an
+ *  intro/chapter slide. */
+type Frame =
+  | {
+      kind: "step"
+      id: string
+      screenshotUrl: string | null
+      clickRect: ClickRect | null
+      content: string
+    }
+  | { kind: "slide"; id: string; slide: WalkthroughSlide }
 
 const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -33,13 +51,48 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
  * arrow keys to move. (Headings/tips/alerts are a list-view concept and don't
  * appear here.)
  */
-export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
+export function InteractiveView({
+  blocks,
+  items,
+}: {
+  blocks: GuideBlock[]
+  /** The Interactive tree's items (steps + intro/chapter slides). When present,
+   *  the walkthrough renders from this independent tree; otherwise it falls back
+   *  to the List blocks. */
+  items?: WalkthroughItemClient[]
+}) {
   const wv = useGuideCustomization().walkthroughView
   const hotspot = useGuideCustomization().general.hotspot
-  const slides = React.useMemo(
-    () => blocks.filter((b) => b.type === "STEP" || b.type === "OUTCOME"),
-    [blocks]
-  )
+  const frames = React.useMemo<Frame[]>(() => {
+    if (items) {
+      return items.map((it) =>
+        it.kind === "step"
+          ? {
+              kind: "step",
+              id: it.key,
+              screenshotUrl: it.screenshotUrl,
+              clickRect: it.clickRect,
+              content: it.content,
+            }
+          : { kind: "slide", id: it.key, slide: it }
+      )
+    }
+    return blocks
+      .filter((b) => b.type === "STEP" || b.type === "OUTCOME")
+      .map((b) => ({
+        kind: "step",
+        id: b.id,
+        screenshotUrl: b.screenshotUrl,
+        clickRect: b.clickRect,
+        content: b.content,
+      }))
+  }, [items, blocks])
+  // The first screenshot's rendered height — used to size slides so every frame
+  // in the walkthrough is the same height (a constant stage).
+  const firstStepUrl = React.useMemo(() => {
+    for (const f of frames) if (f.kind === "step" && f.screenshotUrl) return f.screenshotUrl
+    return null
+  }, [frames])
   const [index, setIndex] = React.useState(0)
   // Whether the last move came from clicking the on-image target (snappier).
   const [fast, setFast] = React.useState(false)
@@ -96,9 +149,9 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     (delta: number, viaClick = false) => {
       setPlaying(false)
       setFast(viaClick)
-      setIndex((i) => Math.min(Math.max(i + delta, 0), slides.length - 1))
+      setIndex((i) => Math.min(Math.max(i + delta, 0), frames.length - 1))
     },
-    [slides.length]
+    [frames.length]
   )
 
   const jumpTo = React.useCallback((i: number) => {
@@ -125,7 +178,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     const t = setTimeout(
       () => {
         setFast(false)
-        if (index >= slides.length - 1) {
+        if (index >= frames.length - 1) {
           if (autoplay.loop) setIndex(0)
           else setPlaying(false)
         } else {
@@ -135,7 +188,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
       Math.max(0.5, autoplay.delaySeconds) * 1000
     )
     return () => clearTimeout(t)
-  }, [playing, index, slides.length, autoplay.loop, autoplay.delaySeconds])
+  }, [playing, index, frames.length, autoplay.loop, autoplay.delaySeconds])
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -153,7 +206,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     }
   }, [go])
 
-  if (slides.length === 0) {
+  if (frames.length === 0) {
     return (
       <p className="text-muted-foreground py-24 text-center font-serif text-lg">
         This guide has no steps to walk through yet.
@@ -161,11 +214,12 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
     )
   }
 
-  const slide = slides[index]!
+  const frame = frames[index]!
+  const stepFrame = frame.kind === "step" ? frame : null
   const atStart = index === 0
-  const atEnd = index === slides.length - 1
-  const hasShot = !!slide.screenshotUrl
-  const rect = hasShot ? slide.clickRect : null
+  const atEnd = index === frames.length - 1
+  const hasShot = !!stepFrame?.screenshotUrl
+  const rect = hasShot ? stepFrame!.clickRect : null
 
   // Pointer center (percent of the image). Falls back to the middle.
   const cx = rect ? (rect.x + rect.w / 2) * 100 : 50
@@ -173,6 +227,18 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
   // Callout goes on the side with more room; tail points back at the pointer.
   const onRight = cx <= 50
   const effZoom = rect && wv.zoomLevel > 1 ? wv.zoomLevel : 1
+
+  // Slide-button navigation: next/prev or jump to a specific step.
+  const navigate = (dest: SlideDestination) => {
+    if (dest.kind === "next") go(1)
+    else if (dest.kind === "prev") go(-1)
+    else {
+      const i = frames.findIndex(
+        (f) => f.kind === "step" && f.id === dest.stepKey
+      )
+      if (i >= 0) jumpTo(i)
+    }
+  }
 
   const travelT = { duration: reduce ? 0 : fast ? 0.28 : 0.5, ease: EASE }
   const zoomInT = reduce
@@ -236,17 +302,36 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
         <audio ref={audioRef} src={music.url} loop preload="auto" />
       )}
       <div className={cn("w-full", fullscreen && "max-w-6xl")}>
+        {/* Off-layout measurer: keeps `stageH` warm from the first screenshot so
+            slides match the step height even before a step is viewed. */}
+        {firstStepUrl && (
+          <div aria-hidden className="pointer-events-none h-0 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={firstStepUrl}
+              alt=""
+              className="w-full"
+              onLoad={(e) => setStageH(e.currentTarget.offsetHeight)}
+            />
+          </div>
+        )}
         <div className="bg-card overflow-hidden rounded-xl border">
           <ChromeBar actions={chromeActions} />
 
-          {hasShot ? (
+          {frame.kind === "slide" ? (
+            <SlideFrame
+              slide={frame.slide}
+              onNavigate={navigate}
+              minH={stageH}
+            />
+          ) : hasShot ? (
             // The stage: image + pointer + callout share one coordinate space
             // (percent of the image), so the tail always lands on the pointer.
             <div className="relative" style={{ minHeight: stageH }}>
               {/* Image — clips its own zoom; everything else floats above it. */}
               <div className="overflow-hidden">
                 <m.div
-                  key={slide.id}
+                  key={frame.id}
                   initial={{ scale: 1, opacity: 0.5 }}
                   animate={{ scale: effZoom, opacity: 1 }}
                   transition={{
@@ -257,7 +342,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={slide.screenshotUrl!}
+                    src={stepFrame!.screenshotUrl!}
                     alt=""
                     className="block w-full"
                     onLoad={(e) => setStageH(e.currentTarget.offsetHeight)}
@@ -323,9 +408,9 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
                   cy={cy}
                   onRight={onRight}
                   transition={travelT}
-                  html={slide.content}
+                  html={stepFrame!.content}
                   index={index}
-                  total={slides.length}
+                  total={frames.length}
                   atStart={atStart}
                   atEnd={atEnd}
                   showCounter={wv.showStepCounter}
@@ -340,7 +425,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
             // Steps without a screenshot — the instruction, centered.
             <div className="flex min-h-[280px] items-center justify-center p-10">
               <RichText
-                html={slide.content}
+                html={stepFrame!.content}
                 className="max-w-lg text-center text-xl [overflow-wrap:anywhere]"
               />
             </div>
@@ -353,7 +438,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
             <ChevronLeft className="size-4" />
           </NavButton>
           <span className="text-muted-foreground font-mono text-xs tabular-nums">
-            {index + 1} / {slides.length}
+            {index + 1} / {frames.length}
           </span>
           <NavButton onClick={() => go(1)} disabled={atEnd} label="Next">
             <ChevronRight className="size-4" />
@@ -361,7 +446,7 @@ export function InteractiveView({ blocks }: { blocks: GuideBlock[] }) {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-          {slides.map((s, i) => (
+          {frames.map((s, i) => (
             <button
               key={s.id}
               aria-label={`Go to ${i + 1}`}
@@ -519,6 +604,81 @@ function CtaCard({
         >
           {cta.buttonText}
         </a>
+      )}
+    </div>
+  )
+}
+
+/** An intro/chapter slide in the player — title/subtitle + jump-to-step
+ *  buttons, styled by the slide's appearance. */
+function SlideFrame({
+  slide,
+  onNavigate,
+  minH,
+}: {
+  slide: WalkthroughSlide
+  onNavigate: (dest: SlideDestination) => void
+  /** Match the step screenshot height so every frame is the same size. */
+  minH?: number
+}) {
+  const a = slide.appearance
+  const dark = a.theme === "dark"
+  const bg = a.background.kind === "preset" ? a.background.value : null
+  const alignClass =
+    a.align === "left"
+      ? "items-start text-left"
+      : a.align === "right"
+        ? "items-end text-right"
+        : "items-center text-center"
+  const colClass =
+    a.buttonColumns === 3
+      ? "grid-cols-3"
+      : a.buttonColumns === 2
+        ? "grid-cols-2"
+        : "grid-cols-1"
+  return (
+    <div
+      className={cn(
+        "flex flex-col justify-center gap-4 px-12 py-16",
+        alignClass,
+        minH == null && "min-h-[440px]",
+        !bg && (dark ? "bg-zinc-900" : "bg-white")
+      )}
+      style={{ minHeight: minH, ...(bg ? { background: bg } : {}) }}
+    >
+      {slide.title && (
+        <h2
+          className={cn(
+            "font-serif text-4xl font-semibold tracking-tight [overflow-wrap:anywhere]",
+            dark ? "text-white" : "text-zinc-900"
+          )}
+        >
+          {slide.title}
+        </h2>
+      )}
+      {slide.subtitle && (
+        <p
+          className={cn(
+            "max-w-xl text-lg leading-relaxed [overflow-wrap:anywhere]",
+            dark ? "text-white/70" : "text-zinc-500"
+          )}
+        >
+          {slide.subtitle}
+        </p>
+      )}
+      {slide.buttons.length > 0 && (
+        <div className={cn("mt-4 grid w-full max-w-md gap-2.5", colClass)}>
+          {slide.buttons.map((b) => (
+            <button
+              key={b.key}
+              onClick={() => onNavigate(b.destination)}
+              style={{ backgroundColor: b.bgColor, color: b.textColor }}
+              className="rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition-transform hover:brightness-105 active:scale-[0.98]"
+            >
+              {b.text || "Button"}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   )

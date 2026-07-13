@@ -40,9 +40,10 @@ export function AddBlockMenu({
       {/* Hairline that reveals on hover */}
       <div className="bg-border absolute inset-x-0 top-1/2 h-px opacity-0 transition-opacity group-hover:opacity-100" />
       <Popover open={open} onOpenChange={setOpen}>
+        {/* Always visible; brightens on hover / when open. */}
         <PopoverTrigger
           aria-label="Add block"
-          className="bg-viridian relative z-10 flex size-6 items-center justify-center rounded-full text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 data-[popup-open]:opacity-100"
+          className="bg-viridian relative z-10 flex size-6 items-center justify-center rounded-full text-white opacity-70 shadow-sm transition-opacity group-hover:opacity-100 hover:opacity-100 data-[popup-open]:opacity-100"
         >
           <PlusIcon size={15} />
         </PopoverTrigger>

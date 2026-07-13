@@ -1,6 +1,6 @@
 import type { GuideCustomization } from "@workspace/contracts/guide"
 
-import type { GuideBlock } from "@/lib/guides"
+import type { GuideBlock, WalkthroughItemClient } from "@/lib/guides"
 
 export type GuideReactionCount = { emoji: string; count: number }
 export type GuideComment = {
@@ -29,6 +29,8 @@ export type PublicGuide = {
   comments: GuideComment[]
   translations: PublicTranslation[]
   blocks: GuideBlock[]
+  /** The published Interactive (Walkthrough) tree, presigned for display. */
+  interactive: { items: WalkthroughItemClient[] }
 }
 
 /** Server-side fetch of a published guide by shareId (public, no auth). */

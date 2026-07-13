@@ -85,6 +85,22 @@ async function main() {
       assert.equal(g?.summary, "new");
     });
 
+    await test("interactive tree is written (v1 draft migrated on publish)", async () => {
+      const g = await prisma.guide.findUnique({
+        where: { id: guide.id },
+        select: { interactive: true },
+      });
+      const tree = g?.interactive as { items?: Array<{ kind: string; key: string }> } | null;
+      assert.ok(tree?.items, "Guide.interactive was populated");
+      // Seeded 1:1 from the draft's blocks (kC, kA), all step items.
+      assert.equal(tree.items!.length, 2);
+      assert.deepEqual(
+        tree.items!.map((i) => i.key),
+        ["kC", "kA"]
+      );
+      assert.equal(tree.items!.every((i) => i.kind === "step"), true);
+    });
+
     await test("blocks reconcile by key (identity preserved, reorder applied)", async () => {
       const steps = await prisma.step.findMany({
         where: { guideId: guide.id },

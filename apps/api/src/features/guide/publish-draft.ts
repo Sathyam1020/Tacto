@@ -1,6 +1,8 @@
-import { draftDocumentSchema, type DraftDocument } from "@workspace/contracts/guide";
+import {
+  parseDraftDocument,
+  type DraftDocumentV2,
+} from "@workspace/contracts/guide";
 import { Prisma, prisma } from "@workspace/db";
-import { z } from "zod";
 
 import { sanitizeContent } from "../../lib/sanitize.js";
 
@@ -19,7 +21,7 @@ class SupersededError extends Error {}
 async function applyDraftContent(
   tx: Prisma.TransactionClient,
   guideId: string,
-  doc: DraftDocument
+  doc: DraftDocumentV2
 ): Promise<void> {
   await tx.guide.update({
     where: { id: guideId },
@@ -27,6 +29,9 @@ async function applyDraftContent(
       title: doc.title.trim() || "Untitled guide",
       summary: doc.summary,
       customization: doc.customization,
+      // Persist the Interactive tree alongside the List (Step) rows. Stored as
+      // resolved JSON (screenshot keys inline) for straight public reads.
+      interactive: doc.interactive,
     },
   });
 
@@ -79,13 +84,13 @@ export async function publishDraft(guideId: string): Promise<void> {
         });
         if (!draft) return; // already published — nothing to do
 
-        const parsed = draftDocumentSchema.safeParse(draft.document);
+        const parsed = parseDraftDocument(draft.document);
         if (!parsed.success) {
           // A malformed draft can't be applied — discard it, leaving the
           // published guide unchanged, rather than crashing the publish.
           console.error(
             `[guide ${guideId}] publish: draft parse failed, discarding:`,
-            z.prettifyError(parsed.error)
+            parsed.error.message
           );
           await tx.guideDraft.deleteMany({ where: { guideId } });
           return;

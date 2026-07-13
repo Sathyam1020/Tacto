@@ -137,6 +137,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         <div className="mt-10">
           <GuideBody
             blocks={displayBlocks}
+            interactive={guide.interactive?.items}
             mode={effectiveMode}
             customization={cust}
           />

@@ -4,8 +4,9 @@ import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   DEFAULT_CUSTOMIZATION,
+  type Asset,
   type BlockType,
-  type DraftDocument,
+  type DraftDocumentV2,
   type GuideCustomization,
 } from "@workspace/contracts/guide"
 import {
@@ -36,6 +37,8 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { AddBlockMenu } from "@/components/add-block-menu"
 import { BlockView, withStepNumbers } from "@/components/block-view"
+import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
+import { InteractiveEditor } from "@/components/interactive-editor"
 import {
   GuideCustomizationProvider,
   layoutMaxWidthClass,
@@ -75,15 +78,22 @@ import {
   type DraftBlockClient,
   type DraftDocumentClient,
   type GuideDraftResponse,
+  type WalkthroughItemClient,
 } from "@/lib/guides"
 
 /** The editor's in-memory block (draft block + a display URL). */
 type EditorBlock = DraftBlockClient
-/** The whole working document the editor edits and autosaves. */
+/** The Interactive tree the editor carries through (edited in RFC phase 2). */
+type EditorInteractive = { items: WalkthroughItemClient[] }
+/** The whole working document the editor edits and autosaves. Holds BOTH trees
+ *  (List `blocks` + `interactive`) and the shared `assets` registry; List edits
+ *  never touch `interactive`, so the two stay independent. */
 type EditorDoc = {
   title: string
   summary: string | null
   blocks: EditorBlock[]
+  interactive: EditorInteractive
+  assets: Asset[]
   customization: GuideCustomization
 }
 
@@ -99,6 +109,8 @@ const EMPTY_DOC: EditorDoc = {
   title: "",
   summary: null,
   blocks: [],
+  interactive: { items: [] },
+  assets: [],
   customization: DEFAULT_CUSTOMIZATION,
 }
 
@@ -111,20 +123,41 @@ type DraftStatus = "saving" | "saved" | "conflict" | "error" | "offline"
 /** The editor document with display URLs — the shape stored in the cache. */
 function toClientDoc(doc: EditorDoc): DraftDocumentClient {
   return {
-    v: 1,
+    v: 2,
     title: doc.title,
     summary: doc.summary,
     blocks: doc.blocks,
+    interactive: doc.interactive,
+    assets: doc.assets,
     customization: doc.customization,
   }
 }
 
 function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
+  const blocks = doc.blocks.map((b) => ({ ...b }))
+  // Backward-compat: a draft cached in localStorage before the two-tree model
+  // has no `interactive`/`assets`. Seed the Interactive tree 1:1 from blocks
+  // (the client-side mirror of the server's migrate-on-read) so old caches
+  // don't crash the editor.
+  const items: WalkthroughItemClient[] = doc.interactive?.items
+    ? doc.interactive.items.map((it) => ({ ...it }))
+    : blocks.map((b) => ({
+        kind: "step" as const,
+        key: b.key,
+        content: b.content,
+        screenshotKey: b.screenshotKey,
+        assetId: b.screenshotKey ? `a_${b.key}` : null,
+        screenshotUrl: b.screenshotUrl,
+        clickRect: b.clickRect,
+        confidence: b.confidence,
+      }))
   return {
     title: doc.title,
     summary: doc.summary,
     customization: doc.customization,
-    blocks: doc.blocks.map((b) => ({ ...b })),
+    blocks,
+    interactive: { items },
+    assets: doc.assets ? doc.assets.map((a) => ({ ...a })) : [],
   }
 }
 
@@ -150,9 +183,9 @@ function conflictVersion(err: unknown): number | null {
 }
 
 /** Strip display-only fields to the durable document that gets autosaved. */
-function toDraftDocument(doc: EditorDoc): DraftDocument {
+function toDraftDocument(doc: EditorDoc): DraftDocumentV2 {
   return {
-    v: 1,
+    v: 2,
     title: doc.title,
     summary: doc.summary,
     blocks: doc.blocks.map((b) => ({
@@ -160,11 +193,30 @@ function toDraftDocument(doc: EditorDoc): DraftDocument {
       type: b.type,
       content: b.content,
       screenshotKey: b.screenshotKey,
+      assetId: b.assetId,
       elementLabel: b.elementLabel,
       url: b.url,
       clickRect: b.clickRect,
       confidence: b.confidence,
     })),
+    // Carry the Interactive tree through untouched (durable fields only —
+    // drop the presigned screenshotUrl the client added).
+    interactive: {
+      items: doc.interactive.items.map((it) =>
+        it.kind === "step"
+          ? {
+              kind: "step",
+              key: it.key,
+              content: it.content,
+              screenshotKey: it.screenshotKey,
+              assetId: it.assetId,
+              clickRect: it.clickRect,
+              confidence: it.confidence,
+            }
+          : it
+      ),
+    },
+    assets: doc.assets,
     customization: doc.customization,
   }
 }
@@ -202,6 +254,9 @@ export default function GuideEditPage() {
   const cust = doc.customization
 
   const [seeded, setSeeded] = React.useState(false)
+  // Which mode the canvas edits. Interactive is a read-only preview until the
+  // dedicated interactive editor lands (RFC phase 2).
+  const [editorMode, setEditorMode] = React.useState<ViewMode>("list")
   const [editingKey, setEditingKey] = React.useState<string | null>(null)
   const [uploadingKey, setUploadingKey] = React.useState<string | null>(null)
   const [dirty, setDirty] = React.useState(false)
@@ -393,9 +448,12 @@ export default function GuideEditPage() {
       if (typeof navigator !== "undefined" && !navigator.onLine) return
       const keys = Array.from(
         new Set(
-          document.blocks
-            .map((b) => b.screenshotKey)
-            .filter((k): k is string => !!k)
+          [
+            ...document.blocks.map((b) => b.screenshotKey),
+            ...document.interactive.items.map((it) =>
+              it.kind === "step" ? it.screenshotKey : null
+            ),
+          ].filter((k): k is string => !!k)
         )
       )
       if (keys.length === 0) return
@@ -410,6 +468,13 @@ export default function GuideEditPage() {
                 ? { ...b, screenshotUrl: urls[b.screenshotKey]! }
                 : b
             ),
+            interactive: {
+              items: h.present.interactive.items.map((it) =>
+                it.kind === "step" && it.screenshotKey && urls[it.screenshotKey]
+                  ? { ...it, screenshotUrl: urls[it.screenshotKey]! }
+                  : it
+              ),
+            },
           },
         }))
       } catch {
@@ -485,9 +550,7 @@ export default function GuideEditPage() {
           t - lastText.current.at < COALESCE_MS
         lastText.current = { field: coalesceField, at: t }
       }
-      setHistory((h) =>
-        (coalesce ? amend : commit)(h, producer(h.present))
-      )
+      setHistory((h) => (coalesce ? amend : commit)(h, producer(h.present)))
       setDirty(true)
       draftDirtyRef.current = true
       scheduleFlush()
@@ -653,6 +716,7 @@ export default function GuideEditPage() {
       type,
       content: NEW_CONTENT[type],
       screenshotKey: null,
+      assetId: null,
       screenshotUrl: null,
       elementLabel: null,
       url: null,
@@ -678,6 +742,83 @@ export default function GuideEditPage() {
     applyEdit((d) => ({ ...d, blocks: d.blocks.filter((b) => b.key !== key) }))
   }
 
+  // ── Interactive (Walkthrough) tree operations ─────────────────────────
+  // Independent of the List blocks — these only touch `doc.interactive`.
+  function editInteractiveContent(key: string, content: string) {
+    applyEdit((d) => ({
+      ...d,
+      interactive: {
+        items: d.interactive.items.map((it) =>
+          it.key === key && it.kind === "step" ? { ...it, content } : it
+        ),
+      },
+    }))
+  }
+
+  function reorderInteractive(orderedKeys: string[]) {
+    applyEdit((d) => {
+      const byKey = new Map(d.interactive.items.map((it) => [it.key, it]))
+      const items = orderedKeys
+        .map((k) => byKey.get(k))
+        .filter((it): it is (typeof d.interactive.items)[number] => !!it)
+      return { ...d, interactive: { items } }
+    })
+  }
+
+  function deleteInteractiveItem(key: string) {
+    applyEdit((d) => ({
+      ...d,
+      interactive: {
+        items: d.interactive.items.filter((it) => it.key !== key),
+      },
+    }))
+  }
+
+  /** Insert a walkthrough item (Intro/Chapter slide) after `afterKey` (null =
+   *  prepend for intros). */
+  function insertInteractiveItem(
+    item: WalkthroughItemClient,
+    afterKey: string | null
+  ) {
+    applyEdit((d) => {
+      const items = [...d.interactive.items]
+      const idx = afterKey ? items.findIndex((i) => i.key === afterKey) : -1
+      items.splice(idx >= 0 ? idx + 1 : 0, 0, item)
+      return { ...d, interactive: { items } }
+    })
+  }
+
+  /** Merge a partial patch into a walkthrough item (slide fields/buttons or a
+   *  step's media). */
+  function updateInteractiveItem(
+    key: string,
+    patch: Partial<WalkthroughItemClient>
+  ) {
+    applyEdit((d) => ({
+      ...d,
+      interactive: {
+        items: d.interactive.items.map((it) =>
+          it.key === key
+            ? ({ ...it, ...patch } as WalkthroughItemClient)
+            : it
+        ),
+      },
+    }))
+  }
+
+  /** Upload a replacement screenshot for an Interactive step. Returns the R2
+   *  key + a local preview URL (independent of the List blocks). */
+  async function uploadInteractiveMedia(
+    file: File
+  ): Promise<{ key: string; url: string } | null> {
+    try {
+      const key = await uploadStepMedia(params.id, file)
+      return { key, url: URL.createObjectURL(file) }
+    } catch {
+      return null
+    }
+  }
+
   function importBlocks(imported: ImportedBlock[]) {
     applyEdit((d) => ({
       ...d,
@@ -688,6 +829,7 @@ export default function GuideEditPage() {
           type: b.type,
           content: b.content,
           screenshotKey: b.screenshotKey,
+          assetId: null,
           screenshotUrl: b.screenshotUrl,
           elementLabel: b.elementLabel,
           url: b.url,
@@ -752,7 +894,9 @@ export default function GuideEditPage() {
             <ArrowLeft className="size-4" />
             Back
           </Button>
-          {seeded && <DraftStatusLabel status={status} savedAt={savedAt} now={now} />}
+          {seeded && (
+            <DraftStatusLabel status={status} savedAt={savedAt} now={now} />
+          )}
         </div>
       ),
       actions: (
@@ -763,7 +907,7 @@ export default function GuideEditPage() {
           <NavIcon label="Redo" onClick={doRedo} disabled={!cR}>
             <Redo2 className="size-4" />
           </NavIcon>
-          <span className="text-muted-foreground mr-1 ml-0.5 font-mono text-xs tabular-nums">
+          <span className="mr-1 ml-0.5 font-mono text-xs text-muted-foreground tabular-nums">
             {count} {count === 1 ? "change" : "changes"}
           </span>
           <Button
@@ -849,7 +993,7 @@ export default function GuideEditPage() {
           }
           rows={1}
           placeholder="Untitled guide"
-          className="placeholder:text-muted-foreground/40 w-full resize-none bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none [field-sizing:content]"
+          className="[field-sizing:content] w-full resize-none bg-transparent font-serif text-4xl leading-tight font-medium tracking-tight outline-none placeholder:text-muted-foreground/40"
         />
 
         {/* Editable subheading / description */}
@@ -863,27 +1007,54 @@ export default function GuideEditPage() {
           }
           rows={1}
           placeholder="Add a description (optional)"
-          className="placeholder:text-muted-foreground/40 text-muted-foreground mt-3 w-full resize-none bg-transparent text-lg leading-relaxed outline-none [field-sizing:content]"
+          className="mt-3 [field-sizing:content] w-full resize-none bg-transparent text-lg leading-relaxed text-muted-foreground outline-none placeholder:text-muted-foreground/40"
         />
 
-        <div className="mt-10">
-          <AddBlockMenu onAdd={(type) => insertBlock(0, type)} />
-          {numbered.map((block, index) => (
-            <React.Fragment key={block.key}>
-              <EditableBlock
-                block={block}
-                stepNumber={block.stepNumber}
-                editing={editingKey === block.key}
-                uploading={uploadingKey === block.key}
-                onStartEdit={() => setEditingKey(block.key)}
-                onSaveContent={(html) => updateContent(block.key, html)}
-                onCancelEdit={() => setEditingKey(null)}
-                onDelete={() => deleteBlock(block.key)}
-                onAddMedia={() => pickMedia(block.key)}
-              />
-              <AddBlockMenu onAdd={(type) => insertBlock(index + 1, type)} />
-            </React.Fragment>
-          ))}
+        {/* Mode selector — the title/description above are global; the content
+            below is mode-specific. Centered between the two. */}
+        <div className="mt-8 flex justify-center">
+          <ViewModeToggle
+            mode={editorMode}
+            onChange={setEditorMode}
+            size="lg"
+          />
+        </div>
+
+        <div className="mt-8">
+          {editorMode === "list" ? (
+            <>
+              <AddBlockMenu onAdd={(type) => insertBlock(0, type)} />
+              {numbered.map((block, index) => (
+                <React.Fragment key={block.key}>
+                  <EditableBlock
+                    block={block}
+                    stepNumber={block.stepNumber}
+                    editing={editingKey === block.key}
+                    uploading={uploadingKey === block.key}
+                    onStartEdit={() => setEditingKey(block.key)}
+                    onSaveContent={(html) => updateContent(block.key, html)}
+                    onCancelEdit={() => setEditingKey(null)}
+                    onDelete={() => deleteBlock(block.key)}
+                    onAddMedia={() => pickMedia(block.key)}
+                  />
+                  <AddBlockMenu
+                    onAdd={(type) => insertBlock(index + 1, type)}
+                  />
+                </React.Fragment>
+              ))}
+            </>
+          ) : (
+            <InteractiveEditor
+              items={doc.interactive.items}
+              customization={cust}
+              onEditContent={editInteractiveContent}
+              onReorder={reorderInteractive}
+              onDelete={deleteInteractiveItem}
+              onInsertItem={insertInteractiveItem}
+              onUpdateItem={updateInteractiveItem}
+              onUploadMedia={uploadInteractiveMedia}
+            />
+          )}
         </div>
 
         <input
@@ -992,7 +1163,7 @@ function DraftStatusLabel({
 }) {
   if (status === "saving") {
     return (
-      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <Loader2 className="size-3 animate-spin" />
         Saving draft…
       </span>
@@ -1000,7 +1171,7 @@ function DraftStatusLabel({
   }
   if (status === "offline") {
     return (
-      <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+      <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <WifiOff className="size-3" />
         Offline — saved on this device
       </span>
@@ -1014,11 +1185,13 @@ function DraftStatusLabel({
     )
   }
   if (status === "error") {
-    return <span className="text-destructive text-xs">Couldn&apos;t save draft</span>
+    return (
+      <span className="text-xs text-destructive">Couldn&apos;t save draft</span>
+    )
   }
   if (savedAt == null) return null
   return (
-    <span className="text-muted-foreground text-xs">
+    <span className="text-xs text-muted-foreground">
       Draft saved {formatAgo(savedAt, now)}
     </span>
   )
@@ -1095,7 +1268,7 @@ function EditableBlock({
               aria-label="Add media"
               onClick={onAddMedia}
               disabled={uploading}
-              className="hover:bg-muted text-muted-foreground flex size-7 items-center justify-center rounded-md"
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
             >
               {uploading ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -1107,7 +1280,7 @@ function EditableBlock({
           <button
             aria-label="Delete block"
             onClick={onDelete}
-            className="hover:bg-destructive/10 hover:text-destructive text-muted-foreground flex size-7 items-center justify-center rounded-md"
+            className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="size-4" />
           </button>

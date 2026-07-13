@@ -249,6 +249,10 @@ model Guide {
   /// Published-view customization (theme, hotspot, layout, walkthrough, …).
   /// Null = defaults. Shape lives in @workspace/contracts/guide.
   customization Json?
+  /// Published Interactive (Walkthrough) tree — the mode-specific content
+  /// (step items + intro/chapter slides). Null = seed from `blocks` on read.
+  /// Shape = WalkthroughTree in @workspace/contracts/guide.
+  interactive   Json?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

@@ -213,12 +213,17 @@ export function resolveCustomization(
 // ── Editor draft (private working document) ──────────────────────────────
 
 /** One block inside a draft document — durable fields only (no presigned
- *  URLs). `key` is the block's stable identity (mirrors Step.key). */
+ *  URLs). `key` is the block's stable identity (mirrors Step.key).
+ *
+ *  `assetId` links the block's screenshot to a shared **Asset** (§ Assets).
+ *  Defaulted null so v1 drafts (which predate assets) still parse; migrate-on-
+ *  read fills it in. */
 export const draftBlockSchema = z.object({
   key: z.string().min(1),
   type: blockTypeSchema,
   content: z.string().max(20_000),
   screenshotKey: z.string().nullable(),
+  assetId: z.string().nullable().default(null),
   elementLabel: z.string().nullable(),
   url: z.string().nullable(),
   clickRect: clickRectSchema.nullable(),
@@ -226,16 +231,195 @@ export const draftBlockSchema = z.object({
 });
 export type DraftBlock = z.infer<typeof draftBlockSchema>;
 
-/** The full working document autosaved to GuideDraft. `v` is the document
- *  schema version (for migrate-on-read). */
-export const draftDocumentSchema = z.object({
+// ── Assets (v1) ─────────────────────────────────────────────────────────────
+// A first-class, minimal image identity. Both the List block and its twin
+// Interactive step reference the *same* asset id, so editing an image once
+// (swapping the asset's key) updates both trees — "global by construction".
+// `id` is stable across key swaps; `key` is the current R2 object key.
+
+export const assetSchema = z.object({
+  id: z.string().min(1),
+  key: z.string().min(1),
+});
+export type Asset = z.infer<typeof assetSchema>;
+
+/** The stable asset id for a block/step, derived from its (stable) key. A List
+ *  block and the Interactive step seeded from it share a key, hence one asset. */
+export function assetIdForKey(itemKey: string): string {
+  return `a_${itemKey}`;
+}
+
+// ── Interactive (Walkthrough) tree ──────────────────────────────────────────
+// The Interactive mode's independent content tree. Step items mirror a
+// screenshot + callout; Intro/Chapter are full slides with jump-to-step
+// buttons. Structure/order/text here are independent of the List blocks; only
+// screenshot Assets are shared (via assetId).
+
+export const walkthroughButtonSchema = z.object({
+  key: z.string().min(1),
+  text: z.string().max(200),
+  destination: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("next") }),
+    z.object({ kind: z.literal("prev") }),
+    z.object({ kind: z.literal("step"), stepKey: z.string() }),
+  ]),
+  bgColor: z.string(),
+  textColor: z.string(),
+});
+export type WalkthroughButton = z.infer<typeof walkthroughButtonSchema>;
+
+const slideAppearanceSchema = z.object({
+  background: z
+    .object({
+      kind: z.enum(["none", "preset", "image"]).default("none"),
+      value: z.string().nullable().default(null),
+    })
+    .default({ kind: "none", value: null }),
+  theme: z.enum(["light", "dark"]).default("light"),
+  align: z.enum(["left", "center", "right"]).default("center"),
+  buttonColumns: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(1),
+});
+
+export const walkthroughStepSchema = z.object({
+  kind: z.literal("step"),
+  key: z.string().min(1),
+  content: z.string().max(20_000),
+  screenshotKey: z.string().nullable().default(null),
+  assetId: z.string().nullable().default(null),
+  clickRect: clickRectSchema.nullable().default(null),
+  confidence: z.number().nullable().default(null),
+});
+
+const slideBase = {
+  key: z.string().min(1),
+  title: z.string().max(500).default(""),
+  subtitle: z.string().max(2000).default(""),
+  appearance: slideAppearanceSchema.default({
+    background: { kind: "none", value: null },
+    theme: "light",
+    align: "center",
+    buttonColumns: 1,
+  }),
+  buttons: z.array(walkthroughButtonSchema).max(20).default([]),
+};
+
+export const walkthroughItemSchema = z.discriminatedUnion("kind", [
+  walkthroughStepSchema,
+  z.object({ kind: z.literal("intro"), ...slideBase }),
+  z.object({ kind: z.literal("chapter"), ...slideBase }),
+]);
+export type WalkthroughItem = z.infer<typeof walkthroughItemSchema>;
+export type WalkthroughStep = z.infer<typeof walkthroughStepSchema>;
+
+export const walkthroughTreeSchema = z.object({
+  items: z.array(walkthroughItemSchema).max(500).default([]),
+});
+export type WalkthroughTree = z.infer<typeof walkthroughTreeSchema>;
+
+// ── Draft document (versioned; migrate-on-read) ─────────────────────────────
+
+/** v1 — the original single-tree document (List blocks only). Still accepted on
+ *  read; migrated to v2 in memory. */
+export const draftDocumentV1Schema = z.object({
   v: z.literal(1),
   title: z.string().max(200),
   summary: z.string().max(2000).nullable(),
   blocks: z.array(draftBlockSchema).max(500),
   customization: guideCustomizationSchema,
 });
+export type DraftDocumentV1 = z.infer<typeof draftDocumentV1Schema>;
+
+/** v2 — two independent trees (List `blocks` + `interactive`) plus the shared
+ *  `assets` registry. This is what the editor autosaves and publish applies. */
+export const draftDocumentV2Schema = z.object({
+  v: z.literal(2),
+  title: z.string().max(200),
+  summary: z.string().max(2000).nullable(),
+  blocks: z.array(draftBlockSchema).max(500),
+  interactive: walkthroughTreeSchema,
+  assets: z.array(assetSchema).max(1000).default([]),
+  customization: guideCustomizationSchema,
+});
+export type DraftDocumentV2 = z.infer<typeof draftDocumentV2Schema>;
+
+/** Any stored draft — v1 or v2. Reads go through {@link migrateDraftDocument}
+ *  to always work with v2. */
+export const draftDocumentSchema = z.discriminatedUnion("v", [
+  draftDocumentV1Schema,
+  draftDocumentV2Schema,
+]);
 export type DraftDocument = z.infer<typeof draftDocumentSchema>;
+
+/** Deterministically seed the Interactive tree from List blocks (1:1 step
+ *  items, sharing keys/assets). No randomness/time — safe for migrations. */
+export function seedInteractiveFromBlocks(blocks: DraftBlock[]): WalkthroughTree {
+  return {
+    items: blocks.map((b) => ({
+      kind: "step" as const,
+      key: b.key,
+      content: b.content,
+      screenshotKey: b.screenshotKey,
+      assetId: b.screenshotKey ? assetIdForKey(b.key) : null,
+      clickRect: b.clickRect,
+      confidence: b.confidence,
+    })),
+  };
+}
+
+/** Collect the shared asset registry from both trees (dedupe by id; blocks
+ *  first for a stable order). Deterministic. */
+export function collectAssets(
+  blocks: DraftBlock[],
+  interactive: WalkthroughTree
+): Asset[] {
+  const byId = new Map<string, string>();
+  for (const b of blocks) {
+    if (b.screenshotKey) byId.set(b.assetId ?? assetIdForKey(b.key), b.screenshotKey);
+  }
+  for (const it of interactive.items) {
+    if (it.kind === "step" && it.screenshotKey) {
+      byId.set(it.assetId ?? assetIdForKey(it.key), it.screenshotKey);
+    }
+  }
+  return [...byId].map(([id, key]) => ({ id, key }));
+}
+
+/** Ensure every block with a screenshot carries its assetId (idempotent). */
+function attachAssetIds(blocks: DraftBlock[]): DraftBlock[] {
+  return blocks.map((b) => ({
+    ...b,
+    assetId: b.screenshotKey ? (b.assetId ?? assetIdForKey(b.key)) : null,
+  }));
+}
+
+/** Migrate any accepted draft document to v2. v1 → seed the Interactive tree
+ *  and asset registry from the blocks; v2 → normalize (assets rebuilt so the
+ *  registry always matches the trees). Deterministic. */
+export function migrateDraftDocument(doc: DraftDocument): DraftDocumentV2 {
+  const blocks = attachAssetIds(doc.blocks);
+  const interactive =
+    doc.v === 2 ? doc.interactive : seedInteractiveFromBlocks(blocks);
+  return {
+    v: 2,
+    title: doc.title,
+    summary: doc.summary,
+    blocks,
+    interactive,
+    assets: collectAssets(blocks, interactive),
+    customization: doc.customization,
+  };
+}
+
+/** Parse a stored (unknown) draft and migrate to v2 in one step. */
+export function parseDraftDocument(
+  raw: unknown
+):
+  | { success: true; data: DraftDocumentV2 }
+  | { success: false; error: z.ZodError } {
+  const parsed = draftDocumentSchema.safeParse(raw);
+  if (!parsed.success) return { success: false, error: parsed.error };
+  return { success: true, data: migrateDraftDocument(parsed.data) };
+}
 
 /** Autosave body — the document plus the version the client last saw
  *  (optimistic concurrency). */

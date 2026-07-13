@@ -3,8 +3,8 @@ import { isDeepStrictEqual } from "node:util";
 import { importStepsFromText, translateGuide } from "@workspace/ai";
 import {
   addTranslationSchema,
-  draftDocumentSchema,
   draftPatchSchema,
+  parseDraftDocument,
   moveGuideSchema,
   setGuideFolderSchema,
   TRANSLATION_LANGUAGES,
@@ -29,6 +29,7 @@ import {
   draftSourceSelect,
   serializeBlocks,
   serializeCustomization,
+  serializeInteractive,
 } from "./serialize.js";
 
 const idParamSchema = z.object({ id: z.string() });
@@ -127,7 +128,7 @@ guideRouter.get(
     });
     let hasUnpublishedChanges = false;
     if (existingDraft) {
-      const parsed = draftDocumentSchema.safeParse(existingDraft.document);
+      const parsed = parseDraftDocument(existingDraft.document);
       if (parsed.success) {
         hasUnpublishedChanges = !isDeepStrictEqual(
           parsed.data,
@@ -137,7 +138,7 @@ guideRouter.get(
         // A malformed/stale draft must never break the guide page.
         console.error(
           `[guide ${id}] draft parse failed:`,
-          z.prettifyError(parsed.error)
+          parsed.error.message
         );
         hasUnpublishedChanges = true;
       }
@@ -157,6 +158,10 @@ guideRouter.get(
         createdAt: guide.createdAt,
         customization: await serializeCustomization(guide.customization),
         blocks: await serializeBlocks(guide.blocks),
+        interactive: await serializeInteractive(
+          guide.interactive,
+          guide.blocks
+        ),
       },
     });
   }
@@ -204,7 +209,7 @@ guideRouter.get(
 
     // Recover a malformed/stale draft by reseeding it from the published guide,
     // rather than 500-ing the editor.
-    const parsed = draftDocumentSchema.safeParse(draft.document);
+    const parsed = parseDraftDocument(draft.document);
     let document = published;
     let version = draft.version;
     if (parsed.success) {
@@ -212,7 +217,7 @@ guideRouter.get(
     } else {
       console.error(
         `[guide ${id}] draft parse failed, reseeding:`,
-        z.prettifyError(parsed.error)
+        parsed.error.message
       );
       const reseeded = await prisma.guideDraft.update({
         where: { guideId: id },

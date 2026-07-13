@@ -12,6 +12,7 @@ import {
   blockSelect,
   serializeBlocks,
   serializeCustomization,
+  serializeInteractive,
 } from "../guide/serialize.js";
 
 /** Aggregate reaction counts for a guide, as `[{ emoji, count }]`. */
@@ -65,8 +66,10 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
     .catch(() => {});
 
   const { allowReactions, allowComments } = feedbackFlags(guide.customization);
-  const [blocks, reactions, comments, translations] = await Promise.all([
-    serializeBlocks(guide.blocks),
+  const [blocks, interactive, reactions, comments, translations] =
+    await Promise.all([
+      serializeBlocks(guide.blocks),
+      serializeInteractive(guide.interactive, guide.blocks),
     allowReactions ? reactionCounts(guide.id) : Promise.resolve([]),
     allowComments
       ? prisma.guideComment.findMany({
@@ -98,6 +101,13 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
         ...block,
         content: sanitizeContent(block.content),
       })),
+      interactive: {
+        items: interactive.items.map((it) =>
+          it.kind === "step"
+            ? { ...it, content: sanitizeContent(it.content) }
+            : it
+        ),
+      },
     },
   });
 });

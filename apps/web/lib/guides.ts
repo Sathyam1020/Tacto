@@ -3,8 +3,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   type BlockType,
   type DraftBlock,
-  type DraftDocument,
+  type DraftDocumentV2,
   type GuideCustomization,
+  type WalkthroughItem,
 } from "@workspace/contracts/guide"
 import axios from "axios"
 import { toast } from "sonner"
@@ -69,6 +70,8 @@ export type GuideDetail = {
   /** True when a private draft has edits not yet published. */
   hasUnpublishedChanges: boolean
   blocks: GuideBlock[]
+  /** The published Interactive (Walkthrough) tree, presigned for display. */
+  interactive: { items: WalkthroughItemClient[] }
 }
 
 /** Merge stored (possibly null/partial) customization with defaults.
@@ -163,8 +166,19 @@ export function useGuide(workspaceId: string | undefined, guideId: string) {
 
 /** A draft block as returned to the editor (durable fields + a display URL). */
 export type DraftBlockClient = DraftBlock & { screenshotUrl: string | null }
-export type DraftDocumentClient = Omit<DraftDocument, "blocks"> & {
+/** A walkthrough item as returned to the editor — step items carry a display
+ *  URL; slides are unchanged. */
+export type WalkthroughItemClient =
+  | (Extract<WalkthroughItem, { kind: "step" }> & {
+      screenshotUrl: string | null
+    })
+  | Exclude<WalkthroughItem, { kind: "step" }>
+export type DraftDocumentClient = Omit<
+  DraftDocumentV2,
+  "blocks" | "interactive"
+> & {
   blocks: DraftBlockClient[]
+  interactive: { items: WalkthroughItemClient[] }
 }
 export type GuideDraftResponse = {
   document: DraftDocumentClient
@@ -199,7 +213,7 @@ export function useGuideDraft(
   })
 }
 
-export type SaveDraftVars = { document: DraftDocument; baseVersion: number }
+export type SaveDraftVars = { document: DraftDocumentV2; baseVersion: number }
 
 /** Autosave the draft with optimistic concurrency. Throws on 409 conflict. */
 export function useSaveDraft(guideId: string) {

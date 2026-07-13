@@ -93,13 +93,13 @@ export function GuideToolbar({
   return (
     <>
       <div className="mb-8 flex justify-center">
-        <nav className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border bg-card px-2 py-1.5 shadow-sm">
+        <nav className="flex flex-wrap items-center justify-center gap-1 rounded-2xl border bg-card px-1 py-1 shadow-sm">
           {items.map((it) => (
             <Button
               key={it.label}
               variant="ghost"
               onClick={it.onClick}
-              className="gap-2.5 rounded-xl px-3 text-sm font-medium text-foreground/80 hover:text-foreground"
+              className="gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground"
             >
               <it.icon className="size-[18px]" strokeWidth={1.75} />
               {it.label}

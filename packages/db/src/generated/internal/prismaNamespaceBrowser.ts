@@ -227,6 +227,7 @@ export const GuideScalarFieldEnum = {
   deletedAt: 'deletedAt',
   pinnedAt: 'pinnedAt',
   customization: 'customization',
+  interactive: 'interactive',
   organizationId: 'organizationId',
   captureId: 'captureId',
   createdById: 'createdById',
