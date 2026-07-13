@@ -3,11 +3,15 @@ import { isDeepStrictEqual } from "node:util";
 import { importStepsFromText, translateGuide } from "@workspace/ai";
 import {
   addTranslationSchema,
+  collectInteractiveStrings,
   draftPatchSchema,
   parseDraftDocument,
   moveGuideSchema,
+  seedInteractiveFromBlocks,
   setGuideFolderSchema,
   TRANSLATION_LANGUAGES,
+  walkthroughTreeSchema,
+  type DraftBlock,
 } from "@workspace/contracts/guide";
 import { ensureDefaultFolder, prisma } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
@@ -433,9 +437,10 @@ guideRouter.post(
         id: true,
         title: true,
         summary: true,
+        interactive: true,
         blocks: {
           orderBy: { position: "asc" },
-          select: { id: true, content: true },
+          select: { id: true, key: true, content: true },
         },
       },
     });
@@ -443,6 +448,40 @@ guideRouter.post(
 
     const languageName =
       TRANSLATION_LANGUAGES.find((l) => l.code === language)?.name ?? language;
+
+    // Interactive tree strings, keyed by STABLE keys (the tree is
+    // key-addressed, unlike List blocks which are position-keyed).
+    const parsedTree = walkthroughTreeSchema.safeParse(guide.interactive);
+    const interactiveItems = parsedTree.success
+      ? parsedTree.data.items
+      : seedInteractiveFromBlocks(
+          guide.blocks.map(
+            (b): DraftBlock => ({
+              key: b.key,
+              type: "STEP",
+              content: b.content,
+              screenshotKey: null,
+              assetId: null,
+              elementLabel: null,
+              url: null,
+              clickRect: null,
+              confidence: null,
+            })
+          )
+        ).items;
+    const interactiveStrings = collectInteractiveStrings(interactiveItems);
+
+    // Dedup: Interactive callouts are seeded from List blocks, so an interactive
+    // string whose text matches a block reuses that block's translation instead
+    // of being translated again (fewer tokens + identical wording across views).
+    const contentToBlockIdx = new Map<string, number>();
+    guide.blocks.forEach((b, i) => {
+      if (!contentToBlockIdx.has(b.content)) contentToBlockIdx.set(b.content, i);
+    });
+    const uniqueInteractive = interactiveStrings.filter(
+      (s) => !contentToBlockIdx.has(s.content)
+    );
+
     // Key blocks by position, not id — the guide's Save recreates blocks with
     // new ids, so position is the only stable handle a translation can use.
     const ai = await translateGuide(
@@ -453,6 +492,7 @@ guideRouter.post(
           id: String(i),
           content: b.content,
         })),
+        interactive: uniqueInteractive,
       },
       languageName
     );
@@ -463,6 +503,28 @@ guideRouter.post(
         content: sanitizeContent(b.content),
       }))
       .filter((s) => Number.isInteger(s.index));
+    const translatedByIdx = new Map<number, string>();
+    for (const b of ai.blocks) {
+      const idx = Number(b.id);
+      if (Number.isInteger(idx)) translatedByIdx.set(idx, b.content);
+    }
+    const aiInteractive = new Map(ai.interactive.map((s) => [s.id, s.content]));
+    // Interactive map: reuse a matching block's translation, else the model's
+    // own. Sanitize HTML step callouts; leave plain text (slide titles / button
+    // labels — rendered as text) as-is.
+    const interactive: Record<string, string> = {};
+    for (const s of interactiveStrings) {
+      const blockIdx = contentToBlockIdx.get(s.content);
+      const translated =
+        blockIdx !== undefined
+          ? translatedByIdx.get(blockIdx)
+          : aiInteractive.get(s.id);
+      if (translated != null) {
+        interactive[s.id] = /[<>]/.test(translated)
+          ? sanitizeContent(translated)
+          : translated;
+      }
+    }
 
     // A (re)generated translation is a DRAFT — it stays hidden from the public
     // reader until the editor Saves the guide (which publishes translations).
@@ -474,9 +536,16 @@ guideRouter.post(
         title: ai.title,
         summary: ai.summary,
         steps,
+        interactive,
         published: false,
       },
-      update: { title: ai.title, summary: ai.summary, steps, published: false },
+      update: {
+        title: ai.title,
+        summary: ai.summary,
+        steps,
+        interactive,
+        published: false,
+      },
       select: { language: true, title: true, updatedAt: true },
     });
     res.json({ translation: saved });

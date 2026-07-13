@@ -110,6 +110,7 @@ export function InteractiveEditor({
   onInsertItem,
   onUpdateItem,
   onUploadMedia,
+  onEditImage,
 }: {
   items: WalkthroughItemClient[]
   customization: GuideCustomization
@@ -119,6 +120,10 @@ export function InteractiveEditor({
   onInsertItem: (item: WalkthroughItemClient, afterKey: string | null) => void
   onUpdateItem: (key: string, patch: Partial<WalkthroughItemClient>) => void
   onUploadMedia: (file: File) => Promise<{ key: string; url: string } | null>
+  onEditImage: (
+    source: { assetId: string | null; itemKey: string; scope: "block" | "step" },
+    src: string
+  ) => void
 }) {
   const [selectedKeyRaw, setSelectedKey] = React.useState<string | null>(
     items[0]?.key ?? null
@@ -326,6 +331,14 @@ export function InteractiveEditor({
                 index={selIndex}
                 total={items.length}
                 onEdit={() => setEditStepOpen(true)}
+                onEditImage={() => {
+                  const s = selected as StepItem
+                  if (s.screenshotUrl)
+                    onEditImage(
+                      { assetId: s.assetId, itemKey: s.key, scope: "step" },
+                      s.screenshotUrl
+                    )
+                }}
                 onPrev={() => selIndex > 0 && goTo(items[selIndex - 1]!.key)}
                 onNext={() =>
                   selIndex < items.length - 1 && goTo(items[selIndex + 1]!.key)
@@ -371,6 +384,29 @@ export function InteractiveEditor({
             <DialogHeader>
               <DialogTitle>Edit step</DialogTitle>
             </DialogHeader>
+            <div className="flex gap-4">
+              <ColorField
+                label="Box color"
+                value={
+                  (selected as StepItem).calloutBg ??
+                  customization.brand.color
+                }
+                onChange={(v) =>
+                  onUpdateItem(selected!.key, {
+                    calloutBg: v,
+                  } as Partial<WalkthroughItemClient>)
+                }
+              />
+              <ColorField
+                label="Text color"
+                value={(selected as StepItem).calloutText ?? "#ffffff"}
+                onChange={(v) =>
+                  onUpdateItem(selected!.key, {
+                    calloutText: v,
+                  } as Partial<WalkthroughItemClient>)
+                }
+              />
+            </div>
             <RichTextEditor
               initialHtml={(selected as StepItem).content}
               onSave={(html) => {
@@ -810,6 +846,7 @@ function StepCanvas({
   index,
   total,
   onEdit,
+  onEditImage,
   onPrev,
   onNext,
 }: {
@@ -818,6 +855,7 @@ function StepCanvas({
   index: number
   total: number
   onEdit: () => void
+  onEditImage: () => void
   onPrev: () => void
   onNext: () => void
 }) {
@@ -837,9 +875,19 @@ function StepCanvas({
         <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
           <ChromeBar />
           {step.screenshotUrl ? (
-            <div className="relative">
+            <div className="group/shot relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={step.screenshotUrl} alt="" className="block w-full" />
+
+              <button
+                type="button"
+                onClick={onEditImage}
+                aria-label="Edit image"
+                title="Edit image"
+                className="bg-background/95 text-foreground absolute top-3 right-3 z-20 grid size-8 place-items-center rounded-lg border opacity-0 shadow-sm backdrop-blur transition group-hover/shot:opacity-100 hover:scale-105"
+              >
+                <Pencil className="size-4" />
+              </button>
 
               {rect && hotspot.type === "highlight-box" ? (
                 <div
@@ -869,6 +917,8 @@ function StepCanvas({
                 cy={cy}
                 onRight={onRight}
                 html={step.content}
+                bg={step.calloutBg}
+                textColor={step.calloutText}
                 index={index}
                 total={total}
                 atStart={atStart}
@@ -1214,6 +1264,8 @@ function EditorCallout({
   cy,
   onRight,
   html,
+  bg,
+  textColor,
   index,
   total,
   atStart,
@@ -1226,6 +1278,8 @@ function EditorCallout({
   cy: number
   onRight: boolean
   html: string
+  bg: string | null
+  textColor: string | null
   index: number
   total: number
   atStart: boolean
@@ -1237,21 +1291,29 @@ function EditorCallout({
   const GAP = 34
   return (
     <div
-      className="bg-primary text-primary-foreground group/callout absolute z-20 w-[248px] max-w-[70%] rounded-xl p-3 shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10"
+      className={cn(
+        "group/callout absolute z-20 w-[248px] max-w-[70%] rounded-xl p-3 shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10",
+        !bg && "bg-primary",
+        !textColor && "text-primary-foreground"
+      )}
       style={{
         left: `${cx}%`,
         top: `${cy}%`,
         transform: onRight
           ? `translateY(-50%) translateX(${GAP}px)`
           : `translateY(-50%) translateX(calc(-100% - ${GAP}px))`,
+        ...(bg ? { backgroundColor: bg } : {}),
+        ...(textColor ? { color: textColor } : {}),
       }}
     >
       <span
         aria-hidden
         className={cn(
-          "bg-primary absolute top-1/2 size-3 -translate-y-1/2 rotate-45",
+          "absolute top-1/2 size-3 -translate-y-1/2 rotate-45",
+          !bg && "bg-primary",
           onRight ? "-left-1" : "-right-1"
         )}
+        style={bg ? { backgroundColor: bg } : undefined}
       />
       <button
         type="button"

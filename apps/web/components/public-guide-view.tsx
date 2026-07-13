@@ -5,8 +5,10 @@ import { Check, ChevronDown, Languages } from "lucide-react"
 import { DownloadIcon } from "@workspace/ui/components/download"
 
 import {
+  applyInteractiveTranslation,
   RTL_LANGUAGE_CODES,
   TRANSLATION_LANGUAGES,
+  type WalkthroughItem,
 } from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -59,6 +61,33 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     const map = new Map(activeT.steps.map((s) => [s.index, s.content]))
     return guide.blocks.map((b, i) => ({ ...b, content: map.get(i) ?? b.content }))
   }, [activeT, guide.blocks])
+  // Interactive tree is key-addressed → overlay by stable key. Prefer the
+  // stored interactive translation; for step callouts that share text with a
+  // List block, fall back to the List translation (so older translations — made
+  // before interactive was translated — still localize, with no re-generation).
+  const displayInteractive = React.useMemo(() => {
+    const items = guide.interactive?.items ?? []
+    if (!activeT) return items
+    const byIndex = new Map(activeT.steps.map((s) => [s.index, s.content]))
+    const listByBaseText = new Map<string, string>()
+    guide.blocks.forEach((b, i) => {
+      const t = byIndex.get(i)
+      if (t !== undefined && !listByBaseText.has(b.content))
+        listByBaseText.set(b.content, t)
+    })
+    const combined: Record<string, string> = { ...(activeT.interactive ?? {}) }
+    for (const it of items) {
+      if (it.kind === "step" && combined[it.key] === undefined) {
+        const t = listByBaseText.get(it.content)
+        if (t !== undefined) combined[it.key] = t
+      }
+    }
+    if (Object.keys(combined).length === 0) return items
+    return applyInteractiveTranslation(
+      items as unknown as WalkthroughItem[],
+      combined
+    ) as unknown as typeof items
+  }, [activeT, guide.interactive, guide.blocks])
   const displayTitle = activeT?.title ?? guide.title
   const displaySummary = activeT ? activeT.summary : guide.summary
   const isRtl =
@@ -137,7 +166,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         <div className="mt-10">
           <GuideBody
             blocks={displayBlocks}
-            interactive={guide.interactive?.items}
+            interactive={displayInteractive}
             mode={effectiveMode}
             customization={cust}
           />

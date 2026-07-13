@@ -81,6 +81,8 @@ export async function serializeInteractive(
         assetId: b.screenshotUrl ? `a_${b.key}` : null,
         clickRect: (b.clickRect as ClickRect | null) ?? null,
         confidence: b.confidence,
+        calloutBg: null,
+        calloutText: null,
       }));
   const out = await Promise.all(
     items.map(async (it): Promise<WalkthroughItemForClient> =>

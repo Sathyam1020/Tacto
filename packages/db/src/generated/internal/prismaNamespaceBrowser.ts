@@ -257,6 +257,7 @@ export const GuideTranslationScalarFieldEnum = {
   title: 'title',
   summary: 'summary',
   steps: 'steps',
+  interactive: 'interactive',
   published: 'published',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

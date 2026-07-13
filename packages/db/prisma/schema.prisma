@@ -307,6 +307,9 @@ model GuideTranslation {
   summary   String?
   /// [{ blockId, content }] — translated per-step content.
   steps     Json
+  /// { key: translatedText } for the Interactive tree (step callouts + slide
+  /// title/subtitle + button text), keyed by stable keys. Null = not translated.
+  interactive Json?
   /// Hidden from the public reader until the editor Saves the guide.
   published Boolean  @default(false)
   createdAt DateTime @default(now())

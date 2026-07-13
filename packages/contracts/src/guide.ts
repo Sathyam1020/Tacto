@@ -288,6 +288,9 @@ export const walkthroughStepSchema = z.object({
   assetId: z.string().nullable().default(null),
   clickRect: clickRectSchema.nullable().default(null),
   confidence: z.number().nullable().default(null),
+  /** Per-step callout colors (null = fall back to the brand color / white). */
+  calloutBg: z.string().nullable().default(null),
+  calloutText: z.string().nullable().default(null),
 });
 
 const slideBase = {
@@ -362,6 +365,8 @@ export function seedInteractiveFromBlocks(blocks: DraftBlock[]): WalkthroughTree
       assetId: b.screenshotKey ? assetIdForKey(b.key) : null,
       clickRect: b.clickRect,
       confidence: b.confidence,
+      calloutBg: null,
+      calloutText: null,
     })),
   };
 }
@@ -390,6 +395,32 @@ function attachAssetIds(blocks: DraftBlock[]): DraftBlock[] {
     ...b,
     assetId: b.screenshotKey ? (b.assetId ?? assetIdForKey(b.key)) : null,
   }));
+}
+
+/** Swap an asset's key everywhere it's referenced — the shared registry plus
+ *  every List block and Interactive step that points at it — so editing an image
+ *  once updates both modes ("global by construction"). Pure/deterministic. */
+export function swapAssetKey(
+  doc: DraftDocumentV2,
+  assetId: string,
+  newKey: string
+): DraftDocumentV2 {
+  return {
+    ...doc,
+    assets: doc.assets.map((a) =>
+      a.id === assetId ? { ...a, key: newKey } : a
+    ),
+    blocks: doc.blocks.map((b) =>
+      b.assetId === assetId ? { ...b, screenshotKey: newKey } : b
+    ),
+    interactive: {
+      items: doc.interactive.items.map((it) =>
+        it.kind === "step" && it.assetId === assetId
+          ? { ...it, screenshotKey: newKey }
+          : it
+      ),
+    },
+  };
 }
 
 /** Migrate any accepted draft document to v2. v1 → seed the Interactive tree
@@ -489,13 +520,67 @@ export const addTranslationSchema = z.object({
   language: translationLanguageSchema,
 });
 
-/** AI translation output — mirrors the guide's translatable text. */
+/** AI translation output — mirrors the guide's translatable text. `interactive`
+ *  is the flat list of Interactive-tree strings, each returned by the same id. */
 export const guideTranslationAiSchema = z.object({
   title: z.string(),
   summary: z.string().nullable(),
   blocks: z.array(z.object({ id: z.string(), content: z.string() })),
+  interactive: z
+    .array(z.object({ id: z.string(), content: z.string() }))
+    .default([]),
 });
 export type GuideTranslationAi = z.infer<typeof guideTranslationAiSchema>;
+
+/** A translatable string in the Interactive tree, addressed by a stable id. */
+export type InteractiveString = { id: string; content: string };
+/** A stored Interactive translation — id → translated text. */
+export type InteractiveTranslation = Record<string, string>;
+
+/** Collect every translatable string in the Interactive tree, keyed by stable
+ *  ids (step key; `${slideKey}#title` / `#subtitle`; button key). */
+export function collectInteractiveStrings(
+  items: WalkthroughItem[]
+): InteractiveString[] {
+  const out: InteractiveString[] = [];
+  for (const it of items) {
+    if (it.kind === "step") {
+      if (it.content) out.push({ id: it.key, content: it.content });
+    } else {
+      if (it.title) out.push({ id: `${it.key}#title`, content: it.title });
+      if (it.subtitle)
+        out.push({ id: `${it.key}#subtitle`, content: it.subtitle });
+      for (const b of it.buttons) {
+        if (b.text) out.push({ id: b.key, content: b.text });
+      }
+    }
+  }
+  return out;
+}
+
+/** Overlay an Interactive translation (id → text) onto items, falling back to
+ *  the base text when a key is missing. Pure. */
+export function applyInteractiveTranslation<T extends WalkthroughItem>(
+  items: T[],
+  map: InteractiveTranslation
+): T[] {
+  return items.map((it) => {
+    if (it.kind === "step") {
+      const t = map[it.key];
+      return t ? { ...it, content: t } : it;
+    }
+    return {
+      ...it,
+      title: map[`${it.key}#title`] ?? it.title,
+      subtitle: map[`${it.key}#subtitle`] ?? it.subtitle,
+      buttons: it.buttons.map((b) =>
+        map[b.key] ? { ...b, text: map[b.key]! } : b
+      ),
+    };
+  });
+}
+
+/** A stored translation as returned to clients. */
 
 /** A stored translation as returned to clients. */
 export type GuideTranslationDTO = {

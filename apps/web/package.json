@@ -23,6 +23,7 @@
     "@workspace/ui": "*",
     "axios": "^1.18.1",
     "better-auth": "^1.6.23",
+    "fabric": "^6.9.1",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.23.0",
     "motion": "^12.42.2",
@@ -42,7 +43,7 @@
     "@workspace/typescript-config": "*",
     "eslint": "^9",
     "puppeteer-core": "^25.3.0",
-    "typescript": "^5",
-    "tsx": "^4.23.0"
+    "tsx": "^4.23.0",
+    "typescript": "^5"
   }
 }

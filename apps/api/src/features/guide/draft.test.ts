@@ -2,9 +2,12 @@ import assert from "node:assert/strict";
 import { isDeepStrictEqual } from "node:util";
 
 import {
+  applyInteractiveTranslation,
+  collectInteractiveStrings,
   DEFAULT_CUSTOMIZATION,
   migrateDraftDocument,
   parseDraftDocument,
+  swapAssetKey,
 } from "@workspace/contracts/guide";
 import { prisma } from "@workspace/db";
 
@@ -163,6 +166,96 @@ async function main() {
     assert.equal(tree.items[0]!.kind, "intro");
     const step = tree.items[1]!;
     assert.equal(step.kind === "step" && step.content, "<p>independent</p>");
+  });
+
+  await test("swapAssetKey: an image edit updates BOTH trees (global)", async () => {
+    const base = migrateDraftDocument({
+      v: 1,
+      title: "T",
+      summary: null,
+      customization: DEFAULT_CUSTOMIZATION,
+      blocks: [
+        {
+          key: "k1",
+          type: "STEP",
+          content: "<p>a</p>",
+          screenshotKey: "media/old.png",
+          assetId: null,
+          elementLabel: null,
+          url: null,
+          clickRect: null,
+          confidence: null,
+        },
+      ],
+    });
+    // Both the block and its seeded interactive step share asset "a_k1".
+    assert.equal(base.blocks[0]!.assetId, "a_k1");
+    const swapped = swapAssetKey(base, "a_k1", "media/new.png");
+    assert.equal(swapped.blocks[0]!.screenshotKey, "media/new.png");
+    const step = swapped.interactive.items[0]!;
+    assert.equal(step.kind === "step" && step.screenshotKey, "media/new.png");
+    assert.deepEqual(swapped.assets[0], { id: "a_k1", key: "media/new.png" });
+    // A different asset id is untouched.
+    const noop = swapAssetKey(base, "a_other", "media/x.png");
+    assert.equal(noop.blocks[0]!.screenshotKey, "media/old.png");
+  });
+
+  await test("interactive translation: collect strings + apply by stable key", async () => {
+    const items = [
+      {
+        kind: "intro" as const,
+        key: "s1",
+        title: "Welcome",
+        subtitle: "Quick tour",
+        appearance: {
+          background: { kind: "none" as const, value: null },
+          theme: "light" as const,
+          align: "center" as const,
+          buttonColumns: 1 as const,
+        },
+        buttons: [
+          {
+            key: "b1",
+            text: "Get started",
+            destination: { kind: "next" as const },
+            bgColor: "#000",
+            textColor: "#fff",
+          },
+        ],
+      },
+      {
+        kind: "step" as const,
+        key: "k1",
+        content: "<p>Click New</p>",
+        screenshotKey: null,
+        assetId: null,
+        clickRect: null,
+        confidence: null,
+        calloutBg: null,
+        calloutText: null,
+      },
+    ];
+    const strings = collectInteractiveStrings(items);
+    assert.deepEqual(
+      strings.map((s) => s.id).sort(),
+      ["b1", "k1", "s1#subtitle", "s1#title"]
+    );
+
+    const map = {
+      "s1#title": "Bienvenue",
+      "s1#subtitle": "Visite rapide",
+      b1: "Commencer",
+      k1: "<p>Cliquez Nouveau</p>",
+    };
+    const out = applyInteractiveTranslation(items, map);
+    const intro = out[0]!;
+    assert.equal(intro.kind === "intro" && intro.title, "Bienvenue");
+    assert.equal(intro.kind === "intro" && intro.buttons[0]!.text, "Commencer");
+    const step = out[1]!;
+    assert.equal(step.kind === "step" && step.content, "<p>Cliquez Nouveau</p>");
+    // A missing key falls back to the base text.
+    const out2 = applyInteractiveTranslation(items, { k1: "x" });
+    assert.equal(out2[0]!.kind === "intro" && out2[0]!.title, "Welcome");
   });
 
   await test("isDirty: identical → clean, changed → dirty", async () => {

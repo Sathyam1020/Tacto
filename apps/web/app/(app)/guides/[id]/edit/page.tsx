@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   ImagePlus,
   Loader2,
+  Pencil,
   Redo2,
   Trash2,
   Undo2,
@@ -44,6 +45,7 @@ import {
   layoutMaxWidthClass,
 } from "@/components/guide-customization-context"
 import { GuideToolbar } from "@/components/guide-toolbar"
+import { ImageEditor } from "@/components/image-editor"
 import type { ImportedBlock } from "@/components/import-steps-dialog"
 import { useSetNavbar } from "@/components/navbar-context"
 import { RichTextEditor } from "@/components/rich-text-editor"
@@ -150,6 +152,8 @@ function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
         screenshotUrl: b.screenshotUrl,
         clickRect: b.clickRect,
         confidence: b.confidence,
+        calloutBg: null,
+        calloutText: null,
       }))
   return {
     title: doc.title,
@@ -212,6 +216,8 @@ function toDraftDocument(doc: EditorDoc): DraftDocumentV2 {
               assetId: it.assetId,
               clickRect: it.clickRect,
               confidence: it.confidence,
+              calloutBg: it.calloutBg,
+              calloutText: it.calloutText,
             }
           : it
       ),
@@ -267,6 +273,11 @@ export default function GuideEditPage() {
   const [leaveOpen, setLeaveOpen] = React.useState(false)
   const [discardOpen, setDiscardOpen] = React.useState(false)
   const [conflictOpen, setConflictOpen] = React.useState(false)
+  // Global image editor target (shared by List + Interactive).
+  const [imageEdit, setImageEdit] = React.useState<{
+    src: string
+    source: { assetId: string | null; itemKey: string; scope: "block" | "step" }
+  } | null>(null)
 
   const fileInputRef = React.useRef<HTMLInputElement>(null)
   const mediaTargetKey = React.useRef<string | null>(null)
@@ -819,6 +830,57 @@ export default function GuideEditPage() {
     }
   }
 
+  /** Global image edit: swap an edited screenshot's key everywhere its shared
+   *  Asset is referenced (List blocks + Interactive steps + the registry). When
+   *  the source has no assetId (ad-hoc media), only that one item changes. */
+  function replaceImage(
+    source: { assetId: string | null; itemKey: string; scope: "block" | "step" },
+    newKey: string,
+    newUrl: string
+  ) {
+    applyEdit((d) => {
+      if (source.assetId) {
+        const id = source.assetId
+        return {
+          ...d,
+          assets: d.assets.map((a) => (a.id === id ? { ...a, key: newKey } : a)),
+          blocks: d.blocks.map((b) =>
+            b.assetId === id
+              ? { ...b, screenshotKey: newKey, screenshotUrl: newUrl }
+              : b
+          ),
+          interactive: {
+            items: d.interactive.items.map((it) =>
+              it.kind === "step" && it.assetId === id
+                ? { ...it, screenshotKey: newKey, screenshotUrl: newUrl }
+                : it
+            ),
+          },
+        }
+      }
+      if (source.scope === "block") {
+        return {
+          ...d,
+          blocks: d.blocks.map((b) =>
+            b.key === source.itemKey
+              ? { ...b, screenshotKey: newKey, screenshotUrl: newUrl }
+              : b
+          ),
+        }
+      }
+      return {
+        ...d,
+        interactive: {
+          items: d.interactive.items.map((it) =>
+            it.key === source.itemKey && it.kind === "step"
+              ? { ...it, screenshotKey: newKey, screenshotUrl: newUrl }
+              : it
+          ),
+        },
+      }
+    })
+  }
+
   function importBlocks(imported: ImportedBlock[]) {
     applyEdit((d) => ({
       ...d,
@@ -1036,6 +1098,17 @@ export default function GuideEditPage() {
                     onCancelEdit={() => setEditingKey(null)}
                     onDelete={() => deleteBlock(block.key)}
                     onAddMedia={() => pickMedia(block.key)}
+                    onEditImage={() => {
+                      if (block.screenshotUrl)
+                        setImageEdit({
+                          src: block.screenshotUrl,
+                          source: {
+                            assetId: block.assetId,
+                            itemKey: block.key,
+                            scope: "block",
+                          },
+                        })
+                    }}
                   />
                   <AddBlockMenu
                     onAdd={(type) => insertBlock(index + 1, type)}
@@ -1053,6 +1126,7 @@ export default function GuideEditPage() {
               onInsertItem={insertInteractiveItem}
               onUpdateItem={updateInteractiveItem}
               onUploadMedia={uploadInteractiveMedia}
+              onEditImage={(source, src) => setImageEdit({ src, source })}
             />
           )}
         </div>
@@ -1063,6 +1137,20 @@ export default function GuideEditPage() {
           accept="image/png,image/jpeg,image/webp,image/gif"
           className="hidden"
           onChange={onMediaSelected}
+        />
+
+        {/* Global image editor (List + Interactive) */}
+        <ImageEditor
+          open={!!imageEdit}
+          src={imageEdit?.src ?? null}
+          onClose={() => setImageEdit(null)}
+          onSave={async (blob) => {
+            const target = imageEdit
+            if (!target) return
+            const file = new File([blob], "edited.png", { type: "image/png" })
+            const res = await uploadInteractiveMedia(file)
+            if (res) replaceImage(target.source, res.key, res.url)
+          }}
         />
 
         {/* Leave editor */}
@@ -1247,6 +1335,7 @@ function EditableBlock({
   onCancelEdit,
   onDelete,
   onAddMedia,
+  onEditImage,
 }: {
   block: EditorBlock & { stepNumber?: number }
   stepNumber?: number
@@ -1257,12 +1346,23 @@ function EditableBlock({
   onCancelEdit: () => void
   onDelete: () => void
   onAddMedia: () => void
+  onEditImage: () => void
 }) {
   return (
     <div className="group relative rounded-xl border border-transparent px-4 py-4 transition-colors hover:border-border">
       {/* Controls */}
       {!editing && (
         <div className="absolute top-3 right-3 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          {block.type === "STEP" && block.screenshotUrl && (
+            <button
+              aria-label="Edit image"
+              title="Edit image"
+              onClick={onEditImage}
+              className="flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+            >
+              <Pencil className="size-4" />
+            </button>
+          )}
           {block.type === "STEP" && (
             <button
               aria-label="Add media"

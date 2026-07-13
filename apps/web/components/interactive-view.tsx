@@ -36,6 +36,8 @@ type Frame =
       screenshotUrl: string | null
       clickRect: ClickRect | null
       content: string
+      calloutBg: string | null
+      calloutText: string | null
     }
   | { kind: "slide"; id: string; slide: WalkthroughSlide }
 
@@ -73,6 +75,8 @@ export function InteractiveView({
               screenshotUrl: it.screenshotUrl,
               clickRect: it.clickRect,
               content: it.content,
+              calloutBg: it.calloutBg,
+              calloutText: it.calloutText,
             }
           : { kind: "slide", id: it.key, slide: it }
       )
@@ -85,6 +89,8 @@ export function InteractiveView({
         screenshotUrl: b.screenshotUrl,
         clickRect: b.clickRect,
         content: b.content,
+        calloutBg: null,
+        calloutText: null,
       }))
   }, [items, blocks])
   // The first screenshot's rendered height — used to size slides so every frame
@@ -409,6 +415,8 @@ export function InteractiveView({
                   onRight={onRight}
                   transition={travelT}
                   html={stepFrame!.content}
+                  bg={stepFrame!.calloutBg}
+                  textColor={stepFrame!.calloutText}
                   index={index}
                   total={frames.length}
                   atStart={atStart}
@@ -480,6 +488,8 @@ function Callout({
   onRight,
   transition,
   html,
+  bg,
+  textColor,
   index,
   total,
   atStart,
@@ -495,6 +505,8 @@ function Callout({
   onRight: boolean
   transition: { duration: number; ease?: [number, number, number, number] }
   html: string
+  bg: string | null
+  textColor: string | null
   index: number
   total: number
   atStart: boolean
@@ -514,7 +526,9 @@ function Callout({
       // pointer (translateY -50%) and it's pushed to the roomier side, so the
       // tail (at the box's vertical center) lands exactly on the pointer.
       className={cn(
-        "bg-primary text-primary-foreground absolute z-20 w-[236px] max-w-[70%] rounded-xl p-3 shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10 transition-[box-shadow] duration-150",
+        "absolute z-20 w-[236px] max-w-[70%] rounded-xl p-3 shadow-[0_16px_40px_-12px_color-mix(in_srgb,var(--primary)_70%,transparent)] ring-1 ring-white/10 transition-[box-shadow] duration-150",
+        !bg && "bg-primary",
+        !textColor && "text-primary-foreground",
         // Guidejar-style hover outline — same accent, softer, with a small gap.
         "hover:ring-2 hover:ring-primary/50 hover:ring-offset-2 hover:ring-offset-transparent",
         // Mobile: dock to the bottom of the stage instead of floating.
@@ -528,16 +542,20 @@ function Callout({
         transform: onRight
           ? `translateY(-50%) translateX(${GAP}px)`
           : `translateY(-50%) translateX(calc(-100% - ${GAP}px))`,
+        ...(bg ? { backgroundColor: bg } : {}),
+        ...(textColor ? { color: textColor } : {}),
       }}
     >
       {/* Tail pointing back at the pointer. */}
       <span
         aria-hidden
         className={cn(
-          "bg-primary absolute top-1/2 size-3 -translate-y-1/2 rotate-45",
+          "absolute top-1/2 size-3 -translate-y-1/2 rotate-45",
+          !bg && "bg-primary",
           onRight ? "-left-1" : "-right-1",
           optimizeForMobile && "max-md:hidden"
         )}
+        style={bg ? { backgroundColor: bg } : undefined}
       />
       <RichText
         html={displayHtml}

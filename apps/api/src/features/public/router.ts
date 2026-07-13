@@ -82,7 +82,13 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
     prisma.guideTranslation.findMany({
       where: { guideId: guide.id, published: true },
       orderBy: { language: "asc" },
-      select: { language: true, title: true, summary: true, steps: true },
+      select: {
+        language: true,
+        title: true,
+        summary: true,
+        steps: true,
+        interactive: true,
+      },
     }),
   ]);
 

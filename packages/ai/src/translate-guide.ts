@@ -15,9 +15,10 @@ import { getModel } from "./model.js";
 const SYSTEM_PROMPT = `You are an expert technical translator. Translate a step-by-step guide into the requested language for a native reader.
 
 Rules:
-- Translate the title, the summary, and each block's content.
+- Translate the title, the summary, each block's content, and each interactive string.
 - Each block's content is HTML. Preserve ALL tags and structure exactly (e.g. <p>, <strong>); translate only the visible text between tags. Do not add, remove, or reorder tags.
-- Return every block using the SAME id you were given.
+- The "interactive" strings are the walkthrough's callouts (HTML), slide titles/subtitles, and button labels. Same rules: preserve any HTML tags; translate only the visible text.
+- Return every block and every interactive string using the SAME id you were given.
 - Keep UI element names natural for the target language, but do not translate product/brand names, code, URLs, or values that would not be localized.
 - Match the guide's concise, imperative tone. Do not add or drop information.`;
 
@@ -26,6 +27,7 @@ export async function translateGuide(
     title: string;
     summary: string | null;
     blocks: { id: string; content: string }[];
+    interactive: { id: string; content: string }[];
   },
   languageName: string
 ): Promise<GuideTranslationAi> {

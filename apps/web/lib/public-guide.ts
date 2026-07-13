@@ -16,6 +16,8 @@ export type PublicTranslation = {
   summary: string | null
   /** Per-block content keyed by block position (index). */
   steps: { index: number; content: string }[]
+  /** Interactive-tree text keyed by stable keys (null = not translated). */
+  interactive: Record<string, string> | null
 }
 
 export type PublicGuide = {
