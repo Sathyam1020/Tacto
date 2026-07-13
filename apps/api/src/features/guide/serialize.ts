@@ -1,14 +1,12 @@
 import type { ClickRect } from "@workspace/contracts/capture";
 import {
-  collectAssets,
+  collectBlockAssets,
+  readInteractivePresentation,
   resolveCustomization,
-  seedInteractiveFromBlocks,
-  walkthroughTreeSchema,
   type DraftBlock,
-  type DraftDocumentV2,
+  type DraftDocumentV3,
   type GuideCustomization,
-  type WalkthroughItem,
-  type WalkthroughTree,
+  type InteractivePresentation,
 } from "@workspace/contracts/guide";
 import type { BlockType } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
@@ -16,6 +14,7 @@ import { presignGet } from "@workspace/storage";
 /** A block row as stored (screenshotUrl column holds the R2 key). */
 type BlockRow = {
   id: string;
+  key: string;
   type: BlockType;
   position: number;
   content: string;
@@ -29,17 +28,19 @@ type BlockRow = {
 /**
  * Serialize a block for API responses: the stored R2 key becomes both the
  * raw `screenshotKey` (for the editor's round-trip on save) and a presigned
- * `screenshotUrl` (for immediate display).
+ * `screenshotUrl` (for immediate display). `key` (stable Step identity) lets the
+ * Interactive renderer match slide anchors + per-step presentation.
  */
 export async function serializeBlock(block: BlockRow) {
-  const key = block.screenshotUrl;
+  const shotKey = block.screenshotUrl;
   return {
     id: block.id,
+    key: block.key,
     type: block.type,
     position: block.position,
     content: block.content,
-    screenshotKey: key,
-    screenshotUrl: key ? await presignGet(key) : null,
+    screenshotKey: shotKey,
+    screenshotUrl: shotKey ? await presignGet(shotKey) : null,
     elementLabel: block.elementLabel,
     url: block.url,
     clickRect: (block.clickRect as ClickRect | null) ?? null,
@@ -51,52 +52,18 @@ export function serializeBlocks(blocks: BlockRow[]) {
   return Promise.all(blocks.map(serializeBlock));
 }
 
-/** A published block row with its stable key — the seed source for the
- *  Interactive tree of guides that predate `Guide.interactive`. */
-type InteractiveSeedBlock = {
-  key: string;
-  content: string;
-  screenshotUrl: string | null; // R2 key
-  clickRect: unknown;
-  confidence: number | null;
-};
-
 /**
- * Serialize the published Interactive (Walkthrough) tree for a viewer. Uses the
- * stored `Guide.interactive` when valid; otherwise seeds 1:1 from the published
- * blocks so existing guides render identically. Step images are presigned.
+ * The published Interactive *presentation* (Intro/Chapter slides + per-step
+ * presentation) for a viewer. Reads a v3 presentation or migrates a legacy v2
+ * tree; a guide with no interactive data yields an empty presentation (the
+ * renderer shows the shared Steps alone). Step content/screenshots are NOT
+ * duplicated here — they come from the shared blocks — and slides carry no
+ * images today, so nothing needs presigning.
  */
-export async function serializeInteractive(
-  interactive: unknown,
-  seedBlocks: InteractiveSeedBlock[]
-): Promise<{ items: WalkthroughItemForClient[] }> {
-  const parsed = walkthroughTreeSchema.safeParse(interactive);
-  const items: WalkthroughItem[] = parsed.success
-    ? parsed.data.items
-    : seedBlocks.map((b) => ({
-        kind: "step" as const,
-        key: b.key,
-        content: b.content,
-        screenshotKey: b.screenshotUrl,
-        assetId: b.screenshotUrl ? `a_${b.key}` : null,
-        clickRect: (b.clickRect as ClickRect | null) ?? null,
-        confidence: b.confidence,
-        calloutBg: null,
-        calloutText: null,
-      }));
-  const out = await Promise.all(
-    items.map(async (it): Promise<WalkthroughItemForClient> =>
-      it.kind === "step"
-        ? {
-            ...it,
-            screenshotUrl: it.screenshotKey
-              ? await presignGet(it.screenshotKey)
-              : null,
-          }
-        : it
-    )
-  );
-  return { items: out };
+export function serializeInteractive(
+  interactive: unknown
+): InteractivePresentation {
+  return readInteractivePresentation(interactive);
 }
 
 /**
@@ -200,7 +167,7 @@ type GuideForDraft = {
  * published), else it's seeded 1:1 from the List blocks (existing guides look
  * unchanged until edited).
  */
-export function buildDraftDocument(guide: GuideForDraft): DraftDocumentV2 {
+export function buildDraftDocument(guide: GuideForDraft): DraftDocumentV3 {
   const blocks: DraftBlock[] = guide.blocks.map((b) => ({
     key: b.key,
     type: b.type,
@@ -217,17 +184,15 @@ export function buildDraftDocument(guide: GuideForDraft): DraftDocumentV2 {
   for (const b of blocks) {
     b.assetId = b.screenshotKey ? `a_${b.key}` : null;
   }
-  const parsedInteractive = walkthroughTreeSchema.safeParse(guide.interactive);
-  const interactive: WalkthroughTree = parsedInteractive.success
-    ? parsedInteractive.data
-    : seedInteractiveFromBlocks(blocks);
   return {
-    v: 2,
+    v: 3,
     title: guide.title,
     summary: guide.summary,
     blocks,
-    interactive,
-    assets: collectAssets(blocks, interactive),
+    // The Interactive presentation (slides + per-step overrides); step content
+    // and screenshots come from `blocks`.
+    interactive: readInteractivePresentation(guide.interactive),
+    assets: collectBlockAssets(blocks),
     customization: resolveCustomization(
       guide.customization as GuideCustomization | null
     ),
@@ -236,22 +201,13 @@ export function buildDraftDocument(guide: GuideForDraft): DraftDocumentV2 {
 
 /** A draft block with a presigned URL for the editor to display. */
 type DraftBlockForClient = DraftBlock & { screenshotUrl: string | null };
-/** A walkthrough item with presigned URLs on its step images. */
-type WalkthroughItemForClient =
-  | (Extract<WalkthroughItem, { kind: "step" }> & {
-      screenshotUrl: string | null;
-    })
-  | Exclude<WalkthroughItem, { kind: "step" }>;
 
-/** Presign every screenshot key in the document (List blocks + Interactive step
- *  items) so the editor can render either tree. */
-export async function draftDocumentForClient(doc: DraftDocumentV2): Promise<
-  Omit<DraftDocumentV2, "blocks" | "interactive"> & {
-    blocks: DraftBlockForClient[];
-    interactive: { items: WalkthroughItemForClient[] };
-  }
+/** Presign every Step screenshot so the editor can render it. The Interactive
+ *  presentation carries no images, so it passes through unchanged. */
+export async function draftDocumentForClient(doc: DraftDocumentV3): Promise<
+  Omit<DraftDocumentV3, "blocks"> & { blocks: DraftBlockForClient[] }
 > {
-  const [blocks, items, customization] = await Promise.all([
+  const [blocks, customization] = await Promise.all([
     Promise.all(
       doc.blocks.map(async (b) => ({
         ...b,
@@ -260,24 +216,11 @@ export async function draftDocumentForClient(doc: DraftDocumentV2): Promise<
           : null,
       }))
     ),
-    Promise.all(
-      doc.interactive.items.map(async (it): Promise<WalkthroughItemForClient> =>
-        it.kind === "step"
-          ? {
-              ...it,
-              screenshotUrl: it.screenshotKey
-                ? await presignGet(it.screenshotKey)
-                : null,
-            }
-          : it
-      )
-    ),
     presignCustomizationMedia(doc.customization),
   ]);
   return {
     ...doc,
     blocks,
-    interactive: { items },
-    customization: customization as DraftDocumentV2["customization"],
+    customization: customization as DraftDocumentV3["customization"],
   };
 }

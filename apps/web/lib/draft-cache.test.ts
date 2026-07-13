@@ -18,11 +18,11 @@ function test(name: string, fn: () => void) {
 
 const cache = (over: Partial<CachedDraft>): CachedDraft => ({
   document: {
-    v: 2,
+    v: 3,
     title: "",
     summary: null,
     blocks: [],
-    interactive: { items: [] },
+    interactive: { slides: [], stepPresentation: {} },
     assets: [],
     customization: {} as never,
   },

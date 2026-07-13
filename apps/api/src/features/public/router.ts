@@ -69,7 +69,7 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
   const [blocks, interactive, reactions, comments, translations] =
     await Promise.all([
       serializeBlocks(guide.blocks),
-      serializeInteractive(guide.interactive, guide.blocks),
+      serializeInteractive(guide.interactive),
     allowReactions ? reactionCounts(guide.id) : Promise.resolve([]),
     allowComments
       ? prisma.guideComment.findMany({
@@ -107,13 +107,9 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
         ...block,
         content: sanitizeContent(block.content),
       })),
-      interactive: {
-        items: interactive.items.map((it) =>
-          it.kind === "step"
-            ? { ...it, content: sanitizeContent(it.content) }
-            : it
-        ),
-      },
+      // The Interactive presentation carries slides (plain text — React escapes)
+      // + per-step overrides; step content/screenshots come from `blocks`.
+      interactive,
     },
   });
 });

@@ -3,9 +3,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import {
   type BlockType,
   type DraftBlock,
-  type DraftDocumentV2,
+  type DraftDocumentV3,
   type GuideCustomization,
-  type WalkthroughItem,
+  type InteractivePresentation,
+  type RetranslateTarget,
 } from "@workspace/contracts/guide"
 import axios from "axios"
 import { toast } from "sonner"
@@ -45,6 +46,9 @@ export type ClickRect = { x: number; y: number; w: number; h: number }
 
 export type GuideBlock = {
   id: string
+  /** Stable Step identity — lets the Interactive renderer match slide anchors +
+   *  per-step presentation. */
+  key: string
   type: BlockType
   position: number
   content: string
@@ -70,8 +74,9 @@ export type GuideDetail = {
   /** True when a private draft has edits not yet published. */
   hasUnpublishedChanges: boolean
   blocks: GuideBlock[]
-  /** The published Interactive (Walkthrough) tree, presigned for display. */
-  interactive: { items: WalkthroughItemClient[] }
+  /** The published Interactive *presentation* (slides + per-step overrides).
+   *  Step content/screenshots come from `blocks` (the canonical Steps). */
+  interactive: InteractivePresentation
 }
 
 /** Merge stored (possibly null/partial) customization with defaults.
@@ -166,19 +171,11 @@ export function useGuide(workspaceId: string | undefined, guideId: string) {
 
 /** A draft block as returned to the editor (durable fields + a display URL). */
 export type DraftBlockClient = DraftBlock & { screenshotUrl: string | null }
-/** A walkthrough item as returned to the editor — step items carry a display
- *  URL; slides are unchanged. */
-export type WalkthroughItemClient =
-  | (Extract<WalkthroughItem, { kind: "step" }> & {
-      screenshotUrl: string | null
-    })
-  | Exclude<WalkthroughItem, { kind: "step" }>
-export type DraftDocumentClient = Omit<
-  DraftDocumentV2,
-  "blocks" | "interactive"
-> & {
+/** The editor draft (v3): canonical Steps (`blocks`) + an Interactive
+ *  presentation. The presentation carries no images, so it passes through. */
+export type DraftDocumentClient = Omit<DraftDocumentV3, "blocks"> & {
   blocks: DraftBlockClient[]
-  interactive: { items: WalkthroughItemClient[] }
+  interactive: InteractivePresentation
 }
 export type GuideDraftResponse = {
   document: DraftDocumentClient
@@ -213,7 +210,7 @@ export function useGuideDraft(
   })
 }
 
-export type SaveDraftVars = { document: DraftDocumentV2; baseVersion: number }
+export type SaveDraftVars = { document: DraftDocumentV3; baseVersion: number }
 
 /** Autosave the draft with optimistic concurrency. Throws on 409 conflict. */
 export function useSaveDraft(guideId: string) {
@@ -405,15 +402,39 @@ export function useDeleteGuide() {
   })
 }
 
+/** Which parts of a translation have drifted from the current guide. */
+export type TranslationStaleness = {
+  stale: boolean
+  titleStale: boolean
+  summaryStale: boolean
+  staleStepKeys: string[]
+  newStepKeys: string[]
+  removedStepKeys: string[]
+  staleSlideKeys: string[]
+}
+
 /** A guide's stored translation (full content for the editor preview). */
 export type GuideTranslationFull = {
   language: string
   title: string
   summary: string | null
-  /** Per-block content keyed by block position (index). */
-  steps: { index: number; content: string }[]
+  /** Translated block content keyed by the block's stable key. */
+  steps: Record<string, string>
   /** False until the editor Saves the guide (hidden from the public reader). */
   published: boolean
+  /** Per-translation drift vs. the current guide (which steps need a redo). */
+  staleness: TranslationStaleness
+}
+
+/** A fresh (unknown) translation has no drift until compared server-side. */
+export const EMPTY_STALENESS: TranslationStaleness = {
+  stale: false,
+  titleStale: false,
+  summaryStale: false,
+  staleStepKeys: [],
+  newStepKeys: [],
+  removedStepKeys: [],
+  staleSlideKeys: [],
 }
 
 /** Translations that exist for a guide (editor list, with content). */
@@ -450,7 +471,14 @@ export function useAddTranslation(guideId: string) {
         if (list.some((t) => t.language === language)) return list
         return [
           ...list,
-          { language, title: "", summary: null, steps: [], published: false },
+          {
+            language,
+            title: "",
+            summary: null,
+            steps: {},
+            published: false,
+            staleness: EMPTY_STALENESS,
+          },
         ]
       })
       return { prev }
@@ -480,6 +508,26 @@ export function useDeleteTranslation(guideId: string) {
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+  })
+}
+
+/** Re-translate ONE part of an existing translation — the title, the summary, or
+ *  a single step — from the current (draft-aware) guide text. The granular
+ *  update behind the editor's per-row "re-translate" affordance. */
+export function useRetranslate(guideId: string) {
+  const queryClient = useQueryClient()
+  const key = ["translations", guideId]
+  return useMutation({
+    mutationFn: async (vars: {
+      language: string
+      target: RetranslateTarget
+    }) => {
+      await api.post(
+        `/guides/${guideId}/translations/${vars.language}/retranslate`,
+        { target: vars.target }
+      )
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   })

@@ -19,13 +19,16 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useGuideCustomization } from "@/components/guide-customization-context"
 import { RichText } from "@/components/rich-text"
 import { HotspotGlyph } from "@/components/screenshot-frame"
-import type {
-  ClickRect,
-  GuideBlock,
-  WalkthroughItemClient,
-} from "@/lib/guides"
+import {
+  buildInteractiveSequence,
+  EMPTY_PRESENTATION,
+  type InteractivePresentation,
+  type PresentationSlide,
+} from "@workspace/contracts/guide"
 
-type WalkthroughSlide = Exclude<WalkthroughItemClient, { kind: "step" }>
+import type { ClickRect, GuideBlock } from "@/lib/guides"
+
+type WalkthroughSlide = PresentationSlide
 type SlideDestination = WalkthroughSlide["buttons"][number]["destination"]
 /** A single frame in the walkthrough — a step (screenshot + callout) or an
  *  intro/chapter slide. */
@@ -55,44 +58,38 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
  */
 export function InteractiveView({
   blocks,
-  items,
+  presentation,
 }: {
   blocks: GuideBlock[]
-  /** The Interactive tree's items (steps + intro/chapter slides). When present,
-   *  the walkthrough renders from this independent tree; otherwise it falls back
-   *  to the List blocks. */
-  items?: WalkthroughItemClient[]
+  /** Slides + per-step presentation. Steps come from `blocks` (canonical); the
+   *  render sequence is computed from Steps + presentation. */
+  presentation?: InteractivePresentation
 }) {
   const wv = useGuideCustomization().walkthroughView
   const hotspot = useGuideCustomization().general.hotspot
   const frames = React.useMemo<Frame[]>(() => {
-    if (items) {
-      return items.map((it) =>
-        it.kind === "step"
-          ? {
-              kind: "step",
-              id: it.key,
-              screenshotUrl: it.screenshotUrl,
-              clickRect: it.clickRect,
-              content: it.content,
-              calloutBg: it.calloutBg,
-              calloutText: it.calloutText,
-            }
-          : { kind: "slide", id: it.key, slide: it }
-      )
-    }
-    return blocks
-      .filter((b) => b.type === "STEP" || b.type === "OUTCOME")
-      .map((b) => ({
+    const pres = presentation ?? EMPTY_PRESENTATION
+    const steps = blocks.filter(
+      (b) => b.type === "STEP" || b.type === "OUTCOME"
+    )
+    const { sequence } = buildInteractiveSequence(steps, pres)
+    return sequence.map((f): Frame => {
+      if (f.kind === "slide") {
+        return { kind: "slide", id: f.slide.key, slide: f.slide }
+      }
+      const b = f.step
+      const sp = pres.stepPresentation[b.key]
+      return {
         kind: "step",
-        id: b.id,
+        id: b.key,
         screenshotUrl: b.screenshotUrl,
         clickRect: b.clickRect,
         content: b.content,
-        calloutBg: null,
-        calloutText: null,
-      }))
-  }, [items, blocks])
+        calloutBg: sp?.appearance.calloutBackground ?? null,
+        calloutText: sp?.appearance.calloutText ?? null,
+      }
+    })
+  }, [presentation, blocks])
   // The first screenshot's rendered height — used to size slides so every frame
   // in the walkthrough is the same height (a constant stage).
   const firstStepUrl = React.useMemo(() => {

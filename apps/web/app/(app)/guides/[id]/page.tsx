@@ -215,7 +215,7 @@ export default function GuidePage() {
       <div className="mt-10">
         <GuideBody
           blocks={guide.blocks}
-          interactive={guide.interactive?.items}
+          interactive={guide.interactive}
           mode={effectiveMode}
           customization={cust}
         />

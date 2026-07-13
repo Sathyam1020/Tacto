@@ -1,19 +1,26 @@
 import { isDeepStrictEqual } from "node:util";
 
-import { importStepsFromText, translateGuide } from "@workspace/ai";
+import {
+  importStepsFromText,
+  translateGuide,
+  translateStrings,
+} from "@workspace/ai";
 import {
   addTranslationSchema,
-  collectInteractiveStrings,
+  collectPresentationStrings,
+  computeTranslationStaleness,
   draftPatchSchema,
   parseDraftDocument,
   moveGuideSchema,
-  seedInteractiveFromBlocks,
+  readInteractivePresentation,
+  readTranslationSource,
+  readTranslationSteps,
+  retranslateTargetSchema,
   setGuideFolderSchema,
   TRANSLATION_LANGUAGES,
-  walkthroughTreeSchema,
-  type DraftBlock,
+  type TranslationSource,
 } from "@workspace/contracts/guide";
-import { ensureDefaultFolder, prisma } from "@workspace/db";
+import { ensureDefaultFolder, Prisma, prisma } from "@workspace/db";
 import { presignGet } from "@workspace/storage";
 import express, { Router, type Request, type Response } from "express";
 import mammoth from "mammoth";
@@ -162,10 +169,7 @@ guideRouter.get(
         createdAt: guide.createdAt,
         customization: await serializeCustomization(guide.customization),
         blocks: await serializeBlocks(guide.blocks),
-        interactive: await serializeInteractive(
-          guide.interactive,
-          guide.blocks
-        ),
+        interactive: serializeInteractive(guide.interactive),
       },
     });
   }
@@ -196,7 +200,7 @@ guideRouter.get(
         draft = await prisma.guideDraft.create({
           data: {
             guideId: id,
-            document: published,
+            document: published as unknown as Prisma.InputJsonValue,
             updatedByUserId: req.user!.id,
           },
           select: { document: true, version: true },
@@ -226,7 +230,7 @@ guideRouter.get(
       const reseeded = await prisma.guideDraft.update({
         where: { guideId: id },
         data: {
-          document: published,
+          document: published as unknown as Prisma.InputJsonValue,
           version: { increment: 1 },
           updatedByUserId: req.user!.id,
         },
@@ -256,7 +260,11 @@ async function handleDraftSave(req: Request, res: Response): Promise<void> {
 
   const result = await prisma.guideDraft.updateMany({
     where: { guideId: id, version: baseVersion },
-    data: { document, version: { increment: 1 }, updatedByUserId: req.user!.id },
+    data: {
+      document: document as unknown as Prisma.InputJsonValue,
+      version: { increment: 1 },
+      updatedByUserId: req.user!.id,
+    },
   });
   if (result.count === 0) {
     const current = await prisma.guideDraft.findUnique({
@@ -397,7 +405,60 @@ guideRouter.post(
 
 // ── Translations (AI language versions) ──────────────────────────────────
 // Generated from the SAVED guide and stored per language; the public reader
-// offers a language switcher. Regenerate (re-POST) after editing the guide.
+// offers a language switcher. Translations are KEY-BASED — block content keyed
+// by the block's stable key, slide text keyed by slide-string id — so editing,
+// reordering, or deleting a step never misaligns a translation. Regenerate the
+// whole guide, or re-translate a single drifted step.
+
+/** Select shape for the guide's translatable content, including the private
+ *  draft so translations can reflect UNSAVED edits (the editing surface). */
+const translatableSelect = {
+  id: true,
+  title: true,
+  summary: true,
+  interactive: true,
+  blocks: {
+    orderBy: { position: "asc" as const },
+    select: { key: true, content: true },
+  },
+  draft: { select: { document: true } },
+} as const;
+
+type TranslatableGuide = {
+  title: string;
+  summary: string | null;
+  interactive: unknown;
+  blocks: { key: string; content: string }[];
+  draft: { document: unknown } | null;
+};
+
+/** A guide's translatable strings, keyed the way translations store them: block
+ *  content by stable key, slide text by slide-string id. Prefers the DRAFT (what
+ *  the editor currently shows) over the published Step rows so a re-translate
+ *  picks up unsaved edits; keys are stable across publish, so a draft-based
+ *  translation stays aligned once the guide is Saved. */
+function guideTranslatable(guide: TranslatableGuide) {
+  let title = guide.title;
+  let summary = guide.summary;
+  let blocks = guide.blocks.map((b) => ({ key: b.key, content: b.content }));
+  let interactiveRaw: unknown = guide.interactive;
+  if (guide.draft) {
+    const parsed = parseDraftDocument(guide.draft.document);
+    if (parsed.success) {
+      title = parsed.data.title;
+      summary = parsed.data.summary;
+      blocks = parsed.data.blocks.map((b) => ({ key: b.key, content: b.content }));
+      interactiveRaw = parsed.data.interactive;
+    }
+  }
+  const steps: Record<string, string> = {};
+  for (const b of blocks) steps[b.key] = b.content;
+  const presentation = readInteractivePresentation(interactiveRaw);
+  const slides: Record<string, string> = {};
+  for (const s of collectPresentationStrings(presentation)) slides[s.id] = s.content;
+  return { title, summary, steps, slides, presentation, blocks };
+}
+
 guideRouter.get(
   "/api/guides/:id/translations",
   requireAuth,
@@ -406,10 +467,13 @@ guideRouter.get(
     const { id } = idParamSchema.parse(req.params);
     const guide = await prisma.guide.findFirst({
       where: { id, organizationId: req.workspace!.id, deletedAt: null },
-      select: { id: true },
+      select: translatableSelect,
     });
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
-    const translations = await prisma.guideTranslation.findMany({
+    const current = guideTranslatable(guide);
+    const orderedKeys = current.blocks.map((b) => b.key);
+
+    const rows = await prisma.guideTranslation.findMany({
       where: { guideId: id },
       orderBy: { language: "asc" },
       select: {
@@ -417,9 +481,23 @@ guideRouter.get(
         title: true,
         summary: true,
         steps: true,
+        source: true,
         published: true,
       },
     });
+    // Return key-based steps + per-translation staleness so the editor can flag
+    // which steps drifted and offer a granular re-translate.
+    const translations = rows.map((t) => ({
+      language: t.language,
+      title: t.title,
+      summary: t.summary,
+      steps: readTranslationSteps(t.steps, orderedKeys),
+      published: t.published,
+      staleness: computeTranslationStaleness(
+        readTranslationSource(t.source),
+        current
+      ),
+    }));
     res.json({ translations });
   }
 );
@@ -433,98 +511,48 @@ guideRouter.post(
     const { language } = addTranslationSchema.parse(req.body);
     const guide = await prisma.guide.findFirst({
       where: { id, organizationId: req.workspace!.id, deletedAt: null },
-      select: {
-        id: true,
-        title: true,
-        summary: true,
-        interactive: true,
-        blocks: {
-          orderBy: { position: "asc" },
-          select: { id: true, key: true, content: true },
-        },
-      },
+      select: translatableSelect,
     });
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
 
     const languageName =
       TRANSLATION_LANGUAGES.find((l) => l.code === language)?.name ?? language;
+    // Source is the DRAFT (unsaved edits included) — see `guideTranslatable`.
+    const current = guideTranslatable(guide);
 
-    // Interactive tree strings, keyed by STABLE keys (the tree is
-    // key-addressed, unlike List blocks which are position-keyed).
-    const parsedTree = walkthroughTreeSchema.safeParse(guide.interactive);
-    const interactiveItems = parsedTree.success
-      ? parsedTree.data.items
-      : seedInteractiveFromBlocks(
-          guide.blocks.map(
-            (b): DraftBlock => ({
-              key: b.key,
-              type: "STEP",
-              content: b.content,
-              screenshotKey: null,
-              assetId: null,
-              elementLabel: null,
-              url: null,
-              clickRect: null,
-              confidence: null,
-            })
-          )
-        ).items;
-    const interactiveStrings = collectInteractiveStrings(interactiveItems);
-
-    // Dedup: Interactive callouts are seeded from List blocks, so an interactive
-    // string whose text matches a block reuses that block's translation instead
-    // of being translated again (fewer tokens + identical wording across views).
-    const contentToBlockIdx = new Map<string, number>();
-    guide.blocks.forEach((b, i) => {
-      if (!contentToBlockIdx.has(b.content)) contentToBlockIdx.set(b.content, i);
-    });
-    const uniqueInteractive = interactiveStrings.filter(
-      (s) => !contentToBlockIdx.has(s.content)
-    );
-
-    // Key blocks by position, not id — the guide's Save recreates blocks with
-    // new ids, so position is the only stable handle a translation can use.
+    // Translate every block (keyed by stable key) + every slide string in one
+    // call. Step content lives ONCE (on the blocks) — no per-view duplication,
+    // so no dedup pass is needed.
     const ai = await translateGuide(
       {
-        title: guide.title,
-        summary: guide.summary,
-        blocks: guide.blocks.map((b, i) => ({
-          id: String(i),
-          content: b.content,
-        })),
-        interactive: uniqueInteractive,
+        title: current.title,
+        summary: current.summary,
+        blocks: current.blocks.map((b) => ({ id: b.key, content: b.content })),
+        interactive: collectPresentationStrings(current.presentation),
       },
       languageName
     );
-    // Re-sanitize the model's HTML as defense in depth; store by index.
-    const steps = ai.blocks
-      .map((b) => ({
-        index: Number(b.id),
-        content: sanitizeContent(b.content),
-      }))
-      .filter((s) => Number.isInteger(s.index));
-    const translatedByIdx = new Map<number, string>();
+
+    // Store by stable key; re-sanitize the model's HTML as defense in depth.
+    const steps: Record<string, string> = {};
     for (const b of ai.blocks) {
-      const idx = Number(b.id);
-      if (Number.isInteger(idx)) translatedByIdx.set(idx, b.content);
+      if (b.id in current.steps) steps[b.id] = sanitizeContent(b.content);
     }
-    const aiInteractive = new Map(ai.interactive.map((s) => [s.id, s.content]));
-    // Interactive map: reuse a matching block's translation, else the model's
-    // own. Sanitize HTML step callouts; leave plain text (slide titles / button
-    // labels — rendered as text) as-is.
+    // Slide strings are plain text (rendered as text) — sanitize only if the
+    // model returned any markup.
     const interactive: Record<string, string> = {};
-    for (const s of interactiveStrings) {
-      const blockIdx = contentToBlockIdx.get(s.content);
-      const translated =
-        blockIdx !== undefined
-          ? translatedByIdx.get(blockIdx)
-          : aiInteractive.get(s.id);
-      if (translated != null) {
-        interactive[s.id] = /[<>]/.test(translated)
-          ? sanitizeContent(translated)
-          : translated;
-      }
+    for (const s of ai.interactive) {
+      interactive[s.id] = /[<>]/.test(s.content)
+        ? sanitizeContent(s.content)
+        : s.content;
     }
+    // Capture the source strings so drift is detectable per step later.
+    const source: TranslationSource = {
+      title: current.title,
+      summary: current.summary,
+      steps: current.steps,
+      slides: current.slides,
+    };
 
     // A (re)generated translation is a DRAFT — it stays hidden from the public
     // reader until the editor Saves the guide (which publishes translations).
@@ -537,6 +565,7 @@ guideRouter.post(
         summary: ai.summary,
         steps,
         interactive,
+        source,
         published: false,
       },
       update: {
@@ -544,9 +573,102 @@ guideRouter.post(
         summary: ai.summary,
         steps,
         interactive,
+        source,
         published: false,
       },
       select: { language: true, title: true, updatedAt: true },
+    });
+    res.json({ translation: saved });
+  }
+);
+
+// Re-translate ONE part of an existing translation — the title, the summary, or
+// a single step — from the current (draft-aware) guide text. Only that part +
+// its captured source are refreshed, so it stops being stale; the rest of the
+// translation is untouched.
+guideRouter.post(
+  "/api/guides/:id/translations/:language/retranslate",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const language = z.string().parse(req.params.language);
+    const { target } = retranslateTargetSchema.parse(req.body);
+    const guide = await prisma.guide.findFirst({
+      where: { id, organizationId: req.workspace!.id, deletedAt: null },
+      select: translatableSelect,
+    });
+    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+    const existing = await prisma.guideTranslation.findUnique({
+      where: { guideId_language: { guideId: id, language } },
+      select: { steps: true, source: true },
+    });
+    if (!existing) {
+      throw new AppError(404, "NO_TRANSLATION", "Translate the guide first");
+    }
+
+    const languageName =
+      TRANSLATION_LANGUAGES.find((l) => l.code === language)?.name ?? language;
+    const current = guideTranslatable(guide);
+
+    // Seed a source for legacy rows (null) from the CURRENT strings — legacy
+    // translations were treated as fresh, so we don't retroactively cry stale;
+    // the retranslated part's source is then set to what we just translated.
+    const source: TranslationSource = readTranslationSource(existing.source) ?? {
+      title: current.title,
+      summary: current.summary,
+      steps: { ...current.steps },
+      slides: { ...current.slides },
+    };
+
+    const data: {
+      title?: string;
+      summary?: string | null;
+      steps?: Record<string, string>;
+      source: TranslationSource;
+      published: false;
+    } = { source, published: false };
+
+    if (target.kind === "title") {
+      const [out] = await translateStrings(
+        [{ id: "title", content: current.title }],
+        languageName
+      );
+      data.title = out ? out.content : current.title;
+      source.title = current.title;
+    } else if (target.kind === "summary") {
+      if (current.summary == null) {
+        data.summary = null;
+      } else {
+        const [out] = await translateStrings(
+          [{ id: "summary", content: current.summary }],
+          languageName
+        );
+        data.summary = out ? out.content : current.summary;
+      }
+      source.summary = current.summary;
+    } else {
+      const block = current.blocks.find((b) => b.key === target.stepKey);
+      if (!block) throw new AppError(404, "NOT_FOUND", "Step not found");
+      const [out] = await translateStrings(
+        [{ id: target.stepKey, content: block.content }],
+        languageName
+      );
+      const translated = out ? sanitizeContent(out.content) : block.content;
+      const steps = readTranslationSteps(
+        existing.steps,
+        current.blocks.map((b) => b.key)
+      );
+      steps[target.stepKey] = translated;
+      data.steps = steps;
+      source.steps[target.stepKey] = block.content;
+    }
+
+    const saved = await prisma.guideTranslation.update({
+      where: { guideId_language: { guideId: id, language } },
+      data,
+      select: { language: true, updatedAt: true },
     });
     res.json({ translation: saved });
   }

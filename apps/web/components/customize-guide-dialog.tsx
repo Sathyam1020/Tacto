@@ -179,7 +179,7 @@ export function CustomizeGuideDialog({
   guideId: string
   /** The editor's current customization (working copy). */
   value: GuideCustomization | null
-  /** Stage the edited customization into the editor (persisted on Save). */
+  /** Stage the edited customization into the editor (persisted on Update). */
   onApply: (next: GuideCustomization) => void
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -687,7 +687,7 @@ export function CustomizeGuideDialog({
 
         <div className="flex items-center justify-between gap-3 border-t px-6 py-4">
           <p className="text-muted-foreground text-xs">
-            Changes preview here and go live when you Save the guide.
+            Changes preview here and go live when you Update the guide.
           </p>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

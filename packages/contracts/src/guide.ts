@@ -319,6 +319,143 @@ export const walkthroughTreeSchema = z.object({
 });
 export type WalkthroughTree = z.infer<typeof walkthroughTreeSchema>;
 
+// ── Interactive Presentation (v3) ───────────────────────────────────────────
+// The Interactive view is a *presentation* of the one canonical set of Steps,
+// not a second copy of them. `Guide.interactive` / the v3 draft store only
+// presentation-specific data: Intro/Chapter slides (anchored to a step) and a
+// future-proof per-step presentation record. The renderer builds the sequence
+// from Steps + presentation via `buildInteractiveSequence` — no duplicated
+// content, no synchronization layer.
+
+/** Where a slide sits relative to the Steps. `afterStep` with a stepKey that no
+ *  longer exists is an *orphaned* anchor — surfaced, never silently moved. */
+export const slideAnchorSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("start") }),
+  z.object({ kind: z.literal("afterStep"), stepKey: z.string().min(1) }),
+]);
+export type SlideAnchor = z.infer<typeof slideAnchorSchema>;
+
+/** An Intro/Chapter slide in the presentation (slide fields + an anchor). */
+export const presentationSlideSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("intro"), ...slideBase, anchor: slideAnchorSchema }),
+  z.object({
+    kind: z.literal("chapter"),
+    ...slideBase,
+    anchor: slideAnchorSchema,
+  }),
+]);
+export type PresentationSlide = z.infer<typeof presentationSlideSchema>;
+
+/** Per-step presentation — intentionally extensible so future Interactive
+ *  features (animation, interaction, voiceover) attach here without another
+ *  schema redesign. `appearance` holds the per-step callout colors today. */
+export const stepPresentationSchema = z.object({
+  appearance: z
+    .object({
+      calloutBackground: z.string().nullable().default(null),
+      calloutText: z.string().nullable().default(null),
+    })
+    .default({ calloutBackground: null, calloutText: null }),
+  animation: z.record(z.string(), z.unknown()).default({}),
+  interaction: z.record(z.string(), z.unknown()).default({}),
+  voice: z.record(z.string(), z.unknown()).default({}),
+});
+export type StepPresentation = z.infer<typeof stepPresentationSchema>;
+
+export const interactivePresentationSchema = z.object({
+  slides: z.array(presentationSlideSchema).max(500).default([]),
+  stepPresentation: z.record(z.string(), stepPresentationSchema).default({}),
+});
+export type InteractivePresentation = z.infer<
+  typeof interactivePresentationSchema
+>;
+
+/** An empty presentation (no slides, no per-step overrides). */
+export const EMPTY_PRESENTATION: InteractivePresentation = {
+  slides: [],
+  stepPresentation: {},
+};
+
+/** A single frame of the Interactive sequence — a shared Step or a slide. */
+export type InteractiveSequenceItem<S> =
+  | { kind: "step"; step: S }
+  | { kind: "slide"; slide: PresentationSlide };
+
+/**
+ * Deterministically build the Interactive render sequence from the canonical
+ * Steps + the presentation: `start` slides open the walkthrough; `afterStep`
+ * slides follow their step (relative order preserved). Slides whose anchor step
+ * no longer exists are returned as `orphaned` and NOT placed — the editor
+ * surfaces them for re-anchoring (never silently moved). Pure.
+ */
+export function buildInteractiveSequence<S extends { key: string }>(
+  steps: S[],
+  presentation: InteractivePresentation
+): {
+  sequence: InteractiveSequenceItem<S>[];
+  orphaned: PresentationSlide[];
+} {
+  const stepKeys = new Set(steps.map((s) => s.key));
+  const afterMap = new Map<string, PresentationSlide[]>();
+  const startSlides: PresentationSlide[] = [];
+  const orphaned: PresentationSlide[] = [];
+  for (const sl of presentation.slides) {
+    if (sl.anchor.kind === "start") {
+      startSlides.push(sl);
+    } else if (stepKeys.has(sl.anchor.stepKey)) {
+      const arr = afterMap.get(sl.anchor.stepKey) ?? [];
+      arr.push(sl);
+      afterMap.set(sl.anchor.stepKey, arr);
+    } else {
+      orphaned.push(sl);
+    }
+  }
+  const sequence: InteractiveSequenceItem<S>[] = [];
+  for (const sl of startSlides) sequence.push({ kind: "slide", slide: sl });
+  for (const step of steps) {
+    sequence.push({ kind: "step", step });
+    for (const sl of afterMap.get(step.key) ?? [])
+      sequence.push({ kind: "slide", slide: sl });
+  }
+  return { sequence, orphaned };
+}
+
+/** Convert a v2 interactive tree (duplicated step items + inline slides) into a
+ *  v3 presentation: slides get anchored to the preceding step; per-step callout
+ *  colors move into `stepPresentation`. Step content/screenshots are dropped
+ *  (the Steps are canonical). Deterministic. */
+export function migrateInteractiveV2ToPresentation(
+  items: WalkthroughItem[]
+): InteractivePresentation {
+  const slides: PresentationSlide[] = [];
+  const stepPresentation: Record<string, StepPresentation> = {};
+  let lastStepKey: string | null = null;
+  for (const it of items) {
+    if (it.kind === "step") {
+      lastStepKey = it.key;
+      if (it.calloutBg != null || it.calloutText != null) {
+        stepPresentation[it.key] = {
+          appearance: {
+            calloutBackground: it.calloutBg,
+            calloutText: it.calloutText,
+          },
+          animation: {},
+          interaction: {},
+          voice: {},
+        };
+      }
+    } else {
+      slides.push({
+        ...it,
+        anchor: lastStepKey
+          ? { kind: "afterStep", stepKey: lastStepKey }
+          : { kind: "start" },
+      });
+    }
+  }
+  return { slides, stepPresentation };
+}
+
 // ── Draft document (versioned; migrate-on-read) ─────────────────────────────
 
 /** v1 — the original single-tree document (List blocks only). Still accepted on
@@ -345,11 +482,81 @@ export const draftDocumentV2Schema = z.object({
 });
 export type DraftDocumentV2 = z.infer<typeof draftDocumentV2Schema>;
 
-/** Any stored draft — v1 or v2. Reads go through {@link migrateDraftDocument}
- *  to always work with v2. */
+/** v3 — one canonical `blocks` (Steps) + an Interactive *presentation* (slides
+ *  + per-step overrides) instead of a duplicated interactive tree. Not wired
+ *  into read/publish yet (Phase 3); the schema + transforms exist so that
+ *  migration + rendering can be built and tested first. */
+export const draftDocumentV3Schema = z.object({
+  v: z.literal(3),
+  title: z.string().max(200),
+  summary: z.string().max(2000).nullable(),
+  blocks: z.array(draftBlockSchema).max(500),
+  interactive: interactivePresentationSchema,
+  assets: z.array(assetSchema).max(1000).default([]),
+  customization: guideCustomizationSchema,
+});
+export type DraftDocumentV3 = z.infer<typeof draftDocumentV3Schema>;
+
+/** Whether a block's HTML has no visible text (used by the v2→v3 nicety). */
+function isBlankHtml(html: string): boolean {
+  return (
+    html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim().length === 0
+  );
+}
+
+/** Migrate a v2 draft to v3: convert the interactive tree to a presentation. As
+ *  the requested nicety, if a List block is blank but its twin interactive step
+ *  had text, the text is copied to the block so nothing is silently lost;
+ *  otherwise the List block wins. Deterministic. */
+export function migrateDraftV2ToV3(doc: DraftDocumentV2): DraftDocumentV3 {
+  const stepItemByKey = new Map(
+    doc.interactive.items
+      .filter((it): it is WalkthroughStep => it.kind === "step")
+      .map((it) => [it.key, it])
+  );
+  const blocks = doc.blocks.map((b) => {
+    const twin = stepItemByKey.get(b.key);
+    if (twin && twin.content && isBlankHtml(b.content)) {
+      return { ...b, content: twin.content };
+    }
+    return b;
+  });
+  return {
+    v: 3,
+    title: doc.title,
+    summary: doc.summary,
+    blocks,
+    interactive: migrateInteractiveV2ToPresentation(doc.interactive.items),
+    assets: doc.assets,
+    customization: doc.customization,
+  };
+}
+
+/** Read any stored `Guide.interactive` (a legacy v2 tree `{items}` or a v3
+ *  presentation `{slides,…}`) as a presentation. Discriminates by shape since
+ *  both schemas are lenient. */
+export function readInteractivePresentation(
+  raw: unknown
+): InteractivePresentation {
+  if (raw && typeof raw === "object") {
+    if ("slides" in raw || "stepPresentation" in raw) {
+      const p = interactivePresentationSchema.safeParse(raw);
+      if (p.success) return p.data;
+    }
+    if ("items" in raw) {
+      const t = walkthroughTreeSchema.safeParse(raw);
+      if (t.success) return migrateInteractiveV2ToPresentation(t.data.items);
+    }
+  }
+  return EMPTY_PRESENTATION;
+}
+
+/** Any stored draft — v1, v2, or v3. Reads go through
+ *  {@link migrateDraftDocument} to always work with v3. */
 export const draftDocumentSchema = z.discriminatedUnion("v", [
   draftDocumentV1Schema,
   draftDocumentV2Schema,
+  draftDocumentV3Schema,
 ]);
 export type DraftDocument = z.infer<typeof draftDocumentSchema>;
 
@@ -389,6 +596,17 @@ export function collectAssets(
   return [...byId].map(([id, key]) => ({ id, key }));
 }
 
+/** The asset registry from the canonical Steps alone (v3 — Interactive owns no
+ *  images; screenshots live only on the Steps). Deterministic. */
+export function collectBlockAssets(blocks: DraftBlock[]): Asset[] {
+  const byId = new Map<string, string>();
+  for (const b of blocks) {
+    if (b.screenshotKey)
+      byId.set(b.assetId ?? assetIdForKey(b.key), b.screenshotKey);
+  }
+  return [...byId].map(([id, key]) => ({ id, key }));
+}
+
 /** Ensure every block with a screenshot carries its assetId (idempotent). */
 function attachAssetIds(blocks: DraftBlock[]): DraftBlock[] {
   return blocks.map((b) => ({
@@ -401,10 +619,12 @@ function attachAssetIds(blocks: DraftBlock[]): DraftBlock[] {
  *  every List block and Interactive step that points at it — so editing an image
  *  once updates both modes ("global by construction"). Pure/deterministic. */
 export function swapAssetKey(
-  doc: DraftDocumentV2,
+  doc: DraftDocumentV3,
   assetId: string,
   newKey: string
-): DraftDocumentV2 {
+): DraftDocumentV3 {
+  // v3: screenshots live only on the Steps, so an image edit swaps the registry
+  // + the matching blocks — no separate Interactive copies to keep in sync.
   return {
     ...doc,
     assets: doc.assets.map((a) =>
@@ -413,24 +633,19 @@ export function swapAssetKey(
     blocks: doc.blocks.map((b) =>
       b.assetId === assetId ? { ...b, screenshotKey: newKey } : b
     ),
-    interactive: {
-      items: doc.interactive.items.map((it) =>
-        it.kind === "step" && it.assetId === assetId
-          ? { ...it, screenshotKey: newKey }
-          : it
-      ),
-    },
   };
 }
 
 /** Migrate any accepted draft document to v2. v1 → seed the Interactive tree
  *  and asset registry from the blocks; v2 → normalize (assets rebuilt so the
  *  registry always matches the trees). Deterministic. */
-export function migrateDraftDocument(doc: DraftDocument): DraftDocumentV2 {
+export function migrateDraftDocument(doc: DraftDocument): DraftDocumentV3 {
+  if (doc.v === 3) return doc;
+  // v1/v2 → v2, then v2 → v3 (the canonical single-step-set + presentation).
   const blocks = attachAssetIds(doc.blocks);
   const interactive =
     doc.v === 2 ? doc.interactive : seedInteractiveFromBlocks(blocks);
-  return {
+  const v2: DraftDocumentV2 = {
     v: 2,
     title: doc.title,
     summary: doc.summary,
@@ -439,13 +654,14 @@ export function migrateDraftDocument(doc: DraftDocument): DraftDocumentV2 {
     assets: collectAssets(blocks, interactive),
     customization: doc.customization,
   };
+  return migrateDraftV2ToV3(v2);
 }
 
 /** Parse a stored (unknown) draft and migrate to v2 in one step. */
 export function parseDraftDocument(
   raw: unknown
 ):
-  | { success: true; data: DraftDocumentV2 }
+  | { success: true; data: DraftDocumentV3 }
   | { success: false; error: z.ZodError } {
   const parsed = draftDocumentSchema.safeParse(raw);
   if (!parsed.success) return { success: false, error: parsed.error };
@@ -520,74 +736,217 @@ export const addTranslationSchema = z.object({
   language: translationLanguageSchema,
 });
 
+/** What to re-translate in an existing language — the title, the summary, or a
+ *  single step (by stable key). Powers the editor's granular re-translate. */
+export const retranslateTargetSchema = z.object({
+  target: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("title") }),
+    z.object({ kind: z.literal("summary") }),
+    z.object({ kind: z.literal("step"), stepKey: z.string().min(1) }),
+  ]),
+});
+export type RetranslateTarget = z.infer<
+  typeof retranslateTargetSchema
+>["target"];
+
 /** AI translation output — mirrors the guide's translatable text. `interactive`
- *  is the flat list of Interactive-tree strings, each returned by the same id. */
+ *  is the flat list of Interactive-tree strings, each returned by the same id.
+ *  NOTE: every field must stay REQUIRED (no `.default`/`.optional`) — OpenAI's
+ *  strict structured-output rejects a schema whose properties aren't all in
+ *  `required`. Callers pass an empty `interactive` array when there's nothing to
+ *  translate; the model echoes it back empty. */
 export const guideTranslationAiSchema = z.object({
   title: z.string(),
   summary: z.string().nullable(),
   blocks: z.array(z.object({ id: z.string(), content: z.string() })),
-  interactive: z
-    .array(z.object({ id: z.string(), content: z.string() }))
-    .default([]),
+  interactive: z.array(z.object({ id: z.string(), content: z.string() })),
 });
 export type GuideTranslationAi = z.infer<typeof guideTranslationAiSchema>;
 
-/** A translatable string in the Interactive tree, addressed by a stable id. */
+/** A translatable string, addressed by a stable id. */
 export type InteractiveString = { id: string; content: string };
-/** A stored Interactive translation — id → translated text. */
+/** A stored translation — id → translated text. */
 export type InteractiveTranslation = Record<string, string>;
 
-/** Collect every translatable string in the Interactive tree, keyed by stable
- *  ids (step key; `${slideKey}#title` / `#subtitle`; button key). */
-export function collectInteractiveStrings(
-  items: WalkthroughItem[]
+/** Overlay a translation onto a presentation's SLIDES (title/subtitle/button
+ *  text) by stable key. Step callouts are NOT here — they translate via the
+ *  shared List blocks. Pure. */
+export function applyPresentationTranslation(
+  presentation: InteractivePresentation,
+  map: InteractiveTranslation
+): InteractivePresentation {
+  return {
+    ...presentation,
+    slides: presentation.slides.map((sl) => ({
+      ...sl,
+      title: map[`${sl.key}#title`] ?? sl.title,
+      subtitle: map[`${sl.key}#subtitle`] ?? sl.subtitle,
+      buttons: sl.buttons.map((b) =>
+        map[b.key] ? { ...b, text: map[b.key]! } : b
+      ),
+    })),
+  };
+}
+
+// ── Translations (key-based, v3) ────────────────────────────────────────────
+// Translated block content is keyed by the block's STABLE key (never position),
+// so reordering / inserting / deleting steps never misaligns a translation.
+// Slide text (title/subtitle/buttons) is keyed the same way. Legacy translations
+// were stored as a position-indexed array; `readTranslationSteps` migrates them
+// on read against the current block order.
+
+/** Translated block content: stable blockKey → translated HTML/text. */
+export const translationStepsSchema = z.record(z.string(), z.string());
+export type TranslationSteps = z.infer<typeof translationStepsSchema>;
+
+const legacyTranslationStepsSchema = z.array(
+  z.object({ index: z.number().int(), content: z.string() })
+);
+
+/** Normalize a stored `steps` value to a key-based map. Accepts the v3 record
+ *  form (returned as-is) or the legacy position-indexed array (mapped to keys
+ *  via the current block order — the best deterministic migration available).
+ *  `orderedKeys` is the current blocks' keys in position order. Pure. */
+export function readTranslationSteps(
+  raw: unknown,
+  orderedKeys: string[]
+): TranslationSteps {
+  if (Array.isArray(raw)) {
+    const legacy = legacyTranslationStepsSchema.safeParse(raw);
+    if (!legacy.success) return {};
+    const out: TranslationSteps = {};
+    for (const s of legacy.data) {
+      const key = orderedKeys[s.index];
+      if (key) out[key] = s.content;
+    }
+    return out;
+  }
+  const rec = translationStepsSchema.safeParse(raw);
+  return rec.success ? rec.data : {};
+}
+
+/** Collect translatable slide strings from a presentation, keyed exactly as
+ *  `applyPresentationTranslation` reads them (`${slideKey}#title` / `#subtitle`,
+ *  button key). Step callouts are NOT here — they translate via the shared
+ *  blocks. Pure. */
+export function collectPresentationStrings(
+  presentation: InteractivePresentation
 ): InteractiveString[] {
   const out: InteractiveString[] = [];
-  for (const it of items) {
-    if (it.kind === "step") {
-      if (it.content) out.push({ id: it.key, content: it.content });
-    } else {
-      if (it.title) out.push({ id: `${it.key}#title`, content: it.title });
-      if (it.subtitle)
-        out.push({ id: `${it.key}#subtitle`, content: it.subtitle });
-      for (const b of it.buttons) {
-        if (b.text) out.push({ id: b.key, content: b.text });
-      }
+  for (const sl of presentation.slides) {
+    if (sl.title) out.push({ id: `${sl.key}#title`, content: sl.title });
+    if (sl.subtitle) out.push({ id: `${sl.key}#subtitle`, content: sl.subtitle });
+    for (const b of sl.buttons) {
+      if (b.text) out.push({ id: b.key, content: b.text });
     }
   }
   return out;
 }
 
-/** Overlay an Interactive translation (id → text) onto items, falling back to
- *  the base text when a key is missing. Pure. */
-export function applyInteractiveTranslation<T extends WalkthroughItem>(
-  items: T[],
-  map: InteractiveTranslation
-): T[] {
-  return items.map((it) => {
-    if (it.kind === "step") {
-      const t = map[it.key];
-      return t ? { ...it, content: t } : it;
-    }
-    return {
-      ...it,
-      title: map[`${it.key}#title`] ?? it.title,
-      subtitle: map[`${it.key}#subtitle`] ?? it.subtitle,
-      buttons: it.buttons.map((b) =>
-        map[b.key] ? { ...b, text: map[b.key]! } : b
-      ),
-    };
-  });
+/** The source strings a translation was generated from — captured so the editor
+ *  can detect which steps drifted and offer a granular re-translate. */
+export const translationSourceSchema = z.object({
+  title: z.string(),
+  summary: z.string().nullable(),
+  steps: z.record(z.string(), z.string()),
+  slides: z.record(z.string(), z.string()),
+});
+export type TranslationSource = z.infer<typeof translationSourceSchema>;
+
+/** Parse a stored (unknown) translation source, or null if absent/malformed
+ *  (legacy translations predate source capture). */
+export function readTranslationSource(raw: unknown): TranslationSource | null {
+  if (raw == null) return null;
+  const parsed = translationSourceSchema.safeParse(raw);
+  return parsed.success ? parsed.data : null;
 }
 
-/** A stored translation as returned to clients. */
+export type TranslationStaleness = {
+  /** Any drift at all — the translation as a whole is out of date. */
+  stale: boolean;
+  titleStale: boolean;
+  summaryStale: boolean;
+  /** Keys present in both, but whose source content changed. */
+  staleStepKeys: string[];
+  /** Keys in the guide with no translation yet (added since). */
+  newStepKeys: string[];
+  /** Keys the translation still has but the guide dropped. */
+  removedStepKeys: string[];
+  /** Slide string ids that changed or are missing. */
+  staleSlideKeys: string[];
+};
 
-/** A stored translation as returned to clients. */
+const NO_STALENESS: TranslationStaleness = {
+  stale: false,
+  titleStale: false,
+  summaryStale: false,
+  staleStepKeys: [],
+  newStepKeys: [],
+  removedStepKeys: [],
+  staleSlideKeys: [],
+};
+
+/** Compare a translation's captured source against the guide's current strings.
+ *  A null source (legacy translation, pre-capture) yields not-stale with no
+ *  granular data — re-generating captures a source going forward. Pure. */
+export function computeTranslationStaleness(
+  source: TranslationSource | null,
+  current: {
+    title: string;
+    summary: string | null;
+    /** blockKey → current content. */
+    steps: Record<string, string>;
+    /** slide string id → current text. */
+    slides: Record<string, string>;
+  }
+): TranslationStaleness {
+  if (!source) return NO_STALENESS;
+  const titleStale = source.title !== current.title;
+  const summaryStale = (source.summary ?? null) !== (current.summary ?? null);
+  const staleStepKeys: string[] = [];
+  const newStepKeys: string[] = [];
+  for (const [k, content] of Object.entries(current.steps)) {
+    if (!(k in source.steps)) newStepKeys.push(k);
+    else if (source.steps[k] !== content) staleStepKeys.push(k);
+  }
+  const removedStepKeys = Object.keys(source.steps).filter(
+    (k) => !(k in current.steps)
+  );
+  const staleSlideKeys: string[] = [];
+  for (const [k, text] of Object.entries(current.slides)) {
+    if (source.slides[k] !== text) staleSlideKeys.push(k);
+  }
+  const stale =
+    titleStale ||
+    summaryStale ||
+    staleStepKeys.length > 0 ||
+    newStepKeys.length > 0 ||
+    removedStepKeys.length > 0 ||
+    staleSlideKeys.length > 0;
+  return {
+    stale,
+    titleStale,
+    summaryStale,
+    staleStepKeys,
+    newStepKeys,
+    removedStepKeys,
+    staleSlideKeys,
+  };
+}
+
+/** Strict schema for translating a bag of id-keyed strings — the primitive
+ *  behind per-step re-translation (every field required for OpenAI strict). */
+export const translateStringsAiSchema = z.object({
+  strings: z.array(z.object({ id: z.string(), content: z.string() })),
+});
+export type TranslateStringsAi = z.infer<typeof translateStringsAiSchema>;
+
+/** A stored translation as returned to clients (key-based content). */
 export type GuideTranslationDTO = {
   language: string;
   title: string;
   summary: string | null;
-  steps: { blockId: string; content: string }[];
+  steps: TranslationSteps;
 };
 
 /** A block as returned to clients (screenshotUrl is presigned for display). */

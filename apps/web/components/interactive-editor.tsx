@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  AlertTriangle,
   AlignCenter,
   AlignLeft,
   AlignRight,
@@ -10,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ImagePlus,
+  MapPin,
   MoreHorizontal,
   Palette,
   Pencil,
@@ -18,7 +20,13 @@ import {
   X,
 } from "lucide-react"
 
-import type { GuideCustomization } from "@workspace/contracts/guide"
+import {
+  buildInteractiveSequence,
+  type GuideCustomization,
+  type InteractivePresentation,
+  type PresentationSlide,
+  type SlideAnchor,
+} from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -43,12 +51,21 @@ import { cn } from "@workspace/ui/lib/utils"
 import { RichText } from "@/components/rich-text"
 import { RichTextEditor } from "@/components/rich-text-editor"
 import { HotspotGlyph } from "@/components/screenshot-frame"
-import type { WalkthroughItemClient } from "@/lib/guides"
+import type { DraftBlockClient } from "@/lib/guides"
 
-type StepItem = Extract<WalkthroughItemClient, { kind: "step" }>
-type SlideItem = Exclude<WalkthroughItemClient, { kind: "step" }>
-type SlideButton = SlideItem["buttons"][number]
-type Appearance = SlideItem["appearance"]
+/** A canonical Step block, as rendered in the Interactive view. */
+type StepBlock = DraftBlockClient
+type SlideButton = PresentationSlide["buttons"][number]
+type Appearance = PresentationSlide["appearance"]
+type StepAppearance = { calloutBackground: string | null; calloutText: string | null }
+
+/** One frame of the Interactive sequence — a shared Step or a slide. Both carry
+ *  a stable `key` so selection/navigation work uniformly. */
+type Frame =
+  | { kind: "step"; key: string; step: StepBlock }
+  | { kind: "slide"; key: string; slide: PresentationSlide }
+
+const NO_APPEARANCE: StepAppearance = { calloutBackground: null, calloutText: null }
 
 const uid = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
@@ -65,7 +82,10 @@ const BG_PRESETS: string[] = [
   "#141414",
 ]
 
-function newSlide(kind: "intro" | "chapter"): SlideItem {
+function newSlide(
+  kind: "intro" | "chapter",
+  anchor: SlideAnchor
+): PresentationSlide {
   return {
     kind,
     key: uid(),
@@ -89,44 +109,69 @@ function newSlide(kind: "intro" | "chapter"): SlideItem {
             },
           ]
         : [],
-  }
+    anchor,
+  } as PresentationSlide
 }
 
 /**
- * Interactive (Walkthrough) mode editor — a top toolbar (Add Intro / Add
- * Chapter + context actions), a left panel that toggles between the Steps
- * stepper and a slide Appearance panel, and a player-accurate canvas. Steps
- * show the screenshot with a floating callout; Intro/Chapter slides show an
- * editable surface with jump-to-step buttons. Edits the Interactive tree
- * independently of the List blocks; all mutations flow through the editor's
- * history (undo/redo + autosave).
+ * Interactive (Walkthrough) mode editor. Step content is GLOBAL — the Steps
+ * shown here are the same canonical `blocks` the List edits, so editing a
+ * step's text/screenshot or reordering/deleting it flows back to `blocks` and
+ * reflects in both views. Only slides (Intro/Chapter, anchored to a step) and
+ * per-step appearance live on the presentation. The render sequence is built
+ * deterministically from Steps + presentation; slides whose anchor step was
+ * deleted are surfaced as "needs anchor" and never silently moved.
  */
 export function InteractiveEditor({
-  items,
+  steps,
+  presentation,
   customization,
-  onEditContent,
-  onReorder,
-  onDelete,
-  onInsertItem,
-  onUpdateItem,
+  onEditStepContent,
+  onReorderSteps,
+  onDeleteStep,
+  onSetStepAppearance,
+  onSetStepMedia,
+  onInsertSlide,
+  onUpdateSlide,
+  onDeleteSlide,
+  onReanchorSlide,
   onUploadMedia,
   onEditImage,
 }: {
-  items: WalkthroughItemClient[]
+  steps: StepBlock[]
+  presentation: InteractivePresentation
   customization: GuideCustomization
-  onEditContent: (key: string, html: string) => void
-  onReorder: (orderedKeys: string[]) => void
-  onDelete: (key: string) => void
-  onInsertItem: (item: WalkthroughItemClient, afterKey: string | null) => void
-  onUpdateItem: (key: string, patch: Partial<WalkthroughItemClient>) => void
+  onEditStepContent: (stepKey: string, html: string) => void
+  onReorderSteps: (orderedStepKeys: string[]) => void
+  onDeleteStep: (stepKey: string) => void
+  onSetStepAppearance: (stepKey: string, appearance: StepAppearance) => void
+  onSetStepMedia: (stepKey: string, key: string, url: string) => void
+  onInsertSlide: (slide: PresentationSlide) => void
+  onUpdateSlide: (slideKey: string, patch: Partial<PresentationSlide>) => void
+  onDeleteSlide: (slideKey: string) => void
+  onReanchorSlide: (slideKey: string, anchor: SlideAnchor) => void
   onUploadMedia: (file: File) => Promise<{ key: string; url: string } | null>
   onEditImage: (
     source: { assetId: string | null; itemKey: string; scope: "block" | "step" },
     src: string
   ) => void
 }) {
+  const { sequence, orphaned } = React.useMemo(
+    () => buildInteractiveSequence(steps, presentation),
+    [steps, presentation]
+  )
+  const frames: Frame[] = React.useMemo(
+    () =>
+      sequence.map((it) =>
+        it.kind === "step"
+          ? { kind: "step", key: it.step.key, step: it.step }
+          : { kind: "slide", key: it.slide.key, slide: it.slide }
+      ),
+    [sequence]
+  )
+
   const [selectedKeyRaw, setSelectedKey] = React.useState<string | null>(
-    items[0]?.key ?? null
+    frames[0]?.key ?? null
   )
   const [leftView, setLeftView] = React.useState<"steps" | "appearance">("steps")
   const [previewAppearance, setPreviewAppearance] =
@@ -142,22 +187,27 @@ export function InteractiveEditor({
   const [stageH, setStageH] = React.useState<number>()
   const fileRef = React.useRef<HTMLInputElement>(null)
 
-  const selectedKey = items.some((i) => i.key === selectedKeyRaw)
+  const selectedKey = frames.some((f) => f.key === selectedKeyRaw)
     ? selectedKeyRaw
-    : (items[0]?.key ?? null)
-  const selIndex = items.findIndex((i) => i.key === selectedKey)
-  const selected = items[selIndex] ?? null
+    : (frames[0]?.key ?? null)
+  const selIndex = frames.findIndex((f) => f.key === selectedKey)
+  const selected = frames[selIndex] ?? null
   const firstStepUrl =
-    items.find((i): i is StepItem => i.kind === "step" && !!i.screenshotUrl)
-      ?.screenshotUrl ?? null
+    frames.find((f): f is Extract<Frame, { kind: "step" }> =>
+      f.kind === "step" && !!f.step.screenshotUrl
+    )?.step.screenshotUrl ?? null
 
+  // Step numbers (1-based, steps only) for the panel + button destinations.
   const stepNumber = new Map<string, number>()
-  let n = 0
-  for (const it of items) if (it.kind === "step") stepNumber.set(it.key, ++n)
+  steps.forEach((s, i) => stepNumber.set(s.key, i + 1))
 
-  const stepDestinations = items
-    .filter((it): it is StepItem => it.kind === "step")
-    .map((it) => ({ stepKey: it.key, label: `Step ${stepNumber.get(it.key)}` }))
+  const stepDestinations = steps.map((s) => ({
+    stepKey: s.key,
+    label: `Step ${stepNumber.get(s.key)}`,
+  }))
+
+  const stepAppearance = (key: string): StepAppearance =>
+    presentation.stepPresentation[key]?.appearance ?? NO_APPEARANCE
 
   const goTo = (key: string) => {
     setSelectedKey(key)
@@ -166,56 +216,68 @@ export function InteractiveEditor({
     setEditStepOpen(false)
   }
 
+  // A new chapter anchors after the currently-selected step (or the step a
+  // selected slide follows, or the last step). With no steps it opens the deck.
+  const anchorForNewChapter = (): SlideAnchor => {
+    if (selected?.kind === "step") return { kind: "afterStep", stepKey: selected.key }
+    if (selected?.kind === "slide" && selected.slide.anchor.kind === "afterStep")
+      return { kind: "afterStep", stepKey: selected.slide.anchor.stepKey }
+    const last = steps[steps.length - 1]
+    return last ? { kind: "afterStep", stepKey: last.key } : { kind: "start" }
+  }
+
   const addSlide = (kind: "intro" | "chapter") => {
-    const slide = newSlide(kind)
-    onInsertItem(slide, kind === "intro" ? null : selectedKey)
+    const anchor: SlideAnchor =
+      kind === "intro" ? { kind: "start" } : anchorForNewChapter()
+    const slide = newSlide(kind, anchor)
+    onInsertSlide(slide)
     setSelectedKey(slide.key)
     setPreviewAppearance(slide.appearance)
     setLeftView("appearance")
   }
 
   const openAppearance = () => {
-    if (selected && selected.kind !== "step") {
-      setPreviewAppearance((selected as SlideItem).appearance)
+    if (selected?.kind === "slide") {
+      setPreviewAppearance(selected.slide.appearance)
       setLeftView("appearance")
     }
   }
 
+  /** Reorder Steps by dragging a step frame onto another step frame. Slides are
+   *  anchored, so dragging them is a no-op — they move with their step. */
   function handleDrop(targetKey: string) {
     setOverKey(null)
-    if (!dragKey || dragKey === targetKey) return setDragKey(null)
-    const keys = items.map((i) => i.key)
-    const from = keys.indexOf(dragKey)
-    const to = keys.indexOf(targetKey)
-    if (from === -1 || to === -1) return
-    keys.splice(to, 0, keys.splice(from, 1)[0]!)
-    onReorder(keys)
+    const from = frames.find((f) => f.key === dragKey)
+    const to = frames.find((f) => f.key === targetKey)
+    if (!from || !to || from.kind !== "step" || to.kind !== "step") {
+      return setDragKey(null)
+    }
+    const order = steps.map((s) => s.key)
+    const fi = order.indexOf(from.key)
+    const ti = order.indexOf(to.key)
+    if (fi === -1 || ti === -1) return setDragKey(null)
+    order.splice(ti, 0, order.splice(fi, 1)[0]!)
+    onReorderSteps(order)
     setDragKey(null)
   }
 
   async function onMediaPicked(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     e.target.value = ""
-    if (!file || !selected || selected.kind !== "step") return
+    if (!file || selected?.kind !== "step") return
     setUploading(true)
     const res = await onUploadMedia(file)
     setUploading(false)
-    if (res) {
-      onUpdateItem(selected.key, {
-        screenshotKey: res.key,
-        screenshotUrl: res.url,
-        assetId: `a_${uid()}`,
-      } as Partial<WalkthroughItemClient>)
-    }
+    if (res) onSetStepMedia(selected.key, res.key, res.url)
   }
 
   const isStepSel = selected?.kind === "step"
-  const slideSel = selected && selected.kind !== "step" ? (selected as SlideItem) : null
+  const slideSel = selected?.kind === "slide" ? selected.slide : null
   const editingButton =
     slideSel?.buttons.find((b) => b.key === editingButtonKey) ?? null
 
-  const setSlideButtons = (slide: SlideItem, buttons: SlideButton[]) =>
-    onUpdateItem(slide.key, { buttons } as Partial<WalkthroughItemClient>)
+  const setSlideButtons = (slide: PresentationSlide, buttons: SlideButton[]) =>
+    onUpdateSlide(slide.key, { buttons } as Partial<PresentationSlide>)
 
   return (
     <div className="space-y-6">
@@ -244,11 +306,19 @@ export function InteractiveEditor({
                     {uploading ? "Uploading…" : "Update media"}
                   </ToolbarButton>
                 </>
-              ) : (
-                <ToolbarButton onClick={openAppearance}>
-                  <Palette className="size-4" /> Customize
-                </ToolbarButton>
-              )}
+              ) : slideSel ? (
+                <>
+                  <ToolbarButton onClick={openAppearance}>
+                    <Palette className="size-4" /> Customize
+                  </ToolbarButton>
+                  <AnchorMenu
+                    anchor={slideSel.anchor}
+                    steps={steps}
+                    stepNumber={stepNumber}
+                    onChange={(a) => onReanchorSlide(slideSel.key, a)}
+                  />
+                </>
+              ) : null}
             </>
           )}
         </div>
@@ -262,7 +332,18 @@ export function InteractiveEditor({
         onChange={onMediaPicked}
       />
 
-      {items.length === 0 ? (
+      {/* Orphaned slides (anchor step was deleted) — surfaced, never moved. */}
+      {orphaned.length > 0 && (
+        <OrphanBanner
+          orphaned={orphaned}
+          steps={steps}
+          stepNumber={stepNumber}
+          onReanchor={onReanchorSlide}
+          onDelete={onDeleteSlide}
+        />
+      )}
+
+      {frames.length === 0 ? (
         <div className="text-muted-foreground rounded-2xl border border-dashed py-24 text-center text-sm">
           Add an Intro or Chapter, or add steps from the List view.
         </div>
@@ -274,16 +355,16 @@ export function InteractiveEditor({
               <div className="absolute inset-0">
                 <AppearancePanel
                   key={slideSel.key}
-                initial={slideSel.appearance}
-                kindLabel={slideSel.kind === "intro" ? "intro" : "chapter"}
-                onPreview={setPreviewAppearance}
-                onSave={(appearance) => {
-                  onUpdateItem(slideSel.key, {
-                    appearance,
-                  } as Partial<WalkthroughItemClient>)
-                  setPreviewAppearance(null)
-                  setLeftView("steps")
-                }}
+                  initial={slideSel.appearance}
+                  kindLabel={slideSel.kind === "intro" ? "intro" : "chapter"}
+                  onPreview={setPreviewAppearance}
+                  onSave={(appearance) => {
+                    onUpdateSlide(slideSel.key, {
+                      appearance,
+                    } as Partial<PresentationSlide>)
+                    setPreviewAppearance(null)
+                    setLeftView("steps")
+                  }}
                   onCancel={() => {
                     setPreviewAppearance(null)
                     setLeftView("steps")
@@ -293,13 +374,14 @@ export function InteractiveEditor({
             </div>
           ) : (
             <StepsPanel
-              items={items}
+              frames={frames}
               selectedKey={selectedKey}
               stepNumber={stepNumber}
               dragKey={dragKey}
               overKey={overKey}
               onSelect={goTo}
-              onDelete={onDelete}
+              onDeleteStep={onDeleteStep}
+              onDeleteSlide={onDeleteSlide}
               onDragKey={setDragKey}
               onOverKey={setOverKey}
               onDrop={handleDrop}
@@ -323,25 +405,26 @@ export function InteractiveEditor({
                 </div>
               </div>
             )}
-            {isStepSel ? (
+            {isStepSel && selected?.kind === "step" ? (
               <StepCanvas
-                key={selected!.key}
-                step={selected as StepItem}
+                key={selected.key}
+                step={selected.step}
+                appearance={stepAppearance(selected.key)}
                 hotspot={customization.general.hotspot}
                 index={selIndex}
-                total={items.length}
+                total={frames.length}
                 onEdit={() => setEditStepOpen(true)}
                 onEditImage={() => {
-                  const s = selected as StepItem
+                  const s = selected.step
                   if (s.screenshotUrl)
                     onEditImage(
                       { assetId: s.assetId, itemKey: s.key, scope: "step" },
                       s.screenshotUrl
                     )
                 }}
-                onPrev={() => selIndex > 0 && goTo(items[selIndex - 1]!.key)}
+                onPrev={() => selIndex > 0 && goTo(frames[selIndex - 1]!.key)}
                 onNext={() =>
-                  selIndex < items.length - 1 && goTo(items[selIndex + 1]!.key)
+                  selIndex < frames.length - 1 && goTo(frames[selIndex + 1]!.key)
                 }
               />
             ) : slideSel ? (
@@ -350,10 +433,10 @@ export function InteractiveEditor({
                 slide={slideSel}
                 appearance={previewAppearance ?? slideSel.appearance}
                 index={selIndex}
-                total={items.length}
+                total={frames.length}
                 minH={stageH}
                 onUpdate={(patch) =>
-                  onUpdateItem(slideSel.key, patch as Partial<WalkthroughItemClient>)
+                  onUpdateSlide(slideSel.key, patch as Partial<PresentationSlide>)
                 }
                 onEditButton={(k) => setEditingButtonKey(k)}
                 onAddButton={() => {
@@ -367,9 +450,9 @@ export function InteractiveEditor({
                   setSlideButtons(slideSel, [...slideSel.buttons, b])
                   setEditingButtonKey(b.key)
                 }}
-                onPrev={() => selIndex > 0 && goTo(items[selIndex - 1]!.key)}
+                onPrev={() => selIndex > 0 && goTo(frames[selIndex - 1]!.key)}
                 onNext={() =>
-                  selIndex < items.length - 1 && goTo(items[selIndex + 1]!.key)
+                  selIndex < frames.length - 1 && goTo(frames[selIndex + 1]!.key)
                 }
               />
             ) : null}
@@ -378,7 +461,7 @@ export function InteractiveEditor({
       )}
 
       {/* Edit step modal */}
-      {isStepSel && (
+      {isStepSel && selected?.kind === "step" && (
         <Dialog open={editStepOpen} onOpenChange={setEditStepOpen}>
           <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
@@ -388,29 +471,32 @@ export function InteractiveEditor({
               <ColorField
                 label="Box color"
                 value={
-                  (selected as StepItem).calloutBg ??
+                  stepAppearance(selected.key).calloutBackground ??
                   customization.brand.color
                 }
                 onChange={(v) =>
-                  onUpdateItem(selected!.key, {
-                    calloutBg: v,
-                  } as Partial<WalkthroughItemClient>)
+                  onSetStepAppearance(selected.key, {
+                    calloutBackground: v,
+                    calloutText: stepAppearance(selected.key).calloutText,
+                  })
                 }
               />
               <ColorField
                 label="Text color"
-                value={(selected as StepItem).calloutText ?? "#ffffff"}
+                value={stepAppearance(selected.key).calloutText ?? "#ffffff"}
                 onChange={(v) =>
-                  onUpdateItem(selected!.key, {
+                  onSetStepAppearance(selected.key, {
+                    calloutBackground: stepAppearance(selected.key)
+                      .calloutBackground,
                     calloutText: v,
-                  } as Partial<WalkthroughItemClient>)
+                  })
                 }
               />
             </div>
             <RichTextEditor
-              initialHtml={(selected as StepItem).content}
+              initialHtml={selected.step.content}
               onSave={(html) => {
-                onEditContent(selected!.key, html)
+                onEditStepContent(selected.key, html)
                 setEditStepOpen(false)
               }}
               onCancel={() => setEditStepOpen(false)}
@@ -467,27 +553,138 @@ function ToolbarButton({
   )
 }
 
+/** Dropdown to place/re-anchor a slide: at the start, or after any step. */
+function AnchorMenu({
+  anchor,
+  steps,
+  stepNumber,
+  onChange,
+}: {
+  anchor: SlideAnchor
+  steps: StepBlock[]
+  stepNumber: Map<string, number>
+  onChange: (a: SlideAnchor) => void
+}) {
+  const label =
+    anchor.kind === "start"
+      ? "At start"
+      : `After step ${stepNumber.get(anchor.stepKey) ?? "?"}`
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <button
+            type="button"
+            className="text-foreground/80 hover:bg-muted hover:text-foreground inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+          />
+        }
+      >
+        <MapPin className="size-4" /> {label}
+        <ChevronDown className="size-3.5 opacity-60" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="max-h-72 w-52 overflow-y-auto">
+        <DropdownMenuItem onClick={() => onChange({ kind: "start" })}>
+          <span className="flex-1">At start</span>
+          {anchor.kind === "start" && <Check className="text-primary size-4" />}
+        </DropdownMenuItem>
+        {steps.map((s) => {
+          const active =
+            anchor.kind === "afterStep" && anchor.stepKey === s.key
+          return (
+            <DropdownMenuItem
+              key={s.key}
+              onClick={() => onChange({ kind: "afterStep", stepKey: s.key })}
+            >
+              <span className="flex-1">After step {stepNumber.get(s.key)}</span>
+              {active && <Check className="text-primary size-4" />}
+            </DropdownMenuItem>
+          )
+        })}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+// ── Orphaned-slide banner ─────────────────────────────────────────────────────
+
+function OrphanBanner({
+  orphaned,
+  steps,
+  stepNumber,
+  onReanchor,
+  onDelete,
+}: {
+  orphaned: PresentationSlide[]
+  steps: StepBlock[]
+  stepNumber: Map<string, number>
+  onReanchor: (slideKey: string, anchor: SlideAnchor) => void
+  onDelete: (slideKey: string) => void
+}) {
+  return (
+    <div className="border-amber-300/60 bg-amber-50 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200 space-y-3 rounded-xl border p-4">
+      <div className="flex items-center gap-2 text-sm font-semibold">
+        <AlertTriangle className="size-4" />
+        {orphaned.length} slide{orphaned.length > 1 ? "s" : ""} lost their
+        position
+      </div>
+      <p className="text-xs opacity-80">
+        The step {orphaned.length > 1 ? "these slides were" : "this slide was"}{" "}
+        anchored to was deleted. Choose a new position, or remove the slide.
+      </p>
+      <ul className="space-y-2">
+        {orphaned.map((sl) => (
+          <li
+            key={sl.key}
+            className="bg-background/70 flex items-center gap-2 rounded-lg border border-amber-200/70 p-2 dark:border-amber-500/20"
+          >
+            <span className="text-foreground min-w-0 flex-1 truncate text-sm font-medium">
+              {sl.kind === "intro" ? "Intro" : "Chapter"}
+              {sl.title ? ` · ${sl.title}` : ""}
+            </span>
+            <AnchorMenu
+              anchor={sl.anchor}
+              steps={steps}
+              stepNumber={stepNumber}
+              onChange={(a) => onReanchor(sl.key, a)}
+            />
+            <button
+              type="button"
+              onClick={() => onDelete(sl.key)}
+              aria-label="Delete slide"
+              className="text-destructive hover:bg-destructive/10 grid size-8 shrink-0 place-items-center rounded-lg transition-colors"
+            >
+              <Trash2 className="size-4" />
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 // ── Steps panel ───────────────────────────────────────────────────────────
 
 function StepsPanel({
-  items,
+  frames,
   selectedKey,
   stepNumber,
   dragKey,
   overKey,
   onSelect,
-  onDelete,
+  onDeleteStep,
+  onDeleteSlide,
   onDragKey,
   onOverKey,
   onDrop,
 }: {
-  items: WalkthroughItemClient[]
+  frames: Frame[]
   selectedKey: string | null
   stepNumber: Map<string, number>
   dragKey: string | null
   overKey: string | null
   onSelect: (key: string) => void
-  onDelete: (key: string) => void
+  onDeleteStep: (key: string) => void
+  onDeleteSlide: (key: string) => void
   onDragKey: (key: string | null) => void
   onOverKey: (key: string | null) => void
   onDrop: (key: string) => void
@@ -498,38 +695,42 @@ function StepsPanel({
         <div className="mb-3 flex shrink-0 items-center justify-between px-1">
           <h3 className="text-foreground text-sm font-semibold">Steps</h3>
           <span className="text-muted-foreground text-xs tabular-nums">
-            {items.length}
+            {frames.length}
           </span>
         </div>
         <ol
           className="min-h-0 flex-1 space-y-3 overflow-y-auto px-1 pt-1 pb-1"
           aria-label="Walkthrough steps"
         >
-          {items.map((it) => {
-            const isStep = it.kind === "step"
-            const num = stepNumber.get(it.key)
-            const active = selectedKey === it.key
-            const thumb = isStep ? (it as StepItem).screenshotUrl : null
+          {frames.map((f) => {
+            const isStep = f.kind === "step"
+            const num = isStep ? stepNumber.get(f.key) : undefined
+            const active = selectedKey === f.key
+            const thumb = f.kind === "step" ? f.step.screenshotUrl : null
+            // Only steps reorder (slides are anchored, they follow their step).
+            const draggable = isStep
             return (
               <li
-                key={it.key}
-                draggable
-                onDragStart={() => onDragKey(it.key)}
+                key={f.key}
+                draggable={draggable}
+                onDragStart={() => draggable && onDragKey(f.key)}
                 onDragEnd={() => {
                   onDragKey(null)
                   onOverKey(null)
                 }}
                 onDragOver={(e) => {
+                  if (!isStep) return
                   e.preventDefault()
-                  if (overKey !== it.key) onOverKey(it.key)
+                  if (overKey !== f.key) onOverKey(f.key)
                 }}
-                onDrop={() => onDrop(it.key)}
+                onDrop={() => isStep && onDrop(f.key)}
                 className={cn(
-                  "group relative cursor-grab active:cursor-grabbing",
-                  dragKey === it.key && "opacity-40"
+                  "group relative",
+                  draggable && "cursor-grab active:cursor-grabbing",
+                  dragKey === f.key && "opacity-40"
                 )}
               >
-                {overKey === it.key && dragKey && dragKey !== it.key && (
+                {overKey === f.key && dragKey && dragKey !== f.key && (
                   <div className="bg-cobalt absolute -top-1.5 right-1 left-1 z-20 h-0.5 rounded-full" />
                 )}
                 <div
@@ -542,9 +743,9 @@ function StepsPanel({
                 >
                   <button
                     type="button"
-                    aria-label={isStep ? `Step ${num}` : (it as SlideItem).kind}
+                    aria-label={isStep ? `Step ${num}` : f.slide.kind}
                     aria-current={active}
-                    onClick={() => onSelect(it.key)}
+                    onClick={() => onSelect(f.key)}
                     className="bg-muted block aspect-[16/10] w-full overflow-hidden rounded-xl"
                   >
                     {isStep && thumb ? (
@@ -555,12 +756,18 @@ function StepsPanel({
                         draggable={false}
                         className="h-full w-full object-cover"
                       />
+                    ) : f.kind === "slide" ? (
+                      <SlideThumb slide={f.slide} />
                     ) : (
-                      <SlideThumb item={it} />
+                      <div className="bg-muted h-full w-full" />
                     )}
                   </button>
 
-                  <CardMenu onDelete={() => onDelete(it.key)} />
+                  <CardMenu
+                    onDelete={() =>
+                      isStep ? onDeleteStep(f.key) : onDeleteSlide(f.key)
+                    }
+                  />
 
                   <span
                     className={cn(
@@ -572,7 +779,7 @@ function StepsPanel({
                   >
                     {isStep
                       ? num
-                      : (it as SlideItem).kind === "intro"
+                      : f.kind === "slide" && f.slide.kind === "intro"
                         ? "Intro"
                         : "Chapter"}
                   </span>
@@ -586,8 +793,7 @@ function StepsPanel({
   )
 }
 
-function SlideThumb({ item }: { item: WalkthroughItemClient }) {
-  const slide = item as SlideItem
+function SlideThumb({ slide }: { slide: PresentationSlide }) {
   const dark = slide.appearance?.theme === "dark"
   return (
     <div
@@ -842,6 +1048,7 @@ function BigSegmented({
 
 function StepCanvas({
   step,
+  appearance,
   hotspot,
   index,
   total,
@@ -850,7 +1057,8 @@ function StepCanvas({
   onPrev,
   onNext,
 }: {
-  step: StepItem
+  step: StepBlock
+  appearance: StepAppearance
   hotspot: GuideCustomization["general"]["hotspot"]
   index: number
   total: number
@@ -917,8 +1125,8 @@ function StepCanvas({
                 cy={cy}
                 onRight={onRight}
                 html={step.content}
-                bg={step.calloutBg}
-                textColor={step.calloutText}
+                bg={appearance.calloutBackground}
+                textColor={appearance.calloutText}
                 index={index}
                 total={total}
                 atStart={atStart}
@@ -953,11 +1161,11 @@ function SlideCanvas({
   onNext,
   minH,
 }: {
-  slide: SlideItem
+  slide: PresentationSlide
   appearance: Appearance
   index: number
   total: number
-  onUpdate: (patch: Partial<SlideItem>) => void
+  onUpdate: (patch: Partial<PresentationSlide>) => void
   onEditButton: (key: string) => void
   onAddButton: () => void
   onPrev: () => void

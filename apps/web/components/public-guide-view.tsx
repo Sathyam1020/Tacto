@@ -5,10 +5,11 @@ import { Check, ChevronDown, Languages } from "lucide-react"
 import { DownloadIcon } from "@workspace/ui/components/download"
 
 import {
-  applyInteractiveTranslation,
+  applyPresentationTranslation,
+  EMPTY_PRESENTATION,
+  readTranslationSteps,
   RTL_LANGUAGE_CODES,
   TRANSLATION_LANGUAGES,
-  type WalkthroughItem,
 } from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -58,36 +59,23 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     : null
   const displayBlocks = React.useMemo(() => {
     if (!activeT) return guide.blocks
-    const map = new Map(activeT.steps.map((s) => [s.index, s.content]))
-    return guide.blocks.map((b, i) => ({ ...b, content: map.get(i) ?? b.content }))
+    // Key-based overlay: match translated content to each block by its stable
+    // key, so reordered/inserted/deleted steps never misalign. Legacy (index)
+    // translations are migrated on read against the current block order.
+    const map = readTranslationSteps(
+      activeT.steps,
+      guide.blocks.map((b) => b.key)
+    )
+    return guide.blocks.map((b) => ({ ...b, content: map[b.key] ?? b.content }))
   }, [activeT, guide.blocks])
-  // Interactive tree is key-addressed → overlay by stable key. Prefer the
-  // stored interactive translation; for step callouts that share text with a
-  // List block, fall back to the List translation (so older translations — made
-  // before interactive was translated — still localize, with no re-generation).
+  // Interactive step callouts come from the (already-translated) List blocks —
+  // global by construction. Only the slides (title/subtitle/buttons) need the
+  // key-addressed interactive translation overlaid onto the presentation.
   const displayInteractive = React.useMemo(() => {
-    const items = guide.interactive?.items ?? []
-    if (!activeT) return items
-    const byIndex = new Map(activeT.steps.map((s) => [s.index, s.content]))
-    const listByBaseText = new Map<string, string>()
-    guide.blocks.forEach((b, i) => {
-      const t = byIndex.get(i)
-      if (t !== undefined && !listByBaseText.has(b.content))
-        listByBaseText.set(b.content, t)
-    })
-    const combined: Record<string, string> = { ...(activeT.interactive ?? {}) }
-    for (const it of items) {
-      if (it.kind === "step" && combined[it.key] === undefined) {
-        const t = listByBaseText.get(it.content)
-        if (t !== undefined) combined[it.key] = t
-      }
-    }
-    if (Object.keys(combined).length === 0) return items
-    return applyInteractiveTranslation(
-      items as unknown as WalkthroughItem[],
-      combined
-    ) as unknown as typeof items
-  }, [activeT, guide.interactive, guide.blocks])
+    const pres = guide.interactive ?? EMPTY_PRESENTATION
+    if (!activeT?.interactive) return pres
+    return applyPresentationTranslation(pres, activeT.interactive)
+  }, [activeT, guide.interactive])
   const displayTitle = activeT?.title ?? guide.title
   const displaySummary = activeT ? activeT.summary : guide.summary
   const isRtl =

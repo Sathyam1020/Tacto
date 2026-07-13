@@ -305,11 +305,17 @@ model GuideTranslation {
   language  String
   title     String
   summary   String?
-  /// [{ blockId, content }] — translated per-step content.
+  /// { blockKey: translatedContent } — translated block content keyed by the
+  /// block's STABLE key (v3). Legacy rows hold [{ index, content }] and are
+  /// migrated on read against the current block order.
   steps     Json
-  /// { key: translatedText } for the Interactive tree (step callouts + slide
-  /// title/subtitle + button text), keyed by stable keys. Null = not translated.
+  /// { slideStringId: translatedText } — slide title/subtitle/button text keyed
+  /// by stable ids (`${slideKey}#title` / `#subtitle` / buttonKey). Null = none.
   interactive Json?
+  /// The source strings this translation was generated from ({ title, summary,
+  /// steps, slides }), captured so the editor can detect drift and re-translate
+  /// individual steps. Null on legacy rows (pre-capture) → staleness unknown.
+  source    Json?
   /// Hidden from the public reader until the editor Saves the guide.
   published Boolean  @default(false)
   createdAt DateTime @default(now())

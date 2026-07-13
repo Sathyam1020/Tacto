@@ -6,12 +6,16 @@ import {
   Loader2,
   Plus,
   RefreshCw,
+  RotateCw,
   Search,
   Trash2,
 } from "lucide-react"
 import { toast } from "sonner"
 
-import { TRANSLATION_LANGUAGES } from "@workspace/contracts/guide"
+import {
+  TRANSLATION_LANGUAGES,
+  type RetranslateTarget,
+} from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -26,13 +30,18 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
 import {
   useAddTranslation,
   useDeleteTranslation,
   useGuideTranslations,
-  type GuideDetail,
+  useRetranslate,
 } from "@/lib/guides"
 
 const NAME = new Map<string, string>(
@@ -69,67 +78,97 @@ type Row = {
   id: string
   label: string
   original: string
-  /** Position among the guide's blocks (title/summary rows have none). */
-  blockIndex?: number
+  /** The block's stable key (title/summary rows have none). */
+  blockKey?: string
 }
 
 /**
  * Translations — a per-block preview. Each block shows its original text and,
- * for every added language, the translated text. Translations are generated
- * from the SAVED guide and published to the reader's language switcher.
+ * for every added language, the translated text. The "original" reflects the
+ * editor's current DRAFT (unsaved edits included), and re-translate reads the
+ * same draft — so an edited step can be re-translated immediately. Translations
+ * publish to the reader's language switcher when the guide is Updated.
  */
 export function TranslationsDialog({
-  guide,
+  guideId,
+  title,
+  summary,
+  blocks,
   open,
   onOpenChange,
   onDirty,
 }: {
-  guide: GuideDetail
+  guideId: string
+  /** The editor's current draft title/summary/blocks (what's being edited). */
+  title: string
+  summary: string | null
+  blocks: { key: string; type: string; content: string }[]
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Mark the editor dirty — translations publish only when the guide Saves. */
+  /** Mark the editor dirty — translations publish only when the guide is Updated. */
   onDirty: () => void
 }) {
-  const { data: translations } = useGuideTranslations(guide.id)
-  const add = useAddTranslation(guide.id)
-  const remove = useDeleteTranslation(guide.id)
+  const { data: translations } = useGuideTranslations(guideId)
+  const add = useAddTranslation(guideId)
+  const remove = useDeleteTranslation(guideId)
+  const retranslate = useRetranslate(guideId)
   const [pending, setPending] = React.useState<string | null>(null)
+  // Which (language, rowId) re-translate is in flight — for the row spinner.
+  const [pendingRow, setPendingRow] = React.useState<string | null>(null)
   const [query, setQuery] = React.useState("")
 
   const langs = translations ?? []
   const existing = new Set(langs.map((t) => t.language))
   const available = TRANSLATION_LANGUAGES.filter((l) => !existing.has(l.code))
 
-  // The translatable rows: title, then each block.
+  // The translatable rows: title, optional summary, then each block.
   const rows: Row[] = [
-    { id: "__title__", label: "TITLE", original: guide.title },
-    ...(guide.summary
+    { id: "__title__", label: "TITLE", original: title },
+    ...(summary
       ? [
           {
             id: "__summary__",
             label: "DESCRIPTION",
-            original: guide.summary,
+            original: summary,
           } as Row,
         ]
       : []),
-    ...guide.blocks.map((b, i) => ({
-      id: b.id,
+    ...blocks.map((b) => ({
+      id: b.key,
       label: b.type,
       original: toText(b.content),
-      blockIndex: i,
+      blockKey: b.key,
     })),
   ]
   const shown = query
     ? rows.filter((r) => r.original.toLowerCase().includes(query.toLowerCase()))
     : rows
 
+  /** The re-translate target a row maps to (title / summary / step). */
+  function rowTarget(row: Row): RetranslateTarget {
+    if (row.id === "__title__") return { kind: "title" }
+    if (row.id === "__summary__") return { kind: "summary" }
+    return { kind: "step", stepKey: row.blockKey! }
+  }
+
   /** The translated text for a row in a given language (or null). */
   function translated(row: Row, t: (typeof langs)[number]): string | null {
     if (row.id === "__title__") return t.title
     if (row.id === "__summary__") return t.summary ?? null
-    if (row.blockIndex == null) return null
-    const step = t.steps?.find((s) => s.index === row.blockIndex)
-    return step ? toText(step.content) : null
+    if (row.blockKey == null) return null
+    const content = t.steps?.[row.blockKey]
+    return content ? toText(content) : null
+  }
+
+  /** Whether a row's translation has drifted from the current guide. */
+  function rowStale(row: Row, t: (typeof langs)[number]): boolean {
+    if (row.id === "__title__") return t.staleness.titleStale
+    if (row.id === "__summary__") return t.staleness.summaryStale
+    if (row.blockKey == null) return false
+    return (
+      t.staleness.staleStepKeys.includes(row.blockKey) ||
+      t.staleness.newStepKeys.includes(row.blockKey)
+    )
   }
 
   function generate(code: string) {
@@ -137,10 +176,28 @@ export function TranslationsDialog({
     onDirty() // translation is a draft until the guide is Saved
     add.mutate(code, {
       onSuccess: () =>
-        toast.success(`Translated to ${NAME.get(code) ?? code} — Save to publish`),
+        toast.success(
+          `Translated to ${NAME.get(code) ?? code} — Update guide to publish`
+        ),
       onError: () => toast.error("Couldn't generate that translation"),
       onSettled: () => setPending(null),
     })
+  }
+
+  /** Re-translate one row (title / summary / step) into one language. */
+  function retranslateRow(language: string, row: Row) {
+    const token = `${language}:${row.id}`
+    setPendingRow(token)
+    onDirty()
+    retranslate.mutate(
+      { language, target: rowTarget(row) },
+      {
+        onSuccess: () =>
+          toast.success("Re-translated — Update guide to publish"),
+        onError: () => toast.error("Couldn't re-translate that"),
+        onSettled: () => setPendingRow(null),
+      }
+    )
   }
 
   return (
@@ -181,26 +238,50 @@ export function TranslationsDialog({
                     Draft
                   </span>
                 )}
-                <button
-                  aria-label="Regenerate"
-                  onClick={() => generate(t.language)}
-                  disabled={add.isPending}
-                  className="text-muted-foreground hover:text-foreground disabled:opacity-40"
-                >
-                  {pending === t.language && add.isPending ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="size-3.5" />
-                  )}
-                </button>
-                <button
-                  aria-label="Remove"
-                  onClick={() => remove.mutate(t.language)}
-                  disabled={remove.isPending}
-                  className="text-muted-foreground hover:text-destructive disabled:opacity-40"
-                >
-                  <Trash2 className="size-3.5" />
-                </button>
+                {t.staleness.stale && (
+                  <span
+                    title="The guide changed since this was translated — regenerate, or re-translate the flagged steps below"
+                    className="rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 dark:text-orange-400"
+                  >
+                    Outdated
+                  </span>
+                )}
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        aria-label="Regenerate translation"
+                        onClick={() => generate(t.language)}
+                        disabled={add.isPending}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-40"
+                      />
+                    }
+                  >
+                    {pending === t.language && add.isPending ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <RefreshCw className="size-3.5" />
+                    )}
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    Regenerate the whole translation
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <button
+                        aria-label="Remove"
+                        onClick={() => remove.mutate(t.language)}
+                        disabled={remove.isPending}
+                        className="text-muted-foreground hover:text-destructive disabled:opacity-40"
+                      />
+                    }
+                  >
+                    <Trash2 className="size-3.5" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Remove language</TooltipContent>
+                </Tooltip>
               </span>
             ))}
             <DropdownMenu>
@@ -267,8 +348,13 @@ export function TranslationsDialog({
                   langs.map((t) => {
                     // A freshly-added (optimistic) language has no content yet.
                     const generating =
-                      t.title === "" && (t.steps?.length ?? 0) === 0
+                      t.title === "" &&
+                      Object.keys(t.steps ?? {}).length === 0
                     const value = translated(row, t)
+                    const stale = rowStale(row, t)
+                    const token = `${t.language}:${row.id}`
+                    const rowPending =
+                      pendingRow === token && retranslate.isPending
                     return (
                       <div key={t.language}>
                         <div className="mb-1.5 flex items-center gap-1.5 text-sm font-medium">
@@ -277,10 +363,44 @@ export function TranslationsDialog({
                           {generating && (
                             <Loader2 className="text-muted-foreground size-3.5 animate-spin" />
                           )}
+                          {stale && !generating && (
+                            <span className="rounded bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-600 dark:text-orange-400">
+                              Text changed
+                            </span>
+                          )}
+                          {/* Re-translate this row (title / description / step). */}
+                          {!generating && (
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <button
+                                    type="button"
+                                    aria-label="Re-translate"
+                                    disabled={retranslate.isPending}
+                                    onClick={() =>
+                                      retranslateRow(t.language, row)
+                                    }
+                                    className="text-muted-foreground hover:text-foreground ml-auto disabled:opacity-40"
+                                  />
+                                }
+                              >
+                                {rowPending ? (
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                  <RotateCw className="size-3.5" />
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                Re-translate from the current guide text
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
                         </div>
                         <p
                           className={cn(
                             "rounded-lg border px-4 py-3 text-sm [overflow-wrap:anywhere]",
+                            stale && value && !generating &&
+                              "border-orange-400/50",
                             value && !generating
                               ? ""
                               : "text-muted-foreground italic"
@@ -288,6 +408,13 @@ export function TranslationsDialog({
                         >
                           {generating ? "Translating…" : (value ?? "—")}
                         </p>
+                        {stale && !generating && (
+                          <p className="mt-1.5 flex items-center gap-1 text-xs text-orange-600 dark:text-orange-400">
+                            <RotateCw className="size-3" />
+                            The guide text changed since this was translated —
+                            re-translate to update it.
+                          </p>
+                        )}
                       </div>
                     )
                   })
@@ -305,7 +432,7 @@ export function TranslationsDialog({
         <div className="flex items-center justify-between gap-3 border-t px-6 py-4">
           <p className="text-muted-foreground text-xs">
             Translations go live on the public guide when you{" "}
-            <span className="font-medium">Save</span> it.
+            <span className="font-medium">Update guide</span>.
           </p>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Close

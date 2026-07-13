@@ -2,13 +2,16 @@
 
 import * as React from "react"
 
-import type { GuideCustomization } from "@workspace/contracts/guide"
+import type {
+  GuideCustomization,
+  InteractivePresentation,
+} from "@workspace/contracts/guide"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { BlockView, withStepNumbers } from "@/components/block-view"
 import { GuideCustomizationProvider } from "@/components/guide-customization-context"
 import { InteractiveView } from "@/components/interactive-view"
-import type { GuideBlock, WalkthroughItemClient } from "@/lib/guides"
+import type { GuideBlock } from "@/lib/guides"
 
 export type ViewMode = "list" | "interactive"
 
@@ -24,9 +27,9 @@ export function GuideBody({
   blocks: GuideBlock[]
   mode: ViewMode
   customization: GuideCustomization
-  /** The Interactive tree's items. When present, the interactive mode renders
-   *  from this independent tree instead of the List blocks. */
-  interactive?: WalkthroughItemClient[]
+  /** The Interactive presentation (slides + per-step overrides). Interactive
+   *  mode renders the shared Steps (from `blocks`) interleaved with its slides. */
+  interactive?: InteractivePresentation
 }) {
   const numbered = withStepNumbers(blocks)
   const listRef = React.useRef<HTMLDivElement>(null)
@@ -40,7 +43,7 @@ export function GuideBody({
   return (
     <GuideCustomizationProvider value={customization}>
       {mode === "interactive" ? (
-        <InteractiveView blocks={blocks} items={interactive} />
+        <InteractiveView blocks={blocks} presentation={interactive} />
       ) : (
         <>
           {navBarOn && stepTotal > 0 && (

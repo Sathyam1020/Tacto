@@ -1,6 +1,6 @@
 import {
   parseDraftDocument,
-  type DraftDocumentV2,
+  type DraftDocumentV3,
 } from "@workspace/contracts/guide";
 import { Prisma, prisma } from "@workspace/db";
 
@@ -21,7 +21,7 @@ class SupersededError extends Error {}
 async function applyDraftContent(
   tx: Prisma.TransactionClient,
   guideId: string,
-  doc: DraftDocumentV2
+  doc: DraftDocumentV3
 ): Promise<void> {
   await tx.guide.update({
     where: { id: guideId },
@@ -29,9 +29,10 @@ async function applyDraftContent(
       title: doc.title.trim() || "Untitled guide",
       summary: doc.summary,
       customization: doc.customization,
-      // Persist the Interactive tree alongside the List (Step) rows. Stored as
-      // resolved JSON (screenshot keys inline) for straight public reads.
-      interactive: doc.interactive,
+      // Persist the Interactive *presentation* (slides + per-step overrides)
+      // alongside the canonical Step rows. Step content/screenshots live only on
+      // the Steps — the presentation carries no duplicated step content.
+      interactive: doc.interactive as unknown as Prisma.InputJsonValue,
     },
   });
 

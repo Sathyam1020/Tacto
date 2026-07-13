@@ -33,6 +33,8 @@ export function GuideToolbar({
   customization,
   onCustomizationChange,
   sortRows,
+  draftTitle,
+  draftSummary,
   onReorder,
   onImport,
   onDirty,
@@ -41,13 +43,16 @@ export function GuideToolbar({
   guide: GuideDetail
   /** The editor's working-copy customization (previewed live). */
   customization: GuideCustomization
-  /** Stage customization into the editor's working copy (saved on Save). */
+  /** Stage customization into the editor's working copy (applied on Update). */
   onCustomizationChange: (next: GuideCustomization) => void
-  /** The editor's current blocks, for the Sort steps dialog. */
+  /** The editor's current blocks, for the Sort steps + Translations dialogs. */
   sortRows: SortRow[]
+  /** The editor's current draft title/summary — so Translations reflects edits. */
+  draftTitle: string
+  draftSummary: string | null
   /** Persist a new block order (by key) into the editor's working copy. */
   onReorder: (orderedKeys: string[]) => void
-  /** Append imported blocks into the editor's working copy (saved on Save). */
+  /** Append imported blocks into the editor's working copy (applied on Update). */
   onImport: (blocks: ImportedBlock[]) => void
   /** Mark the editor dirty (e.g. a translation was generated). */
   onDirty: () => void
@@ -131,7 +136,10 @@ export function GuideToolbar({
       />
 
       <TranslationsDialog
-        guide={guide}
+        guideId={guide.id}
+        title={draftTitle}
+        summary={draftSummary}
+        blocks={sortRows}
         open={translateOpen}
         onOpenChange={setTranslateOpen}
         onDirty={onDirty}

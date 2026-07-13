@@ -4,10 +4,16 @@ import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
 import {
   DEFAULT_CUSTOMIZATION,
+  EMPTY_PRESENTATION,
+  readInteractivePresentation,
   type Asset,
   type BlockType,
-  type DraftDocumentV2,
+  type DraftDocumentV3,
   type GuideCustomization,
+  type InteractivePresentation,
+  type PresentationSlide,
+  type SlideAnchor,
+  type StepPresentation,
 } from "@workspace/contracts/guide"
 import {
   ArrowLeft,
@@ -80,21 +86,20 @@ import {
   type DraftBlockClient,
   type DraftDocumentClient,
   type GuideDraftResponse,
-  type WalkthroughItemClient,
 } from "@/lib/guides"
 
 /** The editor's in-memory block (draft block + a display URL). */
 type EditorBlock = DraftBlockClient
-/** The Interactive tree the editor carries through (edited in RFC phase 2). */
-type EditorInteractive = { items: WalkthroughItemClient[] }
-/** The whole working document the editor edits and autosaves. Holds BOTH trees
- *  (List `blocks` + `interactive`) and the shared `assets` registry; List edits
- *  never touch `interactive`, so the two stay independent. */
+/** The whole working document the editor edits and autosaves. Step content lives
+ *  ONCE, on the canonical `blocks` (Steps); `interactive` is the presentation
+ *  layer (slides + per-step appearance/anchors) that references Steps by key.
+ *  List and Interactive are two views of the same Steps — a content edit in
+ *  either updates `blocks` and is reflected in both. */
 type EditorDoc = {
   title: string
   summary: string | null
   blocks: EditorBlock[]
-  interactive: EditorInteractive
+  interactive: InteractivePresentation
   assets: Asset[]
   customization: GuideCustomization
 }
@@ -111,7 +116,7 @@ const EMPTY_DOC: EditorDoc = {
   title: "",
   summary: null,
   blocks: [],
-  interactive: { items: [] },
+  interactive: EMPTY_PRESENTATION,
   assets: [],
   customization: DEFAULT_CUSTOMIZATION,
 }
@@ -125,7 +130,7 @@ type DraftStatus = "saving" | "saved" | "conflict" | "error" | "offline"
 /** The editor document with display URLs — the shape stored in the cache. */
 function toClientDoc(doc: EditorDoc): DraftDocumentClient {
   return {
-    v: 2,
+    v: 3,
     title: doc.title,
     summary: doc.summary,
     blocks: doc.blocks,
@@ -137,30 +142,16 @@ function toClientDoc(doc: EditorDoc): DraftDocumentClient {
 
 function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
   const blocks = doc.blocks.map((b) => ({ ...b }))
-  // Backward-compat: a draft cached in localStorage before the two-tree model
-  // has no `interactive`/`assets`. Seed the Interactive tree 1:1 from blocks
-  // (the client-side mirror of the server's migrate-on-read) so old caches
-  // don't crash the editor.
-  const items: WalkthroughItemClient[] = doc.interactive?.items
-    ? doc.interactive.items.map((it) => ({ ...it }))
-    : blocks.map((b) => ({
-        kind: "step" as const,
-        key: b.key,
-        content: b.content,
-        screenshotKey: b.screenshotKey,
-        assetId: b.screenshotKey ? `a_${b.key}` : null,
-        screenshotUrl: b.screenshotUrl,
-        clickRect: b.clickRect,
-        confidence: b.confidence,
-        calloutBg: null,
-        calloutText: null,
-      }))
+  // Backward-compat: `readInteractivePresentation` accepts either a v3
+  // presentation (`{ slides, stepPresentation }`) or a legacy v2 tree
+  // (`{ items }`) cached in localStorage before the global-Steps model, and
+  // returns a presentation either way — so an old cache doesn't crash the editor.
   return {
     title: doc.title,
     summary: doc.summary,
     customization: doc.customization,
     blocks,
-    interactive: { items },
+    interactive: readInteractivePresentation(doc.interactive),
     assets: doc.assets ? doc.assets.map((a) => ({ ...a })) : [],
   }
 }
@@ -187,9 +178,9 @@ function conflictVersion(err: unknown): number | null {
 }
 
 /** Strip display-only fields to the durable document that gets autosaved. */
-function toDraftDocument(doc: EditorDoc): DraftDocumentV2 {
+function toDraftDocument(doc: EditorDoc): DraftDocumentV3 {
   return {
-    v: 2,
+    v: 3,
     title: doc.title,
     summary: doc.summary,
     blocks: doc.blocks.map((b) => ({
@@ -203,25 +194,9 @@ function toDraftDocument(doc: EditorDoc): DraftDocumentV2 {
       clickRect: b.clickRect,
       confidence: b.confidence,
     })),
-    // Carry the Interactive tree through untouched (durable fields only —
-    // drop the presigned screenshotUrl the client added).
-    interactive: {
-      items: doc.interactive.items.map((it) =>
-        it.kind === "step"
-          ? {
-              kind: "step",
-              key: it.key,
-              content: it.content,
-              screenshotKey: it.screenshotKey,
-              assetId: it.assetId,
-              clickRect: it.clickRect,
-              confidence: it.confidence,
-              calloutBg: it.calloutBg,
-              calloutText: it.calloutText,
-            }
-          : it
-      ),
-    },
+    // The presentation carries no step content — slides + per-step appearance
+    // only — and has no presigned URLs to strip, so it persists as-is.
+    interactive: doc.interactive,
     assets: doc.assets,
     customization: doc.customization,
   }
@@ -457,14 +432,13 @@ export default function GuideEditPage() {
   const rehydrateImages = React.useCallback(
     async (document: DraftDocumentClient) => {
       if (typeof navigator !== "undefined" && !navigator.onLine) return
+      // Screenshots live only on the canonical Steps (`blocks`); the
+      // presentation references Steps by key and carries no images of its own.
       const keys = Array.from(
         new Set(
-          [
-            ...document.blocks.map((b) => b.screenshotKey),
-            ...document.interactive.items.map((it) =>
-              it.kind === "step" ? it.screenshotKey : null
-            ),
-          ].filter((k): k is string => !!k)
+          document.blocks
+            .map((b) => b.screenshotKey)
+            .filter((k): k is string => !!k)
         )
       )
       if (keys.length === 0) return
@@ -479,13 +453,6 @@ export default function GuideEditPage() {
                 ? { ...b, screenshotUrl: urls[b.screenshotKey]! }
                 : b
             ),
-            interactive: {
-              items: h.present.interactive.items.map((it) =>
-                it.kind === "step" && it.screenshotKey && urls[it.screenshotKey]
-                  ? { ...it, screenshotUrl: urls[it.screenshotKey]! }
-                  : it
-              ),
-            },
           },
         }))
       } catch {
@@ -753,72 +720,113 @@ export default function GuideEditPage() {
     applyEdit((d) => ({ ...d, blocks: d.blocks.filter((b) => b.key !== key) }))
   }
 
-  // ── Interactive (Walkthrough) tree operations ─────────────────────────
-  // Independent of the List blocks — these only touch `doc.interactive`.
+  // ── Interactive (Walkthrough) operations ──────────────────────────────
+  // Step content is GLOBAL: editing/reordering/deleting a step in the
+  // Interactive view mutates the canonical `blocks` and is reflected in the
+  // List too. Only slides + per-step appearance live on `doc.interactive`
+  // (the presentation layer).
+
+  /** Edit a canonical Step's content from the Interactive view (global). */
   function editInteractiveContent(key: string, content: string) {
     applyEdit((d) => ({
       ...d,
-      interactive: {
-        items: d.interactive.items.map((it) =>
-          it.key === key && it.kind === "step" ? { ...it, content } : it
-        ),
-      },
+      blocks: d.blocks.map((b) => (b.key === key ? { ...b, content } : b)),
     }))
   }
 
-  function reorderInteractive(orderedKeys: string[]) {
+  /** Reorder canonical Steps to match `orderedStepKeys`. Non-STEP blocks keep
+   *  their absolute slots; STEP blocks are permuted within their own slots so
+   *  the List order stays consistent with the Interactive order. */
+  function reorderSteps(orderedStepKeys: string[]) {
     applyEdit((d) => {
-      const byKey = new Map(d.interactive.items.map((it) => [it.key, it]))
-      const items = orderedKeys
+      const byKey = new Map(
+        d.blocks.filter((b) => b.type === "STEP").map((b) => [b.key, b])
+      )
+      const reordered = orderedStepKeys
         .map((k) => byKey.get(k))
-        .filter((it): it is (typeof d.interactive.items)[number] => !!it)
-      return { ...d, interactive: { items } }
+        .filter((b): b is EditorBlock => !!b)
+      let si = 0
+      const blocks = d.blocks.map((b) =>
+        b.type === "STEP" ? (reordered[si++] ?? b) : b
+      )
+      return { ...d, blocks }
     })
   }
 
-  function deleteInteractiveItem(key: string) {
+  /** Delete a canonical Step (global). Slides anchored to it become orphaned
+   *  (dangling anchor) and are surfaced for re-anchoring — never silently moved. */
+  function deleteStep(key: string) {
+    applyEdit((d) => ({ ...d, blocks: d.blocks.filter((b) => b.key !== key) }))
+  }
+
+  /** Set a Step's Interactive appearance (callout colors) — presentation only. */
+  function setStepAppearance(
+    stepKey: string,
+    appearance: { calloutBackground: string | null; calloutText: string | null }
+  ) {
+    applyEdit((d) => {
+      const prev = d.interactive.stepPresentation[stepKey]
+      return {
+        ...d,
+        interactive: {
+          ...d.interactive,
+          stepPresentation: {
+            ...d.interactive.stepPresentation,
+            [stepKey]: {
+              appearance,
+              animation: prev?.animation ?? {},
+              interaction: prev?.interaction ?? {},
+              voice: prev?.voice ?? {},
+            },
+          },
+        },
+      }
+    })
+  }
+
+  /** Insert a presentation slide (Intro/Chapter) with its anchor. */
+  function insertSlide(slide: PresentationSlide) {
     applyEdit((d) => ({
       ...d,
       interactive: {
-        items: d.interactive.items.filter((it) => it.key !== key),
+        ...d.interactive,
+        slides: [...d.interactive.slides, slide],
       },
     }))
   }
 
-  /** Insert a walkthrough item (Intro/Chapter slide) after `afterKey` (null =
-   *  prepend for intros). */
-  function insertInteractiveItem(
-    item: WalkthroughItemClient,
-    afterKey: string | null
-  ) {
-    applyEdit((d) => {
-      const items = [...d.interactive.items]
-      const idx = afterKey ? items.findIndex((i) => i.key === afterKey) : -1
-      items.splice(idx >= 0 ? idx + 1 : 0, 0, item)
-      return { ...d, interactive: { items } }
-    })
-  }
-
-  /** Merge a partial patch into a walkthrough item (slide fields/buttons or a
-   *  step's media). */
-  function updateInteractiveItem(
-    key: string,
-    patch: Partial<WalkthroughItemClient>
-  ) {
+  /** Merge a partial patch into a slide (fields/buttons/appearance). */
+  function updateSlide(slideKey: string, patch: Partial<PresentationSlide>) {
     applyEdit((d) => ({
       ...d,
       interactive: {
-        items: d.interactive.items.map((it) =>
-          it.key === key
-            ? ({ ...it, ...patch } as WalkthroughItemClient)
-            : it
+        ...d.interactive,
+        slides: d.interactive.slides.map((s) =>
+          s.key === slideKey ? ({ ...s, ...patch } as PresentationSlide) : s
         ),
       },
     }))
   }
 
-  /** Upload a replacement screenshot for an Interactive step. Returns the R2
-   *  key + a local preview URL (independent of the List blocks). */
+  /** Delete a slide (presentation only). */
+  function deleteSlide(slideKey: string) {
+    applyEdit((d) => ({
+      ...d,
+      interactive: {
+        ...d.interactive,
+        slides: d.interactive.slides.filter((s) => s.key !== slideKey),
+      },
+    }))
+  }
+
+  /** Re-anchor a slide (e.g. fixing a broken/orphaned anchor after a Step was
+   *  deleted). The user picks the new position; content is never auto-moved. */
+  function reanchorSlide(slideKey: string, anchor: SlideAnchor) {
+    updateSlide(slideKey, { anchor })
+  }
+
+  /** Upload a replacement screenshot for a Step. Returns the R2 key + a local
+   *  preview URL; `replaceImage` applies it to the canonical Step (global). */
   async function uploadInteractiveMedia(
     file: File
   ): Promise<{ key: string; url: string } | null> {
@@ -830,9 +838,23 @@ export default function GuideEditPage() {
     }
   }
 
+  /** Replace a canonical Step's screenshot by key (global) — mirrors the List's
+   *  media replace so a media swap in either view reflects in both. */
+  function setStepMedia(stepKey: string, screenshotKey: string, url: string) {
+    applyEdit((d) => ({
+      ...d,
+      blocks: d.blocks.map((b) =>
+        b.key === stepKey
+          ? { ...b, screenshotKey, screenshotUrl: url }
+          : b
+      ),
+    }))
+  }
+
   /** Global image edit: swap an edited screenshot's key everywhere its shared
-   *  Asset is referenced (List blocks + Interactive steps + the registry). When
-   *  the source has no assetId (ad-hoc media), only that one item changes. */
+   *  Asset is referenced. Steps are global now, so List + Interactive both read
+   *  the same `blocks` — one update reflects in both. When the source has no
+   *  assetId (ad-hoc media), only that one block changes. */
   function replaceImage(
     source: { assetId: string | null; itemKey: string; scope: "block" | "step" },
     newKey: string,
@@ -849,34 +871,15 @@ export default function GuideEditPage() {
               ? { ...b, screenshotKey: newKey, screenshotUrl: newUrl }
               : b
           ),
-          interactive: {
-            items: d.interactive.items.map((it) =>
-              it.kind === "step" && it.assetId === id
-                ? { ...it, screenshotKey: newKey, screenshotUrl: newUrl }
-                : it
-            ),
-          },
-        }
-      }
-      if (source.scope === "block") {
-        return {
-          ...d,
-          blocks: d.blocks.map((b) =>
-            b.key === source.itemKey
-              ? { ...b, screenshotKey: newKey, screenshotUrl: newUrl }
-              : b
-          ),
         }
       }
       return {
         ...d,
-        interactive: {
-          items: d.interactive.items.map((it) =>
-            it.key === source.itemKey && it.kind === "step"
-              ? { ...it, screenshotKey: newKey, screenshotUrl: newUrl }
-              : it
-          ),
-        },
+        blocks: d.blocks.map((b) =>
+          b.key === source.itemKey
+            ? { ...b, screenshotKey: newKey, screenshotUrl: newUrl }
+            : b
+        ),
       }
     })
   }
@@ -1028,6 +1031,8 @@ export default function GuideEditPage() {
             content: b.content,
             screenshotUrl: b.screenshotUrl,
           }))}
+          draftTitle={doc.title}
+          draftSummary={doc.summary}
           onReorder={reorderBlocks}
           onImport={importBlocks}
           onDirty={markDirty}
@@ -1118,13 +1123,18 @@ export default function GuideEditPage() {
             </>
           ) : (
             <InteractiveEditor
-              items={doc.interactive.items}
+              steps={doc.blocks.filter((b) => b.type === "STEP")}
+              presentation={doc.interactive}
               customization={cust}
-              onEditContent={editInteractiveContent}
-              onReorder={reorderInteractive}
-              onDelete={deleteInteractiveItem}
-              onInsertItem={insertInteractiveItem}
-              onUpdateItem={updateInteractiveItem}
+              onEditStepContent={editInteractiveContent}
+              onReorderSteps={reorderSteps}
+              onDeleteStep={deleteStep}
+              onSetStepAppearance={setStepAppearance}
+              onSetStepMedia={setStepMedia}
+              onInsertSlide={insertSlide}
+              onUpdateSlide={updateSlide}
+              onDeleteSlide={deleteSlide}
+              onReanchorSlide={reanchorSlide}
               onUploadMedia={uploadInteractiveMedia}
               onEditImage={(source, src) => setImageEdit({ src, source })}
             />
