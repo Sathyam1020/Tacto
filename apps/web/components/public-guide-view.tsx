@@ -11,6 +11,7 @@ import {
   RTL_LANGUAGE_CODES,
   TRANSLATION_LANGUAGES,
 } from "@workspace/contracts/guide"
+import { BASE_LANGUAGE } from "@workspace/contracts/voice"
 import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenu,
@@ -155,6 +156,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
           <GuideBody
             blocks={displayBlocks}
             interactive={displayInteractive}
+            narration={guide.narration[lang ?? BASE_LANGUAGE] ?? {}}
             mode={effectiveMode}
             customization={cust}
           />

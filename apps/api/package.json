@@ -11,12 +11,13 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "seed:capture": "node scripts/seed-capture.mjs",
-    "test": "tsx --env-file=.env src/features/guide/draft.test.ts && tsx --env-file=.env src/features/guide/publish-draft.test.ts"
+    "test": "tsx --env-file=.env src/features/guide/draft.test.ts && tsx --env-file=.env src/features/guide/publish-draft.test.ts && tsx --env-file=.env src/features/voice/domain.test.ts"
   },
   "dependencies": {
     "@workspace/ai": "*",
     "@workspace/contracts": "*",
     "@workspace/db": "*",
+    "@workspace/generation": "*",
     "@workspace/storage": "*",
     "better-auth": "^1.6.23",
     "bullmq": "^5.79.3",

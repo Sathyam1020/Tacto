@@ -1,5 +1,6 @@
 import {
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -92,6 +93,17 @@ export async function putObject(
       ContentType: contentType,
     })
   );
+}
+
+/** Whether an object exists (used to cache content-addressed artifacts). */
+export async function objectExists(key: string): Promise<boolean> {
+  const { client, bucket } = getClient();
+  try {
+    await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Server-side download (worker: fetch the recorded video). */

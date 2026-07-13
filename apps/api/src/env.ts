@@ -37,6 +37,9 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET: z.string().optional(),
 
+  /** ElevenLabs TTS — enables synchronous voice previews in the editor. */
+  ELEVENLABS_API_KEY: z.string().optional(),
+
   /** Google OAuth — optional; the google provider is disabled when absent. */
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

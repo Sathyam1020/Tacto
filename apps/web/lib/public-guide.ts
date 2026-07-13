@@ -39,6 +39,8 @@ export type PublicGuide = {
   /** The published Interactive *presentation* (slides + per-step overrides).
    *  Step content/screenshots come from `blocks`. */
   interactive: InteractivePresentation
+  /** Published voiceover audio per language → per anchor (presigned). */
+  narration: Record<string, Record<string, { text: string; audioUrl: string }>>
 }
 
 /** Server-side fetch of a published guide by shareId (public, no auth). */

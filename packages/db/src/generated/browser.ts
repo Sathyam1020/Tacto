@@ -109,3 +109,30 @@ export type CaptureIntent = Prisma.CaptureIntentModel
  * `content` is sanitized HTML. Media/interaction fields apply to STEP only.
  */
 export type Step = Prisma.StepModel
+/**
+ * Model Narration
+ * A per-language narration script for a guide. Base language ("en") is the
+ * source; other rows mirror translations. Published narration is what the
+ * public reader hears — drafts stay hidden until the guide is Updated.
+ */
+export type Narration = Prisma.NarrationModel
+/**
+ * Model NarrationSegment
+ * One spoken unit of a narration, anchored to a stable sequence key. `text`
+ * is the source of truth; audio is a derived render (see MediaRender).
+ */
+export type NarrationSegment = Prisma.NarrationSegmentModel
+/**
+ * Model MediaRender
+ * A content-addressed, immutable render artifact derived from a narration
+ * segment + voice config. `renderHash` is the identity: same inputs → same
+ * row → same R2 object (no re-synthesis). Per-guide namespaced for lifecycle.
+ */
+export type MediaRender = Prisma.MediaRenderModel
+/**
+ * Model SegmentRenderRef
+ * Which render a narration segment currently resolves to, per media kind.
+ * Separating this from the segment (script) and the render (artifact) keeps
+ * three lifecycles clean and lets multiple kinds coexist per segment.
+ */
+export type SegmentRenderRef = Prisma.SegmentRenderRefModel

@@ -5,7 +5,23 @@ import {
   CAPTURE_QUEUE,
   type CaptureJobData,
 } from "@workspace/contracts/capture";
+import {
+  TRANSLATION_QUEUE,
+  translationJobSchema,
+  VOICE_QUEUE,
+  voiceJobSchema,
+  type TranslationJobData,
+  type VoiceJobData,
+} from "@workspace/contracts/voice";
+import { createElevenLabsProvider, registerSpeechProvider } from "@workspace/ai";
 import { prisma } from "@workspace/db";
+import {
+  generateNarrationForGuide,
+  generateTranslation,
+  setNarrationStatus,
+  setTranslationStatus,
+  synthesizeSegmentAudio,
+} from "@workspace/generation";
 import { Worker } from "bullmq";
 
 import { processCapture } from "./pipeline/process-capture.js";
@@ -64,6 +80,87 @@ worker.on("ready", () => {
   console.log(`tacto worker ready — queue "${CAPTURE_QUEUE}"`);
 });
 
+// Register the TTS backend for audio synthesis (voice.synthesize jobs).
+if (env.ELEVENLABS_API_KEY) {
+  registerSpeechProvider(createElevenLabsProvider(env.ELEVENLABS_API_KEY));
+} else {
+  console.warn(
+    "ELEVENLABS_API_KEY not set — voiceover audio synthesis will fail."
+  );
+}
+
+// ── Voice (narration generation + audio synthesis) ────────────────────────
+const voiceWorker = new Worker<VoiceJobData>(
+  VOICE_QUEUE,
+  async (job) => {
+    const data = voiceJobSchema.parse(job.data);
+    if (data.kind === "narration.generate") {
+      await generateNarrationForGuide(data.guideId, data.language, {
+        anchorKey: data.anchorKey,
+        force: data.force,
+      });
+      await setNarrationStatus(data.guideId, data.language, "ready");
+      return;
+    }
+    if (data.kind === "voice.synthesize") {
+      await synthesizeSegmentAudio(data.guideId, data.language, data.anchorKey);
+      return;
+    }
+    // voice.build orchestration is unused — the API fans out synthesize jobs.
+    throw new Error(`voice job "${data.kind}" is not enqueued`);
+  },
+  { connection, concurrency: 4, stalledInterval: 30_000, maxStalledCount: 2 }
+);
+
+voiceWorker.on("failed", async (job, error) => {
+  console.error(`voice job ${job?.id} failed:`, error.message);
+  if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
+  const parsed = voiceJobSchema.safeParse(job.data);
+  // narration.generate marks the narration failed; voice.synthesize already
+  // marked its own MediaRender failed inside synthesizeSegmentAudio.
+  if (parsed.success && parsed.data.kind === "narration.generate") {
+    await setNarrationStatus(
+      parsed.data.guideId,
+      parsed.data.language,
+      "failed",
+      error.message
+    );
+  }
+});
+
+voiceWorker.on("ready", () =>
+  console.log(`tacto worker ready — queue "${VOICE_QUEUE}"`)
+);
+
+// ── Translations (whole-guide, async) ─────────────────────────────────────
+const translationWorker = new Worker<TranslationJobData>(
+  TRANSLATION_QUEUE,
+  async (job) => {
+    const data = translationJobSchema.parse(job.data);
+    await generateTranslation(data.guideId, data.language);
+    await setTranslationStatus(data.guideId, data.language, "ready");
+  },
+  { connection, concurrency: 3, stalledInterval: 30_000, maxStalledCount: 2 }
+);
+
+translationWorker.on("failed", async (job, error) => {
+  console.error(`translation job ${job?.id} failed:`, error.message);
+  if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
+  const parsed = translationJobSchema.safeParse(job.data);
+  if (parsed.success) {
+    await setTranslationStatus(
+      parsed.data.guideId,
+      parsed.data.language,
+      "failed",
+      error.message
+    );
+  }
+});
+
+translationWorker.on("ready", () =>
+  console.log(`tacto worker ready — queue "${TRANSLATION_QUEUE}"`)
+);
+
 // Self-healing sweep for captures orphaned outside the queue (abandoned
 // uploads, jobs lost while the worker was down).
 const reaperTimer = startReaper();
@@ -72,7 +169,11 @@ const reaperTimer = startReaper();
 async function shutdown(signal: string) {
   console.log(`${signal} received — shutting down…`);
   clearInterval(reaperTimer);
-  await worker.close();
+  await Promise.all([
+    worker.close(),
+    voiceWorker.close(),
+    translationWorker.close(),
+  ]);
   process.exit(0);
 }
 

@@ -23,6 +23,7 @@ export function GuideBody({
   mode,
   customization,
   interactive,
+  narration,
 }: {
   blocks: GuideBlock[]
   mode: ViewMode
@@ -30,6 +31,8 @@ export function GuideBody({
   /** The Interactive presentation (slides + per-step overrides). Interactive
    *  mode renders the shared Steps (from `blocks`) interleaved with its slides. */
   interactive?: InteractivePresentation
+  /** Voiceover audio per anchor (Step.key / slide.key) for the walkthrough. */
+  narration?: Record<string, { audioUrl: string }>
 }) {
   const numbered = withStepNumbers(blocks)
   const listRef = React.useRef<HTMLDivElement>(null)
@@ -43,7 +46,11 @@ export function GuideBody({
   return (
     <GuideCustomizationProvider value={customization}>
       {mode === "interactive" ? (
-        <InteractiveView blocks={blocks} presentation={interactive} />
+        <InteractiveView
+          blocks={blocks}
+          presentation={interactive}
+          narration={narration}
+        />
       ) : (
         <>
           {navBarOn && stepTotal > 0 && (

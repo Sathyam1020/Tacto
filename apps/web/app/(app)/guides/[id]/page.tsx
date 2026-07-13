@@ -36,6 +36,7 @@ import { formatDate } from "@/lib/format"
 import { layoutMaxWidthClass } from "@/components/guide-customization-context"
 import { guideFontFamily } from "@/lib/guide-fonts"
 import { resolveCustomization, useGuide } from "@/lib/guides"
+import { useNarration } from "@/lib/narration"
 import { cn } from "@workspace/ui/lib/utils"
 import { downloadGuidePdf } from "@/lib/pdf"
 
@@ -51,6 +52,15 @@ export default function GuidePage() {
   } = useGuide(activeWorkspace?.id, params.id)
 
   const [mode, setMode] = React.useState<ViewMode>("list")
+  // Voiceover audio for the walkthrough preview (draft-aware, before publish).
+  const { data: narration } = useNarration(params.id)
+  const narrationAudio = React.useMemo(() => {
+    const map: Record<string, { audioUrl: string }> = {}
+    for (const it of narration?.items ?? []) {
+      if (it.audioUrl) map[it.anchorKey] = { audioUrl: it.audioUrl }
+    }
+    return map
+  }, [narration])
   const cust = React.useMemo(
     () => resolveCustomization(guide?.customization ?? null),
     [guide?.customization]
@@ -216,6 +226,7 @@ export default function GuidePage() {
         <GuideBody
           blocks={guide.blocks}
           interactive={guide.interactive}
+          narration={narrationAudio}
           mode={effectiveMode}
           customization={cust}
         />

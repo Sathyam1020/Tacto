@@ -9,8 +9,6 @@ import {
   Palette,
   Upload,
 } from "lucide-react"
-import { toast } from "sonner"
-
 import { Button } from "@workspace/ui/components/button"
 
 import type { GuideCustomization } from "@workspace/contracts/guide"
@@ -20,6 +18,7 @@ import {
   ImportStepsDialog,
   type ImportedBlock,
 } from "@/components/import-steps-dialog"
+import { NarrationDialog } from "@/components/narration-dialog"
 import { SortStepsDialog, type SortRow } from "@/components/sort-steps-dialog"
 import { TranslationsDialog } from "@/components/translations-dialog"
 import type { GuideDetail } from "@/lib/guides"
@@ -63,8 +62,7 @@ export function GuideToolbar({
   const [sortOpen, setSortOpen] = React.useState(false)
   const [importOpen, setImportOpen] = React.useState(false)
   const [translateOpen, setTranslateOpen] = React.useState(false)
-
-  const soon = (name: string) => toast.info(`${name} — coming soon`)
+  const [narrateOpen, setNarrateOpen] = React.useState(false)
 
   const items = [
     {
@@ -77,7 +75,7 @@ export function GuideToolbar({
       label: "Add translations",
       onClick: () => setTranslateOpen(true),
     },
-    { icon: Mic, label: "Add voiceovers", onClick: () => soon("Voiceovers") },
+    { icon: Mic, label: "Add voiceovers", onClick: () => setNarrateOpen(true) },
     {
       icon: Upload,
       label: "Import Steps",
@@ -142,6 +140,15 @@ export function GuideToolbar({
         blocks={sortRows}
         open={translateOpen}
         onOpenChange={setTranslateOpen}
+        onDirty={onDirty}
+      />
+
+      <NarrationDialog
+        guideId={guide.id}
+        customization={customization}
+        onCustomizationChange={onCustomizationChange}
+        open={narrateOpen}
+        onOpenChange={setNarrateOpen}
         onDirty={onDirty}
       />
     </>

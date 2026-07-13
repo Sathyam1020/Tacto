@@ -10,6 +10,7 @@ import { healthRouter } from "./features/health/router.js";
 import { mediaRouter } from "./features/media/router.js";
 import { meRouter } from "./features/me/router.js";
 import { publicRouter } from "./features/public/router.js";
+import { voiceRouter } from "./features/voice/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
 import { env } from "./env.js";
 import { auth } from "./lib/auth.js";
@@ -66,6 +67,7 @@ export function createApp(): Express {
   app.use(workspaceRouter);
   app.use(captureRouter);
   app.use(guideRouter);
+  app.use(voiceRouter);
   app.use(folderRouter);
   app.use(mediaRouter);
   app.use(extensionRouter);

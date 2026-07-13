@@ -31,6 +31,8 @@ export type GuideTranslationMinAggregateOutputType = {
   language: string | null
   title: string | null
   summary: string | null
+  status: string | null
+  error: string | null
   published: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -42,6 +44,8 @@ export type GuideTranslationMaxAggregateOutputType = {
   language: string | null
   title: string | null
   summary: string | null
+  status: string | null
+  error: string | null
   published: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -56,6 +60,8 @@ export type GuideTranslationCountAggregateOutputType = {
   steps: number
   interactive: number
   source: number
+  status: number
+  error: number
   published: number
   createdAt: number
   updatedAt: number
@@ -69,6 +75,8 @@ export type GuideTranslationMinAggregateInputType = {
   language?: true
   title?: true
   summary?: true
+  status?: true
+  error?: true
   published?: true
   createdAt?: true
   updatedAt?: true
@@ -80,6 +88,8 @@ export type GuideTranslationMaxAggregateInputType = {
   language?: true
   title?: true
   summary?: true
+  status?: true
+  error?: true
   published?: true
   createdAt?: true
   updatedAt?: true
@@ -94,6 +104,8 @@ export type GuideTranslationCountAggregateInputType = {
   steps?: true
   interactive?: true
   source?: true
+  status?: true
+  error?: true
   published?: true
   createdAt?: true
   updatedAt?: true
@@ -181,6 +193,8 @@ export type GuideTranslationGroupByOutputType = {
   steps: runtime.JsonValue
   interactive: runtime.JsonValue | null
   source: runtime.JsonValue | null
+  status: string
+  error: string | null
   published: boolean
   createdAt: Date
   updatedAt: Date
@@ -216,6 +230,8 @@ export type GuideTranslationWhereInput = {
   steps?: Prisma.JsonFilter<"GuideTranslation">
   interactive?: Prisma.JsonNullableFilter<"GuideTranslation">
   source?: Prisma.JsonNullableFilter<"GuideTranslation">
+  status?: Prisma.StringFilter<"GuideTranslation"> | string
+  error?: Prisma.StringNullableFilter<"GuideTranslation"> | string | null
   published?: Prisma.BoolFilter<"GuideTranslation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
@@ -231,6 +247,8 @@ export type GuideTranslationOrderByWithRelationInput = {
   steps?: Prisma.SortOrder
   interactive?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   published?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -250,6 +268,8 @@ export type GuideTranslationWhereUniqueInput = Prisma.AtLeast<{
   steps?: Prisma.JsonFilter<"GuideTranslation">
   interactive?: Prisma.JsonNullableFilter<"GuideTranslation">
   source?: Prisma.JsonNullableFilter<"GuideTranslation">
+  status?: Prisma.StringFilter<"GuideTranslation"> | string
+  error?: Prisma.StringNullableFilter<"GuideTranslation"> | string | null
   published?: Prisma.BoolFilter<"GuideTranslation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
@@ -265,6 +285,8 @@ export type GuideTranslationOrderByWithAggregationInput = {
   steps?: Prisma.SortOrder
   interactive?: Prisma.SortOrderInput | Prisma.SortOrder
   source?: Prisma.SortOrderInput | Prisma.SortOrder
+  status?: Prisma.SortOrder
+  error?: Prisma.SortOrderInput | Prisma.SortOrder
   published?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -285,6 +307,8 @@ export type GuideTranslationScalarWhereWithAggregatesInput = {
   steps?: Prisma.JsonWithAggregatesFilter<"GuideTranslation">
   interactive?: Prisma.JsonNullableWithAggregatesFilter<"GuideTranslation">
   source?: Prisma.JsonNullableWithAggregatesFilter<"GuideTranslation">
+  status?: Prisma.StringWithAggregatesFilter<"GuideTranslation"> | string
+  error?: Prisma.StringNullableWithAggregatesFilter<"GuideTranslation"> | string | null
   published?: Prisma.BoolWithAggregatesFilter<"GuideTranslation"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GuideTranslation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"GuideTranslation"> | Date | string
@@ -298,6 +322,8 @@ export type GuideTranslationCreateInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -313,6 +339,8 @@ export type GuideTranslationUncheckedCreateInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -326,6 +354,8 @@ export type GuideTranslationUpdateInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,6 +371,8 @@ export type GuideTranslationUncheckedUpdateInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -355,6 +387,8 @@ export type GuideTranslationCreateManyInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -368,6 +402,8 @@ export type GuideTranslationUpdateManyMutationInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -382,6 +418,8 @@ export type GuideTranslationUncheckedUpdateManyInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -411,6 +449,8 @@ export type GuideTranslationCountOrderByAggregateInput = {
   steps?: Prisma.SortOrder
   interactive?: Prisma.SortOrder
   source?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   published?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -422,6 +462,8 @@ export type GuideTranslationMaxOrderByAggregateInput = {
   language?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   published?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -433,6 +475,8 @@ export type GuideTranslationMinOrderByAggregateInput = {
   language?: Prisma.SortOrder
   title?: Prisma.SortOrder
   summary?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  error?: Prisma.SortOrder
   published?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -488,6 +532,8 @@ export type GuideTranslationCreateWithoutGuideInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -501,6 +547,8 @@ export type GuideTranslationUncheckedCreateWithoutGuideInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -544,6 +592,8 @@ export type GuideTranslationScalarWhereInput = {
   steps?: Prisma.JsonFilter<"GuideTranslation">
   interactive?: Prisma.JsonNullableFilter<"GuideTranslation">
   source?: Prisma.JsonNullableFilter<"GuideTranslation">
+  status?: Prisma.StringFilter<"GuideTranslation"> | string
+  error?: Prisma.StringNullableFilter<"GuideTranslation"> | string | null
   published?: Prisma.BoolFilter<"GuideTranslation"> | boolean
   createdAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"GuideTranslation"> | Date | string
@@ -557,6 +607,8 @@ export type GuideTranslationCreateManyGuideInput = {
   steps: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: string
+  error?: string | null
   published?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -570,6 +622,8 @@ export type GuideTranslationUpdateWithoutGuideInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -583,6 +637,8 @@ export type GuideTranslationUncheckedUpdateWithoutGuideInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -596,6 +652,8 @@ export type GuideTranslationUncheckedUpdateManyWithoutGuideInput = {
   steps?: Prisma.JsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   source?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   published?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -612,6 +670,8 @@ export type GuideTranslationSelect<ExtArgs extends runtime.Types.Extensions.Inte
   steps?: boolean
   interactive?: boolean
   source?: boolean
+  status?: boolean
+  error?: boolean
   published?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -627,6 +687,8 @@ export type GuideTranslationSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   steps?: boolean
   interactive?: boolean
   source?: boolean
+  status?: boolean
+  error?: boolean
   published?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -642,6 +704,8 @@ export type GuideTranslationSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   steps?: boolean
   interactive?: boolean
   source?: boolean
+  status?: boolean
+  error?: boolean
   published?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -657,12 +721,14 @@ export type GuideTranslationSelectScalar = {
   steps?: boolean
   interactive?: boolean
   source?: boolean
+  status?: boolean
+  error?: boolean
   published?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type GuideTranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guideId" | "language" | "title" | "summary" | "steps" | "interactive" | "source" | "published" | "createdAt" | "updatedAt", ExtArgs["result"]["guideTranslation"]>
+export type GuideTranslationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "guideId" | "language" | "title" | "summary" | "steps" | "interactive" | "source" | "status" | "error" | "published" | "createdAt" | "updatedAt", ExtArgs["result"]["guideTranslation"]>
 export type GuideTranslationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guide?: boolean | Prisma.GuideDefaultArgs<ExtArgs>
 }
@@ -704,6 +770,14 @@ export type $GuideTranslationPayload<ExtArgs extends runtime.Types.Extensions.In
      * individual steps. Null on legacy rows (pre-capture) → staleness unknown.
      */
     source: runtime.JsonValue | null
+    /**
+     * Async generation status: generating | ready | failed. The editor polls it.
+     */
+    status: string
+    /**
+     * Failure detail when status = failed.
+     */
+    error: string | null
     /**
      * Hidden from the public reader until the editor Saves the guide.
      */
@@ -1142,6 +1216,8 @@ export interface GuideTranslationFieldRefs {
   readonly steps: Prisma.FieldRef<"GuideTranslation", 'Json'>
   readonly interactive: Prisma.FieldRef<"GuideTranslation", 'Json'>
   readonly source: Prisma.FieldRef<"GuideTranslation", 'Json'>
+  readonly status: Prisma.FieldRef<"GuideTranslation", 'String'>
+  readonly error: Prisma.FieldRef<"GuideTranslation", 'String'>
   readonly published: Prisma.FieldRef<"GuideTranslation", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"GuideTranslation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"GuideTranslation", 'DateTime'>

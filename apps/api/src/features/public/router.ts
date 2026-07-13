@@ -3,6 +3,7 @@ import {
   reactionInputSchema,
 } from "@workspace/contracts/guide";
 import { prisma } from "@workspace/db";
+import { getPublishedNarrationByLanguage } from "@workspace/generation";
 import { Router } from "express";
 import { z } from "zod";
 
@@ -66,7 +67,7 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
     .catch(() => {});
 
   const { allowReactions, allowComments } = feedbackFlags(guide.customization);
-  const [blocks, interactive, reactions, comments, translations] =
+  const [blocks, interactive, reactions, comments, translations, narration] =
     await Promise.all([
       serializeBlocks(guide.blocks),
       serializeInteractive(guide.interactive),
@@ -90,6 +91,8 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
         interactive: true,
       },
     }),
+    // Published voiceover audio per language for walkthrough playback.
+    getPublishedNarrationByLanguage(guide.id),
   ]);
 
   res.json({
@@ -110,6 +113,8 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
       // The Interactive presentation carries slides (plain text — React escapes)
       // + per-step overrides; step content/screenshots come from `blocks`.
       interactive,
+      // Voiceover audio per anchor (presigned) for walkthrough playback.
+      narration,
     },
   });
 });

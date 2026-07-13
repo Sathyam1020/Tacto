@@ -59,11 +59,16 @@ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 export function InteractiveView({
   blocks,
   presentation,
+  narration,
 }: {
   blocks: GuideBlock[]
   /** Slides + per-step presentation. Steps come from `blocks` (canonical); the
    *  render sequence is computed from Steps + presentation. */
   presentation?: InteractivePresentation
+  /** Voiceover audio per anchor (Step.key / slide.key). When present, playback
+   *  plays each frame's narration and advances on audio end; frames without
+   *  audio fall back to the timer. */
+  narration?: Record<string, { audioUrl: string }>
 }) {
   const wv = useGuideCustomization().walkthroughView
   const hotspot = useGuideCustomization().general.hotspot
@@ -146,6 +151,76 @@ export function InteractiveView({
     }
   }, [])
 
+  // ── Narration voiceover ──────────────────────────────────────────────────
+  // When a frame has narration audio, playback plays it and advances on `ended`
+  // (audio-driven). Frames without audio fall back to the timer below. Music
+  // ducks while narration speaks.
+  const voice = wv.voice
+  const narrationRef = React.useRef<HTMLAudioElement | null>(null)
+  const currentFrameId = frames[index]?.id
+  const rawAudio = currentFrameId
+    ? (narration?.[currentFrameId]?.audioUrl ?? null)
+    : null
+  // If a frame's audio fails to load, treat it as audio-less so the timer takes
+  // over (graceful fallback). Reset the error flag when the frame changes.
+  const [audioErrored, setAudioErrored] = React.useState(false)
+  React.useEffect(() => setAudioErrored(false), [currentFrameId])
+  const currentAudio = audioErrored ? null : rawAudio
+  const [speaking, setSpeaking] = React.useState(false)
+
+  const duckMusic = React.useCallback(
+    (on: boolean) => {
+      const m = audioRef.current
+      if (m) m.volume = music.volume * (on ? 0.28 : 1)
+    },
+    [music.volume]
+  )
+
+  // Load the current frame's narration audio (reset to the start).
+  React.useEffect(() => {
+    const el = narrationRef.current
+    if (!el) return
+    if (currentAudio) {
+      el.src = currentAudio
+      el.currentTime = 0
+    } else {
+      el.removeAttribute("src")
+      duckMusic(false)
+    }
+  }, [currentAudio, duckMusic])
+
+  // Follow play/pause for narration + music ducking.
+  React.useEffect(() => {
+    const el = narrationRef.current
+    if (!el || !currentAudio) {
+      setSpeaking(false)
+      return
+    }
+    el.playbackRate = voice.speed
+    if (playing) {
+      duckMusic(true)
+      void el.play().then(() => setSpeaking(true)).catch(() => setSpeaking(false))
+    } else {
+      el.pause()
+      duckMusic(false)
+      setSpeaking(false)
+    }
+  }, [playing, currentAudio, voice.speed, duckMusic])
+
+  // Advance when a frame's narration finishes (audio-driven auto-advance).
+  const onNarrationEnded = React.useCallback(() => {
+    duckMusic(false)
+    setSpeaking(false)
+    setFast(false)
+    setIndex((i) => {
+      if (i >= frames.length - 1) {
+        if (!autoplay.loop) setPlaying(false)
+        return autoplay.loop ? 0 : i
+      }
+      return i + 1
+    })
+  }, [frames.length, autoplay.loop, duckMusic])
+
   // Manual navigation. `viaClick` = the viewer clicked the on-image target,
   // so the transition is snappier than an arrow press.
   const go = React.useCallback(
@@ -175,9 +250,11 @@ export function InteractiveView({
     else void rootRef.current?.requestFullscreen().catch(() => {})
   }, [])
 
-  // Autoplay — advance on a timer at the normal (non-click) speed.
+  // Autoplay — advance on a timer at the normal (non-click) speed. Frames WITH
+  // narration audio advance on audio-end instead (see onNarrationEnded), so the
+  // timer only drives audio-less frames (the graceful fallback).
   React.useEffect(() => {
-    if (!playing) return
+    if (!playing || currentAudio) return
     const t = setTimeout(
       () => {
         setFast(false)
@@ -191,7 +268,7 @@ export function InteractiveView({
       Math.max(0.5, autoplay.delaySeconds) * 1000
     )
     return () => clearTimeout(t)
-  }, [playing, index, frames.length, autoplay.loop, autoplay.delaySeconds])
+  }, [playing, index, frames.length, autoplay.loop, autoplay.delaySeconds, currentAudio])
 
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -304,6 +381,14 @@ export function InteractiveView({
         // eslint-disable-next-line jsx-a11y/media-has-caption
         <audio ref={audioRef} src={music.url} loop preload="auto" />
       )}
+      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      <audio
+        ref={narrationRef}
+        onEnded={onNarrationEnded}
+        onError={() => setAudioErrored(true)}
+        preload="auto"
+      />
+      {speaking && <span className="sr-only" role="status">Narration playing</span>}
       <div className={cn("w-full", fullscreen && "max-w-6xl")}>
         {/* Off-layout measurer: keeps `stageH` warm from the first screenshot so
             slides match the step height even before a step is viewed. */}

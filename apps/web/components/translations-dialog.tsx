@@ -37,6 +37,7 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { GeneratingState } from "@/components/generating-state"
 import {
   useAddTranslation,
   useDeleteTranslation,
@@ -112,7 +113,6 @@ export function TranslationsDialog({
   const add = useAddTranslation(guideId)
   const remove = useDeleteTranslation(guideId)
   const retranslate = useRetranslate(guideId)
-  const [pending, setPending] = React.useState<string | null>(null)
   // Which (language, rowId) re-translate is in flight — for the row spinner.
   const [pendingRow, setPendingRow] = React.useState<string | null>(null)
   const [query, setQuery] = React.useState("")
@@ -172,15 +172,11 @@ export function TranslationsDialog({
   }
 
   function generate(code: string) {
-    setPending(code)
     onDirty() // translation is a draft until the guide is Saved
     add.mutate(code, {
       onSuccess: () =>
-        toast.success(
-          `Translated to ${NAME.get(code) ?? code} — Update guide to publish`
-        ),
-      onError: () => toast.error("Couldn't generate that translation"),
-      onSettled: () => setPending(null),
+        toast.success(`Translating to ${NAME.get(code) ?? code}…`),
+      onError: () => toast.error("Couldn't start that translation"),
     })
   }
 
@@ -252,12 +248,12 @@ export function TranslationsDialog({
                       <button
                         aria-label="Regenerate translation"
                         onClick={() => generate(t.language)}
-                        disabled={add.isPending}
+                        disabled={t.status === "generating"}
                         className="text-muted-foreground hover:text-foreground disabled:opacity-40"
                       />
                     }
                   >
-                    {pending === t.language && add.isPending ? (
+                    {t.status === "generating" ? (
                       <Loader2 className="size-3.5 animate-spin" />
                     ) : (
                       <RefreshCw className="size-3.5" />
@@ -328,6 +324,18 @@ export function TranslationsDialog({
 
         {/* Per-block preview */}
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-6">
+          {langs.some((t) => t.status === "generating") && (
+            <div className="overflow-hidden rounded-xl border">
+              <GeneratingState
+                variant="translation"
+                title={`Translating to ${langs
+                  .filter((t) => t.status === "generating")
+                  .map((t) => NAME.get(t.language) ?? t.language)
+                  .join(", ")}…`}
+                subtitle="Rewriting every step in the new language."
+              />
+            </div>
+          )}
           {shown.map((row) => (
             <div key={row.id} className="overflow-hidden rounded-xl border">
               <div className="bg-muted/40 border-b px-4 py-2">
@@ -346,10 +354,8 @@ export function TranslationsDialog({
                   </p>
                 ) : (
                   langs.map((t) => {
-                    // A freshly-added (optimistic) language has no content yet.
-                    const generating =
-                      t.title === "" &&
-                      Object.keys(t.steps ?? {}).length === 0
+                    // The worker is (re)generating this whole language.
+                    const generating = t.status === "generating"
                     const value = translated(row, t)
                     const stale = rowStale(row, t)
                     const token = `${t.language}:${row.id}`

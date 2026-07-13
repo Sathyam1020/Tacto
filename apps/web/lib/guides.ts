@@ -422,6 +422,10 @@ export type GuideTranslationFull = {
   steps: Record<string, string>
   /** False until the editor Saves the guide (hidden from the public reader). */
   published: boolean
+  /** Async generation status — the editor polls this until ready. */
+  status: "generating" | "ready" | "failed"
+  /** Failure detail when status = failed. */
+  error: string | null
   /** Per-translation drift vs. the current guide (which steps need a redo). */
   staleness: TranslationStaleness
 }
@@ -437,7 +441,8 @@ export const EMPTY_STALENESS: TranslationStaleness = {
   staleSlideKeys: [],
 }
 
-/** Translations that exist for a guide (editor list, with content). */
+/** Translations that exist for a guide (editor list, with content). Polls
+ *  while any language is still generating on the worker. */
 export function useGuideTranslations(guideId: string) {
   return useQuery({
     queryKey: ["translations", guideId],
@@ -448,45 +453,52 @@ export function useGuideTranslations(guideId: string) {
       return data.translations
     },
     enabled: !!guideId,
+    refetchInterval: (query) =>
+      (query.state.data ?? []).some((t) => t.status === "generating")
+        ? 1500
+        : false,
   })
 }
 
-/** Generate (or regenerate) a translation for a language. */
+/** Kick off async translation for a language (whole guide). Returns the list
+ *  with the language marked generating; the query polls until ready. */
 export function useAddTranslation(guideId: string) {
   const queryClient = useQueryClient()
   const key = ["translations", guideId]
   return useMutation({
     mutationFn: async (language: string) => {
       const { data } = await api.post<{
-        translation: { language: string; title: string }
+        translations: GuideTranslationFull[]
       }>(`/guides/${guideId}/translations`, { language })
-      return data.translation
+      return data.translations
     },
-    // Show the language immediately (empty), fill it in when the AI returns.
+    // Show the language immediately as generating.
     onMutate: async (language) => {
       await queryClient.cancelQueries({ queryKey: key })
       const prev = queryClient.getQueryData<GuideTranslationFull[]>(key)
       queryClient.setQueryData<GuideTranslationFull[]>(key, (old) => {
         const list = old ?? []
-        if (list.some((t) => t.language === language)) return list
-        return [
-          ...list,
-          {
-            language,
-            title: "",
-            summary: null,
-            steps: {},
-            published: false,
-            staleness: EMPTY_STALENESS,
-          },
-        ]
+        const existing = list.find((t) => t.language === language)
+        const generating: GuideTranslationFull = {
+          language,
+          title: existing?.title ?? "",
+          summary: existing?.summary ?? null,
+          steps: existing?.steps ?? {},
+          published: false,
+          status: "generating",
+          error: null,
+          staleness: existing?.staleness ?? EMPTY_STALENESS,
+        }
+        return existing
+          ? list.map((t) => (t.language === language ? generating : t))
+          : [...list, generating]
       })
       return { prev }
     },
+    onSuccess: (translations) => queryClient.setQueryData(key, translations),
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) queryClient.setQueryData(key, ctx.prev)
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
   })
 }
 
@@ -524,12 +536,14 @@ export function useRetranslate(guideId: string) {
       language: string
       target: RetranslateTarget
     }) => {
-      await api.post(
-        `/guides/${guideId}/translations/${vars.language}/retranslate`,
-        { target: vars.target }
-      )
+      const { data } = await api.post<{
+        translations: GuideTranslationFull[]
+      }>(`/guides/${guideId}/translations/${vars.language}/retranslate`, {
+        target: vars.target,
+      })
+      return data.translations
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: key }),
+    onSuccess: (translations) => queryClient.setQueryData(key, translations),
   })
 }
 

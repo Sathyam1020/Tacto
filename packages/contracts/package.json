@@ -9,6 +9,7 @@
     "./capture": "./src/capture.ts",
     "./folder": "./src/folder.ts",
     "./guide": "./src/guide.ts",
+    "./voice": "./src/voice.ts",
     "./workspace": "./src/workspace.ts"
   },
   "scripts": {

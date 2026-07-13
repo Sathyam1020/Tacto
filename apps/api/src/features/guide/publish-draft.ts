@@ -68,6 +68,14 @@ async function applyDraftContent(
     where: { guideId },
     data: { published: true },
   });
+
+  // Narration goes live to the public reader on Update, like translations. Its
+  // audio renders are immutable + content-addressed, so published playback keeps
+  // pointing at the exact artifacts that were current at publish time.
+  await tx.narration.updateMany({
+    where: { guideId },
+    data: { published: true },
+  });
 }
 
 /**

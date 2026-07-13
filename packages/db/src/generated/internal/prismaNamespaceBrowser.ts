@@ -66,7 +66,11 @@ export const ModelName = {
   GuideReaction: 'GuideReaction',
   GuideComment: 'GuideComment',
   CaptureIntent: 'CaptureIntent',
-  Step: 'Step'
+  Step: 'Step',
+  Narration: 'Narration',
+  NarrationSegment: 'NarrationSegment',
+  MediaRender: 'MediaRender',
+  SegmentRenderRef: 'SegmentRenderRef'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -259,6 +263,8 @@ export const GuideTranslationScalarFieldEnum = {
   steps: 'steps',
   interactive: 'interactive',
   source: 'source',
+  status: 'status',
+  error: 'error',
   published: 'published',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -320,6 +326,72 @@ export const StepScalarFieldEnum = {
 } as const
 
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
+
+
+export const NarrationScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  language: 'language',
+  status: 'status',
+  error: 'error',
+  published: 'published',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NarrationScalarFieldEnum = (typeof NarrationScalarFieldEnum)[keyof typeof NarrationScalarFieldEnum]
+
+
+export const NarrationSegmentScalarFieldEnum = {
+  id: 'id',
+  narrationId: 'narrationId',
+  anchorKey: 'anchorKey',
+  text: 'text',
+  markup: 'markup',
+  humanEdited: 'humanEdited',
+  sourceFingerprint: 'sourceFingerprint',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NarrationSegmentScalarFieldEnum = (typeof NarrationSegmentScalarFieldEnum)[keyof typeof NarrationSegmentScalarFieldEnum]
+
+
+export const MediaRenderScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  renderHash: 'renderHash',
+  kind: 'kind',
+  provider: 'provider',
+  model: 'model',
+  voiceId: 'voiceId',
+  format: 'format',
+  speed: 'speed',
+  params: 'params',
+  language: 'language',
+  r2Key: 'r2Key',
+  durationMs: 'durationMs',
+  sizeBytes: 'sizeBytes',
+  status: 'status',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MediaRenderScalarFieldEnum = (typeof MediaRenderScalarFieldEnum)[keyof typeof MediaRenderScalarFieldEnum]
+
+
+export const SegmentRenderRefScalarFieldEnum = {
+  id: 'id',
+  segmentId: 'segmentId',
+  kind: 'kind',
+  renderId: 'renderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SegmentRenderRefScalarFieldEnum = (typeof SegmentRenderRefScalarFieldEnum)[keyof typeof SegmentRenderRefScalarFieldEnum]
 
 
 export const SortOrder = {

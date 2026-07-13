@@ -13,11 +13,14 @@ const envSchema = z.object({
   AI_PROVIDER: z.enum(["openai", "anthropic"]).default("openai"),
   AI_MODEL: z.string().optional(),
 
-  /** Cloudflare R2 — required for video ingestion. */
+  /** Cloudflare R2 — required for video ingestion + voiceover audio. */
   R2_ACCOUNT_ID: z.string().optional(),
   R2_ACCESS_KEY_ID: z.string().optional(),
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET: z.string().optional(),
+
+  /** ElevenLabs TTS — required for voiceover audio synthesis. */
+  ELEVENLABS_API_KEY: z.string().optional(),
 
   // ── Stuck-capture reaper ────────────────────────────────────────────────
   /** How often the reaper sweeps for stuck captures (seconds). */

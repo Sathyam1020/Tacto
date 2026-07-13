@@ -399,7 +399,11 @@ export const ModelName = {
   GuideReaction: 'GuideReaction',
   GuideComment: 'GuideComment',
   CaptureIntent: 'CaptureIntent',
-  Step: 'Step'
+  Step: 'Step',
+  Narration: 'Narration',
+  NarrationSegment: 'NarrationSegment',
+  MediaRender: 'MediaRender',
+  SegmentRenderRef: 'SegmentRenderRef'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -415,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "capture" | "guide" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1603,6 +1607,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Narration: {
+      payload: Prisma.$NarrationPayload<ExtArgs>
+      fields: Prisma.NarrationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NarrationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NarrationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        findFirst: {
+          args: Prisma.NarrationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NarrationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        findMany: {
+          args: Prisma.NarrationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>[]
+        }
+        create: {
+          args: Prisma.NarrationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        createMany: {
+          args: Prisma.NarrationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NarrationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>[]
+        }
+        delete: {
+          args: Prisma.NarrationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        update: {
+          args: Prisma.NarrationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        deleteMany: {
+          args: Prisma.NarrationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NarrationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NarrationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>[]
+        }
+        upsert: {
+          args: Prisma.NarrationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationPayload>
+        }
+        aggregate: {
+          args: Prisma.NarrationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNarration>
+        }
+        groupBy: {
+          args: Prisma.NarrationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NarrationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NarrationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NarrationCountAggregateOutputType> | number
+        }
+      }
+    }
+    NarrationSegment: {
+      payload: Prisma.$NarrationSegmentPayload<ExtArgs>
+      fields: Prisma.NarrationSegmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.NarrationSegmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.NarrationSegmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        findFirst: {
+          args: Prisma.NarrationSegmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.NarrationSegmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        findMany: {
+          args: Prisma.NarrationSegmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>[]
+        }
+        create: {
+          args: Prisma.NarrationSegmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        createMany: {
+          args: Prisma.NarrationSegmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.NarrationSegmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>[]
+        }
+        delete: {
+          args: Prisma.NarrationSegmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        update: {
+          args: Prisma.NarrationSegmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.NarrationSegmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.NarrationSegmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.NarrationSegmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.NarrationSegmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$NarrationSegmentPayload>
+        }
+        aggregate: {
+          args: Prisma.NarrationSegmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateNarrationSegment>
+        }
+        groupBy: {
+          args: Prisma.NarrationSegmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NarrationSegmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.NarrationSegmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.NarrationSegmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    MediaRender: {
+      payload: Prisma.$MediaRenderPayload<ExtArgs>
+      fields: Prisma.MediaRenderFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MediaRenderFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MediaRenderFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        findFirst: {
+          args: Prisma.MediaRenderFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MediaRenderFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        findMany: {
+          args: Prisma.MediaRenderFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>[]
+        }
+        create: {
+          args: Prisma.MediaRenderCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        createMany: {
+          args: Prisma.MediaRenderCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MediaRenderCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>[]
+        }
+        delete: {
+          args: Prisma.MediaRenderDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        update: {
+          args: Prisma.MediaRenderUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        deleteMany: {
+          args: Prisma.MediaRenderDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MediaRenderUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MediaRenderUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>[]
+        }
+        upsert: {
+          args: Prisma.MediaRenderUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MediaRenderPayload>
+        }
+        aggregate: {
+          args: Prisma.MediaRenderAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMediaRender>
+        }
+        groupBy: {
+          args: Prisma.MediaRenderGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MediaRenderGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MediaRenderCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MediaRenderCountAggregateOutputType> | number
+        }
+      }
+    }
+    SegmentRenderRef: {
+      payload: Prisma.$SegmentRenderRefPayload<ExtArgs>
+      fields: Prisma.SegmentRenderRefFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SegmentRenderRefFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SegmentRenderRefFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        findFirst: {
+          args: Prisma.SegmentRenderRefFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SegmentRenderRefFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        findMany: {
+          args: Prisma.SegmentRenderRefFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>[]
+        }
+        create: {
+          args: Prisma.SegmentRenderRefCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        createMany: {
+          args: Prisma.SegmentRenderRefCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SegmentRenderRefCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>[]
+        }
+        delete: {
+          args: Prisma.SegmentRenderRefDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        update: {
+          args: Prisma.SegmentRenderRefUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        deleteMany: {
+          args: Prisma.SegmentRenderRefDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SegmentRenderRefUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SegmentRenderRefUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>[]
+        }
+        upsert: {
+          args: Prisma.SegmentRenderRefUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SegmentRenderRefPayload>
+        }
+        aggregate: {
+          args: Prisma.SegmentRenderRefAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSegmentRenderRef>
+        }
+        groupBy: {
+          args: Prisma.SegmentRenderRefGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SegmentRenderRefGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SegmentRenderRefCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SegmentRenderRefCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1816,6 +2116,8 @@ export const GuideTranslationScalarFieldEnum = {
   steps: 'steps',
   interactive: 'interactive',
   source: 'source',
+  status: 'status',
+  error: 'error',
   published: 'published',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -1877,6 +2179,72 @@ export const StepScalarFieldEnum = {
 } as const
 
 export type StepScalarFieldEnum = (typeof StepScalarFieldEnum)[keyof typeof StepScalarFieldEnum]
+
+
+export const NarrationScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  language: 'language',
+  status: 'status',
+  error: 'error',
+  published: 'published',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NarrationScalarFieldEnum = (typeof NarrationScalarFieldEnum)[keyof typeof NarrationScalarFieldEnum]
+
+
+export const NarrationSegmentScalarFieldEnum = {
+  id: 'id',
+  narrationId: 'narrationId',
+  anchorKey: 'anchorKey',
+  text: 'text',
+  markup: 'markup',
+  humanEdited: 'humanEdited',
+  sourceFingerprint: 'sourceFingerprint',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type NarrationSegmentScalarFieldEnum = (typeof NarrationSegmentScalarFieldEnum)[keyof typeof NarrationSegmentScalarFieldEnum]
+
+
+export const MediaRenderScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  renderHash: 'renderHash',
+  kind: 'kind',
+  provider: 'provider',
+  model: 'model',
+  voiceId: 'voiceId',
+  format: 'format',
+  speed: 'speed',
+  params: 'params',
+  language: 'language',
+  r2Key: 'r2Key',
+  durationMs: 'durationMs',
+  sizeBytes: 'sizeBytes',
+  status: 'status',
+  error: 'error',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MediaRenderScalarFieldEnum = (typeof MediaRenderScalarFieldEnum)[keyof typeof MediaRenderScalarFieldEnum]
+
+
+export const SegmentRenderRefScalarFieldEnum = {
+  id: 'id',
+  segmentId: 'segmentId',
+  kind: 'kind',
+  renderId: 'renderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SegmentRenderRefScalarFieldEnum = (typeof SegmentRenderRefScalarFieldEnum)[keyof typeof SegmentRenderRefScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -2191,6 +2559,10 @@ export type GlobalOmitConfig = {
   guideComment?: Prisma.GuideCommentOmit
   captureIntent?: Prisma.CaptureIntentOmit
   step?: Prisma.StepOmit
+  narration?: Prisma.NarrationOmit
+  narrationSegment?: Prisma.NarrationSegmentOmit
+  mediaRender?: Prisma.MediaRenderOmit
+  segmentRenderRef?: Prisma.SegmentRenderRefOmit
 }
 
 /* Types for Logging */

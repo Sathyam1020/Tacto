@@ -76,6 +76,51 @@ export const guideFontSchema = z.enum([
 ]);
 export type GuideFont = z.infer<typeof guideFontSchema>;
 
+// Voice (Narration → audio) settings ride the guide customization, so a voice
+// change stages in the draft and goes live on "Update guide", exactly like
+// colors and background music. `provider`/`voiceId` are provider-scoped strings
+// validated by the speech-provider registry at synthesis time — kept open so
+// the backend (ElevenLabs first) is replaceable without a schema change. Kept
+// here (not in voice.ts) so customization has no intra-package import.
+export const voiceSettingsSchema = z.object({
+  enabled: z.boolean(),
+  provider: z.string(),
+  /** Default voice; per-language overrides win when present. */
+  defaultVoiceId: z.string().nullable(),
+  /** language code → provider voiceId. */
+  voiceByLanguage: z.record(z.string(), z.string()).default({}),
+  /** Playback/synthesis baseline speed (0.5–2.0). */
+  speed: z.number().min(0.5).max(2),
+  /** Persona/style hint passed to the provider (null = provider default). */
+  style: z.string().nullable(),
+  /** Silence inserted between steps during full-guide playback. */
+  interStepPauseMs: z.number().min(0).max(10_000),
+  format: z.enum(["mp3", "opus"]),
+});
+export type VoiceSettings = z.infer<typeof voiceSettingsSchema>;
+
+/** Voice settings applied when a guide has none. Disabled by default so
+ *  existing guides are unaffected until an author opts in. */
+export const DEFAULT_VOICE_SETTINGS: VoiceSettings = {
+  enabled: false,
+  provider: "elevenlabs",
+  defaultVoiceId: null,
+  voiceByLanguage: {},
+  speed: 1,
+  style: null,
+  interStepPauseMs: 500,
+  format: "mp3",
+};
+
+/** Resolve the voice for a language: the per-language override, else the
+ *  default. Returns null when no voice is configured (nothing to synthesize). */
+export function voiceForLanguage(
+  settings: VoiceSettings,
+  language: string
+): string | null {
+  return settings.voiceByLanguage[language] ?? settings.defaultVoiceId;
+}
+
 export const guideCustomizationSchema = z.object({
   general: z.object({
     defaultView: defaultViewSchema,
@@ -136,6 +181,9 @@ export const guideCustomizationSchema = z.object({
       url: z.string().nullable().default(null),
       volume: z.number().min(0).max(1),
     }),
+    /** Voiceover (Narration → audio) settings. Defaulted so drafts saved before
+     *  this field existed still parse. See the Voice subsystem. */
+    voice: voiceSettingsSchema.default(() => DEFAULT_VOICE_SETTINGS),
   }),
   feedback: z.object({
     allowReactions: z.boolean(),
@@ -173,6 +221,7 @@ export const DEFAULT_CUSTOMIZATION: GuideCustomization = {
     autoplay: { enabled: false, delaySeconds: 3, loop: false },
     cta: { enabled: false, title: "", subtitle: "", buttonText: "", buttonUrl: "" },
     backgroundMusic: { key: null, url: null, volume: 0.5 },
+    voice: DEFAULT_VOICE_SETTINGS,
   },
   feedback: { allowReactions: false, allowComments: false },
 };
@@ -204,6 +253,14 @@ export function resolveCustomization(
       backgroundMusic: {
         ...d.walkthroughView.backgroundMusic,
         ...w.backgroundMusic,
+      },
+      voice: {
+        ...d.walkthroughView.voice,
+        ...w.voice,
+        voiceByLanguage: {
+          ...d.walkthroughView.voice.voiceByLanguage,
+          ...w.voice?.voiceByLanguage,
+        },
       },
     },
     feedback: { ...d.feedback, ...c.feedback },
