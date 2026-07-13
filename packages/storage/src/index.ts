@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
@@ -93,6 +94,12 @@ export async function putObject(
       ContentType: contentType,
     })
   );
+}
+
+/** Delete an object (garbage-collecting orphaned renders). Idempotent. */
+export async function deleteObject(key: string): Promise<void> {
+  const { client, bucket } = getClient();
+  await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }));
 }
 
 /** Whether an object exists (used to cache content-addressed artifacts). */

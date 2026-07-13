@@ -7,6 +7,8 @@ import {
   CircleDot,
   Crosshair,
   MousePointer2,
+  Pause,
+  Play,
   SquareDashed,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -197,6 +199,17 @@ export function CustomizeGuideDialog({
   const logoInputRef = React.useRef<HTMLInputElement>(null)
   const [musicUploading, setMusicUploading] = React.useState(false)
   const musicInputRef = React.useRef<HTMLInputElement>(null)
+  const musicPreviewRef = React.useRef<HTMLAudioElement | null>(null)
+  const [musicPlaying, setMusicPlaying] = React.useState(false)
+  React.useEffect(() => () => musicPreviewRef.current?.pause(), [])
+  // Stop the preview whenever the dialog closes (it stays mounted, so the
+  // unmount cleanup above isn't enough).
+  React.useEffect(() => {
+    if (!open) {
+      musicPreviewRef.current?.pause()
+      setMusicPlaying(false)
+    }
+  }, [open])
 
   // Immutable section updaters.
   const g = draft.general
@@ -204,6 +217,31 @@ export function CustomizeGuideDialog({
   const s = draft.scrollView
   const w = draft.walkthroughView
   const f = draft.feedback
+
+  // Preview the background music at the current volume (audition + set level).
+  const musicUrl = w.backgroundMusic.url
+  const musicVolume = w.backgroundMusic.volume
+  React.useEffect(() => {
+    if (musicPreviewRef.current) musicPreviewRef.current.volume = musicVolume
+  }, [musicVolume])
+  function toggleMusicPreview() {
+    const existing = musicPreviewRef.current
+    if (existing && !existing.paused) {
+      existing.pause()
+      setMusicPlaying(false)
+      return
+    }
+    if (!musicUrl) return
+    const el = existing?.src === musicUrl ? existing : new Audio(musicUrl)
+    el.loop = true
+    el.volume = musicVolume
+    el.onpause = () => setMusicPlaying(false)
+    musicPreviewRef.current = el
+    void el
+      .play()
+      .then(() => setMusicPlaying(true))
+      .catch(() => setMusicPlaying(false))
+  }
   const setGeneral = (v: Partial<GuideCustomization["general"]>) =>
     setDraft((d) => ({ ...d, general: { ...d.general, ...v } }))
   const setBrand = (v: Partial<GuideCustomization["brand"]>) =>
@@ -553,6 +591,18 @@ export function CustomizeGuideDialog({
                 </Field>
                 {w.backgroundMusic.url && (
                   <div className="mt-1 flex items-center gap-3 rounded-lg bg-muted/50 p-4">
+                    <button
+                      type="button"
+                      aria-label={musicPlaying ? "Pause preview" : "Play preview"}
+                      onClick={toggleMusicPreview}
+                      className="bg-primary text-primary-foreground grid size-8 shrink-0 place-items-center rounded-full transition hover:opacity-90"
+                    >
+                      {musicPlaying ? (
+                        <Pause className="size-4" />
+                      ) : (
+                        <Play className="size-4" />
+                      )}
+                    </button>
                     <span className="text-sm whitespace-nowrap">Volume</span>
                     <input
                       type="range"

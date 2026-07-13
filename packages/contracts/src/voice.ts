@@ -189,8 +189,8 @@ export function computeNarrationStaleness(
 
 // ── Background job contract ───────────────────────────────────────────────────
 // The shared contract between the API (producer) and the worker (consumer),
-// mirroring CAPTURE_QUEUE / CaptureJobData. Handlers are wired per phase:
-// `narration.generate` (Phase 2), `voice.synthesize` + `voice.build` (Phase 3).
+// mirroring CAPTURE_QUEUE / CaptureJobData: `translation.generate`,
+// `narration.generate`, and per-segment `voice.synthesize`.
 
 /** Translation generation queue — whole-guide translation runs async on the
  *  worker so the editor never blocks for minutes. Per-field re-translation stays
@@ -223,12 +223,6 @@ export const voiceJobSchema = z.discriminatedUnion("kind", [
     guideId: z.string(),
     language: z.string(),
     anchorKey: z.string(),
-  }),
-  /** Orchestrate a whole (guide, language) build: narration → synthesis. */
-  z.object({
-    kind: z.literal("voice.build"),
-    guideId: z.string(),
-    language: z.string(),
   }),
 ]);
 export type VoiceJobData = z.infer<typeof voiceJobSchema>;

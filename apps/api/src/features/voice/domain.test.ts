@@ -27,6 +27,7 @@ import {
   voiceOption,
 } from "@workspace/contracts/voice";
 import { prisma } from "@workspace/db";
+import { collectOrphanRenders } from "@workspace/generation";
 
 /**
  * Voice subsystem — Phase 1 regression (domain + settings + provider + jobs).
@@ -38,6 +39,16 @@ let failures = 0;
 function test(name: string, fn: () => void) {
   try {
     fn();
+    console.log(`  ✓ ${name}`);
+  } catch (err) {
+    failures++;
+    console.error(`  ✗ ${name}`);
+    console.error(err instanceof Error ? err.message : err);
+  }
+}
+async function atest(name: string, fn: () => Promise<void>) {
+  try {
+    await fn();
     console.log(`  ✓ ${name}`);
   } catch (err) {
     failures++;
@@ -130,14 +141,6 @@ async function main() {
         guideId: "g",
         language: "en",
         anchorKey: "k1",
-      }).success,
-      true
-    );
-    assert.equal(
-      voiceJobSchema.safeParse({
-        kind: "voice.build",
-        guideId: "g",
-        language: "en",
       }).success,
       true
     );
@@ -250,6 +253,62 @@ async function main() {
     assert.equal(typeof prisma.narrationSegment.findMany, "function");
     assert.equal(typeof prisma.mediaRender.findMany, "function");
     assert.equal(typeof prisma.segmentRenderRef.findMany, "function");
+  });
+
+  await atest("collectOrphanRenders removes only unreferenced renders", async () => {
+    const guide = await prisma.guide.findFirst({
+      where: { deletedAt: null },
+      select: { id: true },
+    });
+    if (!guide) {
+      console.log("    (skipped: no guide)");
+      return;
+    }
+    const gid = guide.id;
+    const tag = `__gc_test_${process.pid}__`;
+
+    // An orphan render (no segment ref) + a referenced one.
+    const orphan = await prisma.mediaRender.create({
+      data: { guideId: gid, renderHash: `${tag}orphan`, kind: "audio", provider: "x", voiceId: "v", format: "mp3", status: "ready" },
+      select: { id: true },
+    });
+    const nar = await prisma.narration.create({
+      data: { guideId: gid, language: tag, status: "ready" },
+      select: { id: true },
+    });
+    const seg = await prisma.narrationSegment.create({
+      data: { narrationId: nar.id, anchorKey: "k", text: "t" },
+      select: { id: true },
+    });
+    const kept = await prisma.mediaRender.create({
+      data: { guideId: gid, renderHash: `${tag}kept`, kind: "audio", provider: "x", voiceId: "v", format: "mp3", status: "ready" },
+      select: { id: true },
+    });
+    await prisma.segmentRenderRef.create({
+      data: { segmentId: seg.id, kind: "audio", renderId: kept.id },
+    });
+    // Backdate past the grace window so the default sweep considers them.
+    await prisma.$executeRawUnsafe(
+      `UPDATE media_render SET "updatedAt" = now() - interval '2 hours' WHERE id = $1 OR id = $2`,
+      orphan.id,
+      kept.id
+    );
+
+    await collectOrphanRenders();
+
+    assert.equal(
+      await prisma.mediaRender.findUnique({ where: { id: orphan.id } }),
+      null,
+      "orphan render should be deleted"
+    );
+    assert.notEqual(
+      await prisma.mediaRender.findUnique({ where: { id: kept.id } }),
+      null,
+      "referenced render should be kept"
+    );
+
+    await prisma.narration.deleteMany({ where: { guideId: gid, language: tag } });
+    await prisma.mediaRender.deleteMany({ where: { id: kept.id } });
   });
 
   await prisma.$disconnect();

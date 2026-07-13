@@ -167,6 +167,9 @@ export function InteractiveView({
   React.useEffect(() => setAudioErrored(false), [currentFrameId])
   const currentAudio = audioErrored ? null : rawAudio
   const [speaking, setSpeaking] = React.useState(false)
+  // The walkthrough has a voiceover → the Play control must be available even
+  // when timer-autoplay is off (that's the only way to start narration).
+  const hasNarration = !!narration && Object.keys(narration).length > 0
 
   const duckMusic = React.useCallback(
     (on: boolean) => {
@@ -340,10 +343,14 @@ export function InteractiveView({
           )}
         </ChromeButton>
       )}
-      {autoplay.enabled && (
+      {(autoplay.enabled || hasNarration) && (
         <ChromeButton
-          label={playing ? "Pause" : "Play"}
-          onClick={() => setPlaying((p) => !p)}
+          label={playing ? "Pause" : hasNarration ? "Play voiceover" : "Play"}
+          onClick={() => {
+            // Starting from the last frame → restart so the whole thing plays.
+            if (!playing && index >= frames.length - 1) setIndex(0)
+            setPlaying((p) => !p)
+          }}
         >
           {playing ? (
             <Pause className="size-3.5" />

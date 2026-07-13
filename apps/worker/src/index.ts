@@ -16,6 +16,7 @@ import {
 import { createElevenLabsProvider, registerSpeechProvider } from "@workspace/ai";
 import { prisma } from "@workspace/db";
 import {
+  collectOrphanRenders,
   generateNarrationForGuide,
   generateTranslation,
   setNarrationStatus,
@@ -95,19 +96,23 @@ const voiceWorker = new Worker<VoiceJobData>(
   async (job) => {
     const data = voiceJobSchema.parse(job.data);
     if (data.kind === "narration.generate") {
+      const t0 = Date.now();
       await generateNarrationForGuide(data.guideId, data.language, {
         anchorKey: data.anchorKey,
         force: data.force,
       });
       await setNarrationStatus(data.guideId, data.language, "ready");
+      console.log(
+        `narration.generate ${data.guideId}/${data.language} in ${Date.now() - t0}ms`
+      );
       return;
     }
-    if (data.kind === "voice.synthesize") {
-      await synthesizeSegmentAudio(data.guideId, data.language, data.anchorKey);
-      return;
-    }
-    // voice.build orchestration is unused — the API fans out synthesize jobs.
-    throw new Error(`voice job "${data.kind}" is not enqueued`);
+    // voice.synthesize
+    const t0 = Date.now();
+    await synthesizeSegmentAudio(data.guideId, data.language, data.anchorKey);
+    console.log(
+      `voice.synthesize ${data.guideId}/${data.language}/${data.anchorKey} in ${Date.now() - t0}ms`
+    );
   },
   { connection, concurrency: 4, stalledInterval: 30_000, maxStalledCount: 2 }
 );
@@ -165,10 +170,25 @@ translationWorker.on("ready", () =>
 // uploads, jobs lost while the worker was down).
 const reaperTimer = startReaper();
 
+// Periodic GC of audio renders no segment resolves to anymore (superseded by a
+// voice/text change). A grace window keeps in-flight builds safe.
+const VOICE_GC_INTERVAL_MS = 30 * 60 * 1000;
+async function sweepVoiceRenders() {
+  try {
+    const removed = await collectOrphanRenders();
+    if (removed > 0) console.log(`voice GC: removed ${removed} orphan render(s)`);
+  } catch (err) {
+    console.error("voice GC failed:", err instanceof Error ? err.message : err);
+  }
+}
+const voiceGcTimer = setInterval(() => void sweepVoiceRenders(), VOICE_GC_INTERVAL_MS);
+void sweepVoiceRenders();
+
 /** Graceful shutdown: finish in-flight jobs, then close connections. */
 async function shutdown(signal: string) {
   console.log(`${signal} received — shutting down…`);
   clearInterval(reaperTimer);
+  clearInterval(voiceGcTimer);
   await Promise.all([
     worker.close(),
     voiceWorker.close(),

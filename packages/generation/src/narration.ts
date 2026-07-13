@@ -246,12 +246,16 @@ export async function getPublishedNarrationByLanguage(
     where: { guideId, published: true },
     select: { language: true },
   });
+  // Resolve every language's playback map in parallel (one reader request).
+  const maps = await Promise.all(
+    narrations.map(async (n) => ({
+      language: n.language,
+      map: await getNarrationPlayback(guideId, n.language, { published: true }),
+    }))
+  );
   const out: Record<string, NarrationPlayback> = {};
-  for (const n of narrations) {
-    const map = await getNarrationPlayback(guideId, n.language, {
-      published: true,
-    });
-    if (Object.keys(map).length > 0) out[n.language] = map;
+  for (const { language, map } of maps) {
+    if (Object.keys(map).length > 0) out[language] = map;
   }
   return out;
 }

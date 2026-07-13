@@ -16,7 +16,12 @@ import type {
   NarrationAudioSummary,
 } from "@workspace/contracts/voice";
 import { prisma } from "@workspace/db";
-import { objectExists, presignGet, putObject } from "@workspace/storage";
+import {
+  deleteObject,
+  objectExists,
+  presignGet,
+  putObject,
+} from "@workspace/storage";
 
 /**
  * Audio rendering — the disposable, content-addressed artifact layer over
@@ -25,6 +30,38 @@ import { objectExists, presignGet, putObject } from "@workspace/storage";
  * change mints a new one. Synthesis runs per segment on the worker (retries +
  * partial failures); the API only prepares + enqueues.
  */
+
+/**
+ * Delete audio renders no segment resolves to anymore (superseded by a voice/
+ * text change) — their R2 objects and rows. A grace window protects in-flight
+ * builds and renders referenced during a re-link. Returns how many were removed.
+ * Global sweep; run periodically from the worker.
+ */
+export async function collectOrphanRenders(
+  opts: { graceMs?: number; limit?: number } = {}
+): Promise<number> {
+  const graceMs = opts.graceMs ?? 60 * 60 * 1000; // 1 hour
+  const cutoff = new Date(Date.now() - graceMs);
+  const orphans = await prisma.mediaRender.findMany({
+    where: {
+      refs: { none: {} }, // referenced by no segment
+      status: { not: "pending" }, // never mid-synthesis
+      updatedAt: { lt: cutoff },
+    },
+    select: { id: true, r2Key: true },
+    take: opts.limit ?? 500,
+  });
+  if (orphans.length === 0) return 0;
+  await Promise.all(
+    orphans
+      .filter((o) => o.r2Key)
+      .map((o) => deleteObject(o.r2Key!).catch(() => {}))
+  );
+  await prisma.mediaRender.deleteMany({
+    where: { id: { in: orphans.map((o) => o.id) } },
+  });
+  return orphans.length;
+}
 
 /** A short sample so authors can audition a voice before committing. */
 const PREVIEW_TEXT =

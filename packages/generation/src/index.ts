@@ -1,5 +1,6 @@
 export { sanitizeContent } from "./sanitize.js";
 export {
+  collectOrphanRenders,
   getVoicePreview,
   loadAudioStatus,
   prepareAudioBuild,
