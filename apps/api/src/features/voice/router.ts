@@ -30,6 +30,14 @@ export const voiceRouter: Router = Router();
 
 const idParamSchema = z.object({ id: z.string() });
 const languageQuerySchema = z.object({ language: z.string().optional() });
+const exportQuerySchema = z.object({
+  language: z.string().optional(),
+  // Query params are strings; treat "true" as silent (no voiceover).
+  silent: z
+    .union([z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((v) => v === "true"),
+});
 const generateBodySchema = z.object({ force: z.boolean().optional() });
 const editBodySchema = z.object({ text: z.string() });
 
@@ -58,7 +66,8 @@ voiceRouter.get(
 
 // ── Video export ──────────────────────────────────────────────────────────
 // Languages whose video export would carry voiceover (audio ready). The web
-// menu offers video only for these (+ the base language).
+// video menu offers these; the base language / "no voiceover" are added client-
+// side.
 voiceRouter.get(
   "/api/guides/:id/export/video/languages",
   requireAuth,
@@ -70,16 +79,19 @@ voiceRouter.get(
   }
 );
 
-// Read the export status (presigned MP4 URL when ready).
+// Read the export status (presigned MP4 URL when ready). `silent=true` reads the
+// no-voiceover variant.
 voiceRouter.get(
   "/api/guides/:id/export/video",
   requireAuth,
   requireWorkspace,
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
-    const { language } = languageQuerySchema.parse(req.query);
+    const { language, silent } = exportQuerySchema.parse(req.query);
     await assertGuide(id, req.workspace!.id);
-    res.json({ export: await getVideoExport(id, language ?? BASE_LANGUAGE) });
+    res.json({
+      export: await getVideoExport(id, language ?? BASE_LANGUAGE, silent),
+    });
   }
 );
 
@@ -90,16 +102,17 @@ voiceRouter.post(
   requireWorkspace,
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
-    const { language } = languageQuerySchema.parse(req.query);
+    const { language, silent } = exportQuerySchema.parse(req.query);
     await assertGuide(id, req.workspace!.id);
     const lang = language ?? BASE_LANGUAGE;
-    await markVideoExportGenerating(id, lang);
+    await markVideoExportGenerating(id, lang, silent);
     await exportQueue.add("export", {
       kind: "video.export",
       guideId: id,
       language: lang,
+      silent,
     });
-    res.json({ export: await getVideoExport(id, lang) });
+    res.json({ export: await getVideoExport(id, lang, silent) });
   }
 );
 

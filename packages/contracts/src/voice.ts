@@ -39,6 +39,8 @@ export const exportJobSchema = z.object({
   kind: z.literal("video.export"),
   guideId: z.string(),
   language: z.string(),
+  /** Compose with no audio at all (no voiceover, no music). */
+  silent: z.boolean().default(false),
 });
 export type ExportJobData = z.infer<typeof exportJobSchema>;
 

@@ -42,6 +42,62 @@ function stripHtml(html: string): string {
   return (el.textContent ?? "").trim()
 }
 
+// Characters jsPDF's built-in (WinAnsi / CP1252) font can render beyond Latin-1
+// — smart quotes, dashes, etc. Anything else (CJK, Devanagari, Arabic…) comes
+// out as garbage, so those strings are rendered as canvas images instead.
+const CP1252_EXTRA = new Set([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030,
+  0x0160, 0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
+  0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+])
+
+function pdfFontRenderable(text: string): boolean {
+  for (const ch of text) {
+    const c = ch.codePointAt(0)!
+    if (c === 0x09 || c === 0x0a || c === 0x0d) continue
+    if (c >= 0x20 && c <= 0xff) continue
+    if (CP1252_EXTRA.has(c)) continue
+    return false
+  }
+  return true
+}
+
+/** Word-wrap for canvas rendering, falling back to per-character breaks for
+ *  space-less scripts (CJK). Measures with the given 2D context. */
+function wrapCanvas(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxW: number
+): string[] {
+  const lines: string[] = []
+  let line = ""
+  const addWord = (word: string) => {
+    const candidate = line ? `${line} ${word}` : word
+    if (ctx.measureText(candidate).width <= maxW) {
+      line = candidate
+      return
+    }
+    if (line) {
+      lines.push(line)
+      line = ""
+    }
+    if (ctx.measureText(word).width <= maxW) {
+      line = word
+      return
+    }
+    for (const ch of word) {
+      if (line && ctx.measureText(line + ch).width > maxW) {
+        lines.push(line)
+        line = ""
+      }
+      line += ch
+    }
+  }
+  for (const word of text.split(/\s+/).filter(Boolean)) addWord(word)
+  if (line) lines.push(line)
+  return lines.length ? lines : [""]
+}
+
 async function loadImage(url: string): Promise<HTMLImageElement> {
   // Fetch through the same-origin proxy so the canvas is never tainted.
   const proxied = `/img-proxy?url=${encodeURIComponent(url)}`
@@ -233,14 +289,42 @@ export async function downloadGuidePdf(guide: {
     weight: "normal" | "bold",
     rgb: Rgb
   ) {
-    pdf.setFont("helvetica", weight)
-    pdf.setFontSize(size)
-    pdf.setTextColor(rgb[0], rgb[1], rgb[2])
     const lineH = size * 1.35
-    const lines = pdf.splitTextToSize(text, contentW) as string[]
-    ensureSpace(lines.length * lineH + 4)
-    pdf.text(lines, startX, y + size, { align, maxWidth: contentW })
-    y += lines.length * lineH + 8
+    // Latin scripts → native (selectable) PDF text.
+    if (pdfFontRenderable(text)) {
+      pdf.setFont("helvetica", weight)
+      pdf.setFontSize(size)
+      pdf.setTextColor(rgb[0], rgb[1], rgb[2])
+      const lines = pdf.splitTextToSize(text, contentW) as string[]
+      ensureSpace(lines.length * lineH + 4)
+      pdf.text(lines, startX, y + size, { align, maxWidth: contentW })
+      y += lines.length * lineH + 8
+      return
+    }
+    // Non-Latin (CJK, Devanagari, Arabic…) → render with the browser's system
+    // fonts to a canvas, then place it as an image (jsPDF's font can't).
+    const SCALE = 3 // supersample for crisp text
+    const font = `${weight === "bold" ? "bold " : ""}${Math.round(size * SCALE)}px system-ui, -apple-system, "Segoe UI", "Noto Sans", sans-serif`
+    const maxW = contentW * SCALE
+    const measure = document.createElement("canvas").getContext("2d")!
+    measure.font = font
+    const lines = wrapCanvas(measure, text, maxW)
+    const canvas = document.createElement("canvas")
+    canvas.width = Math.ceil(maxW)
+    canvas.height = Math.ceil(lines.length * lineH * SCALE)
+    const ctx = canvas.getContext("2d")!
+    ctx.font = font
+    ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`
+    ctx.textBaseline = "alphabetic"
+    ctx.textAlign = rtl ? "right" : "left"
+    const tx = rtl ? maxW : 0
+    lines.forEach((ln, i) =>
+      ctx.fillText(ln, tx, i * lineH * SCALE + size * SCALE)
+    )
+    const drawH = lines.length * lineH
+    ensureSpace(drawH + 4)
+    pdf.addImage(canvas.toDataURL("image/png"), "PNG", margin, y, contentW, drawH)
+    y += drawH + 8
   }
 
   // Brand logo header.

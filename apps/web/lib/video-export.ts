@@ -4,13 +4,16 @@ import { BASE_LANGUAGE, type VideoExportView } from "@workspace/contracts/voice"
 
 import { api } from "@/lib/api"
 
-function exportKey(guideId: string, language: string) {
-  return ["video-export", guideId, language]
+function exportKey(guideId: string, language: string, silent: boolean) {
+  return ["video-export", guideId, language, silent]
+}
+
+function exportParams(language: string, silent: boolean) {
+  return { language, ...(silent ? { silent: "true" } : {}) }
 }
 
 /** Languages whose video export carries voiceover (audio ready). The base
- *  language is always downloadable (silent if it has no voiceover), so it's not
- *  included here — the caller adds it. */
+ *  language and the "no voiceover" option are added by the caller. */
 export function useVoiceoverLanguages(guideId: string) {
   return useQuery({
     queryKey: ["voiceover-languages", guideId],
@@ -24,14 +27,19 @@ export function useVoiceoverLanguages(guideId: string) {
   })
 }
 
-/** Poll the video-export status for a guide/language while it's rendering. */
-export function useVideoExport(guideId: string, language = BASE_LANGUAGE) {
+/** Poll the video-export status for a guide/language while it's rendering.
+ *  `silent` targets the no-voiceover variant. */
+export function useVideoExport(
+  guideId: string,
+  language = BASE_LANGUAGE,
+  silent = false
+) {
   return useQuery({
-    queryKey: exportKey(guideId, language),
+    queryKey: exportKey(guideId, language, silent),
     queryFn: async () => {
       const { data } = await api.get<{ export: VideoExportView }>(
         `/guides/${guideId}/export/video`,
-        { params: { language } }
+        { params: exportParams(language, silent) }
       )
       return data.export
     },
@@ -42,15 +50,19 @@ export function useVideoExport(guideId: string, language = BASE_LANGUAGE) {
 }
 
 /** Kick off an async video export (composed on the worker). */
-export function useGenerateVideo(guideId: string, language = BASE_LANGUAGE) {
+export function useGenerateVideo(
+  guideId: string,
+  language = BASE_LANGUAGE,
+  silent = false
+) {
   const queryClient = useQueryClient()
-  const key = exportKey(guideId, language)
+  const key = exportKey(guideId, language, silent)
   return useMutation({
     mutationFn: async () => {
       const { data } = await api.post<{ export: VideoExportView }>(
         `/guides/${guideId}/export/video`,
         null,
-        { params: { language } }
+        { params: exportParams(language, silent) }
       )
       return data.export
     },

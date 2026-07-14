@@ -6,10 +6,7 @@ import { toast } from "sonner"
 import { TRANSLATION_LANGUAGES } from "@workspace/contracts/guide"
 import { BASE_LANGUAGE } from "@workspace/contracts/voice"
 
-import {
-  useGuideTranslations,
-  type GuideTranslationFull,
-} from "@/lib/guides"
+import { useGuideTranslations } from "@/lib/guides"
 import {
   useGenerateVideo,
   useVideoExport,
@@ -23,75 +20,54 @@ export function exportLangLabel(code: string): string {
     : (TRANSLATION_LANGUAGES.find((l) => l.code === code)?.name ?? code)
 }
 
-/** Published, ready translations for the guide (shared by both language lists). */
-function usePublishedTranslations(guideId: string): GuideTranslationFull[] {
-  const { data } = useGuideTranslations(guideId)
-  return React.useMemo(
-    () => (data ?? []).filter((t) => t.published && t.status === "ready"),
-    [data]
-  )
-}
-
 /**
- * Languages to offer for VIDEO: the base language (always — a silent video is
- * still valid) plus any translation that actually has voiceover audio, so we
- * never list a language whose video would be silent.
- */
-export function useVideoLanguages(guideId: string): string[] {
-  const translations = usePublishedTranslations(guideId)
-  const { data: voiceover } = useVoiceoverLanguages(guideId)
-  return React.useMemo(() => {
-    const ready = new Set(voiceover ?? [])
-    return [
-      BASE_LANGUAGE,
-      ...translations
-        .filter((t) => ready.has(t.language))
-        .map((t) => t.language),
-    ]
-  }, [translations, voiceover])
-}
-
-// Characters jsPDF's built-in (WinAnsi / CP1252) font can render beyond
-// Latin-1 — smart quotes, dashes, etc. Anything else (CJK, Devanagari, Arabic,
-// Cyrillic…) comes out as garbage, so we don't offer PDF for it.
-const CP1252_EXTRA = new Set([
-  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030,
-  0x0160, 0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022,
-  0x2013, 0x2014, 0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
-])
-
-function pdfRenderable(text: string): boolean {
-  for (const ch of text) {
-    const c = ch.codePointAt(0)!
-    if (c === 0x09 || c === 0x0a || c === 0x0d) continue // whitespace
-    if (c >= 0x20 && c <= 0xff) continue // ASCII + Latin-1
-    if (CP1252_EXTRA.has(c)) continue
-    return false
-  }
-  return true
-}
-
-/**
- * Languages to offer for PDF: the base language plus any translation whose text
- * the built-in PDF font can actually render (Latin scripts). Non-Latin
- * translations are omitted — the video export covers them instead.
+ * Languages to offer for PDF: the base language plus every published
+ * translation (the PDF renders the translated content, including non-Latin
+ * scripts).
  */
 export function usePdfLanguages(guideId: string): string[] {
-  const translations = usePublishedTranslations(guideId)
+  const { data: translations } = useGuideTranslations(guideId)
   return React.useMemo(
     () => [
       BASE_LANGUAGE,
-      ...translations
-        .filter(
-          (t) =>
-            pdfRenderable(t.title) &&
-            pdfRenderable(t.summary ?? "") &&
-            Object.values(t.steps).every(pdfRenderable)
-        )
+      ...(translations ?? [])
+        .filter((t) => t.published && t.status === "ready")
         .map((t) => t.language),
     ],
     [translations]
   )
+}
+
+/** A single "Download video" choice. */
+export type VideoDownloadItem = {
+  key: string
+  label: string
+  language: string
+  silent: boolean
+}
+
+/**
+ * Video download choices: one per language that has voiceover audio (so the
+ * video actually has narration), plus a "Without voiceover" (silent) option.
+ * Languages without voiceover are intentionally omitted.
+ */
+export function useVideoDownloadItems(guideId: string): VideoDownloadItem[] {
+  const { data: voiceover } = useVoiceoverLanguages(guideId)
+  return React.useMemo(() => {
+    const items: VideoDownloadItem[] = (voiceover ?? []).map((code) => ({
+      key: code,
+      label: exportLangLabel(code),
+      language: code,
+      silent: false,
+    }))
+    items.push({
+      key: "__novoice__",
+      label: "Without voiceover",
+      language: BASE_LANGUAGE,
+      silent: true,
+    })
+    return items
+  }, [voiceover])
 }
 
 function triggerDownload(url: string) {
@@ -103,23 +79,25 @@ function triggerDownload(url: string) {
 }
 
 /**
- * Headless controller: mount it (with a stable `key={language}`) when the user
- * asks to download a language's video. It downloads immediately if the render
- * is ready, otherwise kicks off the worker render and downloads the moment it
- * settles — then calls `onDone`. It lives outside the menu so it survives the
- * menu closing while the worker renders.
+ * Headless controller: mount it (with a stable `key`) when the user asks to
+ * download a video. It downloads immediately if the render is ready, otherwise
+ * kicks off the worker render and downloads the moment it settles — then calls
+ * `onDone`. Lives outside the menu so it survives the menu closing while the
+ * worker renders.
  */
 export function VideoAutoDownload({
   guideId,
   language,
+  silent,
   onDone,
 }: {
   guideId: string
   language: string
+  silent: boolean
   onDone: () => void
 }) {
-  const { data: exp } = useVideoExport(guideId, language)
-  const generate = useGenerateVideo(guideId, language)
+  const { data: exp } = useVideoExport(guideId, language, silent)
+  const generate = useGenerateVideo(guideId, language, silent)
   const phase = React.useRef<"init" | "waiting" | "done">("init")
 
   React.useEffect(() => {

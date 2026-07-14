@@ -77,7 +77,8 @@ const ENCODE_TAIL = [
 
 export async function composeGuideVideo(
   guideId: string,
-  language: string
+  language: string,
+  silent = false
 ): Promise<void> {
   const [items, style] = await Promise.all([
     gatherVideoInputs(guideId, language),
@@ -87,11 +88,12 @@ export async function composeGuideVideo(
     await setVideoExportFailed(
       guideId,
       language,
+      silent,
       "No steps with screenshots to export"
     );
     return;
   }
-  const sourceHash = videoSourceHash(items, style);
+  const sourceHash = videoSourceHash(items, style, silent);
   const dir = await mkdtemp(join(tmpdir(), "tacto-video-"));
   try {
     const segPaths: string[] = [];
@@ -100,12 +102,14 @@ export async function composeGuideVideo(
       const item = items[i]!;
       const segPath = join(dir, `seg${i}.mp4`);
 
-      // Resolve narration audio (shared by steps + slides).
+      // Resolve narration audio (shared by steps + slides). A silent export
+      // (no voiceover requested) drops all narration audio.
+      const audioKey = silent ? null : item.audioKey;
       let audioPath: string | null = null;
       let audioLen = 0;
-      if (item.audioKey) {
+      if (audioKey) {
         audioPath = join(dir, `audio${i}.mp3`);
-        await writeFile(audioPath, await getObjectBytes(item.audioKey));
+        await writeFile(audioPath, await getObjectBytes(audioKey));
         audioLen = (await probe(audioPath)).durationSec;
       }
       const audioArgs = audioPath
@@ -169,7 +173,10 @@ export async function composeGuideVideo(
             writeFile(join(stepDir, `f${String(k).padStart(4, "0")}.png`), f)
           )
         );
-        const dur = Math.max(audioLen + AUDIO_TAIL_SEC, INTRO_SEC);
+        // With audio: hold for the narration. Without (silent/partial): a
+        // readable default hold, never shorter than the intro animation.
+        const holdBase = audioPath ? audioLen + AUDIO_TAIL_SEC : DEFAULT_HOLD_SEC;
+        const dur = Math.max(holdBase, INTRO_SEC);
         const holdDur = dur - INTRO_SEC;
         await runFfmpeg([
           "-framerate",
@@ -223,8 +230,9 @@ export async function composeGuideVideo(
     ]);
 
     // Mix background music under the narration (ducked while narration plays).
+    // A silent export carries no audio at all — skip music too.
     let outPath = concatPath;
-    if (style.musicKey && style.musicVolume > 0) {
+    if (!silent && style.musicKey && style.musicVolume > 0) {
       const musicPath = join(dir, "music.mp3");
       await writeFile(musicPath, await getObjectBytes(style.musicKey));
       // Hard-cap the output at the video length so the looping music can't run
@@ -261,10 +269,10 @@ export async function composeGuideVideo(
     }
 
     const bytes = await readFile(outPath);
-    const r2Key = `exports/${guideId}/${language}.mp4`;
+    const r2Key = `exports/${guideId}/${language}${silent ? "-novoice" : ""}.mp4`;
     await putObject(r2Key, bytes, "video/mp4");
     const total = await probe(outPath);
-    await setVideoExportResult(guideId, language, {
+    await setVideoExportResult(guideId, language, silent, {
       r2Key,
       sourceHash,
       sizeBytes: bytes.byteLength,
@@ -274,6 +282,7 @@ export async function composeGuideVideo(
     await setVideoExportFailed(
       guideId,
       language,
+      silent,
       err instanceof Error ? err.message : "video export failed"
     );
     throw err;

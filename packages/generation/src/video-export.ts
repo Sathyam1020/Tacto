@@ -64,8 +64,9 @@ export type VideoStyle = {
   musicVolume: number;
 };
 
-function exportHashKey(language: string): string {
-  return `export:${language}`;
+/** A "silent" export (no voiceover) is a distinct render from the voiced one. */
+function exportHashKey(language: string, silent = false): string {
+  return `export:${language}${silent ? "|novoice" : ""}`;
 }
 
 /** Languages that have narration audio ready — i.e. a video export in that
@@ -196,29 +197,37 @@ export async function gatherVideoInputs(
 /** Content fingerprint of the inputs — changes when a screenshot, audio,
  *  caption, click point, order, or brand style changes, so we can tell a ready
  *  video is out of date. All of these are baked into the composed frames. */
-export function videoSourceHash(items: VideoItem[], style: VideoStyle): string {
+export function videoSourceHash(
+  items: VideoItem[],
+  style: VideoStyle,
+  silent = false
+): string {
   const stepPart = items
     .map((s) => {
+      // A silent export ignores audio, so don't fingerprint it.
+      const audio = silent ? "" : (s.audioKey ?? "");
       if (s.kind === "slide") {
-        return `slide:${s.slideKind}|${s.audioKey ?? ""}|${s.title}|${s.subtitle}|${JSON.stringify(s.appearance)}`;
+        return `slide:${s.slideKind}|${audio}|${s.title}|${s.subtitle}|${JSON.stringify(s.appearance)}`;
       }
       const r = s.clickRect;
       const rect = r ? `${r.x},${r.y},${r.w},${r.h}` : "";
-      return `${s.screenshotKey}|${s.audioKey ?? ""}|${rect}|${s.text}`;
+      return `${s.screenshotKey}|${audio}|${rect}|${s.text}`;
     })
     .join("\n");
-  const stylePart = `${style.brandColor}|${style.hotspotType}|${style.hotspotSize}|${style.musicKey ?? ""}|${style.musicVolume}`;
+  const stylePart = `${silent ? "novoice|" : ""}${style.brandColor}|${style.hotspotType}|${style.hotspotSize}|${style.musicKey ?? ""}|${style.musicVolume}`;
   return narrationSourceFingerprint(`${stylePart}\n${stepPart}`);
 }
 
-/** Read the export status for a language (presigns the MP4 when ready). */
+/** Read the export status for a language (presigns the MP4 when ready).
+ *  `silent` reads the no-voiceover variant. */
 export async function getVideoExport(
   guideId: string,
-  language: string
+  language: string,
+  silent = false
 ): Promise<VideoExportView> {
   const row = await prisma.mediaRender.findUnique({
     where: {
-      guideId_renderHash: { guideId, renderHash: exportHashKey(language) },
+      guideId_renderHash: { guideId, renderHash: exportHashKey(language, silent) },
     },
     select: { status: true, r2Key: true, error: true, params: true },
   });
@@ -237,7 +246,7 @@ export async function getVideoExport(
       gatherVideoInputs(guideId, language),
       gatherVideoStyle(guideId),
     ]);
-    const currentHash = videoSourceHash(steps, style);
+    const currentHash = videoSourceHash(steps, style, silent);
     const builtHash = (row.params as { sourceHash?: string } | null)?.sourceHash;
     stale = builtHash !== currentHash;
   }
@@ -247,15 +256,16 @@ export async function getVideoExport(
 /** Mark the export as generating (API, before enqueuing). */
 export async function markVideoExportGenerating(
   guideId: string,
-  language: string
+  language: string,
+  silent = false
 ): Promise<void> {
   await prisma.mediaRender.upsert({
     where: {
-      guideId_renderHash: { guideId, renderHash: exportHashKey(language) },
+      guideId_renderHash: { guideId, renderHash: exportHashKey(language, silent) },
     },
     create: {
       guideId,
-      renderHash: exportHashKey(language),
+      renderHash: exportHashKey(language, silent),
       kind: "export-mp4",
       provider: "ffmpeg",
       voiceId: "",
@@ -271,11 +281,12 @@ export async function markVideoExportGenerating(
 export async function setVideoExportResult(
   guideId: string,
   language: string,
+  silent: boolean,
   data: { r2Key: string; sourceHash: string; sizeBytes: number; durationMs: number }
 ): Promise<void> {
   await prisma.mediaRender.update({
     where: {
-      guideId_renderHash: { guideId, renderHash: exportHashKey(language) },
+      guideId_renderHash: { guideId, renderHash: exportHashKey(language, silent) },
     },
     data: {
       status: "ready",
@@ -292,12 +303,13 @@ export async function setVideoExportResult(
 export async function setVideoExportFailed(
   guideId: string,
   language: string,
+  silent: boolean,
   error: string
 ): Promise<void> {
   await prisma.mediaRender
     .update({
       where: {
-        guideId_renderHash: { guideId, renderHash: exportHashKey(language) },
+        guideId_renderHash: { guideId, renderHash: exportHashKey(language, silent) },
       },
       data: { status: "failed", error: error.slice(0, 500) },
     })

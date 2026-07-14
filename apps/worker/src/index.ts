@@ -177,9 +177,9 @@ const exportWorker = new Worker<ExportJobData>(
   async (job) => {
     const data = exportJobSchema.parse(job.data);
     const t0 = Date.now();
-    await composeGuideVideo(data.guideId, data.language);
+    await composeGuideVideo(data.guideId, data.language, data.silent);
     console.log(
-      `video.export ${data.guideId}/${data.language} in ${Date.now() - t0}ms`
+      `video.export ${data.guideId}/${data.language}${data.silent ? " (silent)" : ""} in ${Date.now() - t0}ms`
     );
   },
   // ffmpeg is CPU-heavy — keep concurrency low.
@@ -194,6 +194,7 @@ exportWorker.on("failed", async (job, error) => {
     await setVideoExportFailed(
       parsed.data.guideId,
       parsed.data.language,
+      parsed.data.silent,
       error.message
     );
   }
