@@ -54,27 +54,27 @@ export function FaqSection({
   const [addOpen, setAddOpen] = React.useState(false)
   const [regenIndex, setRegenIndex] = React.useState<number | null>(null)
 
-  const userCount = faqs.filter((f) => f.source === "user").length
-  const aiCount = faqs.length - userCount
+  // An AI FAQ stays counted as AI even after editing (it still consumed one of
+  // the 5 AI slots). Users add their own on top.
+  const aiCount = faqs.filter((f) => f.source === "ai").length
   const busy = generate.isPending
-  // The AI authors up to MAX_AI_FAQS; users add their own on top of that.
-  const genCount = Math.min(MAX_AI_FAQS, MAX_FAQS - userCount)
-  const canGenerate = !busy && aiCount < MAX_AI_FAQS && genCount > 0
+  // Fill the remaining AI slots, bounded by the total cap.
+  const genCount = Math.min(MAX_AI_FAQS - aiCount, MAX_FAQS - faqs.length)
+  const canGenerate = !busy && genCount > 0
   const canAdd = faqs.length < MAX_FAQS
 
   function handleGenerate() {
     if (!canGenerate) return
-    const userFaqs = faqs.filter((f) => f.source === "user")
     generate.mutate(
-      { count: genCount, avoid: userFaqs.map((f) => f.question) },
+      // Append new AI FAQs, avoiding every existing question.
+      { count: genCount, avoid: faqs.map((f) => f.question) },
       {
         onSuccess: (aiFaqs) => {
           if (aiFaqs.length === 0) {
             toast.error("Couldn't generate FAQs for this guide")
             return
           }
-          // Replace AI FAQs, keep user FAQs.
-          onChange([...userFaqs, ...aiFaqs])
+          onChange([...faqs, ...aiFaqs])
           toast.success(`Generated ${aiFaqs.length} FAQ${aiFaqs.length === 1 ? "" : "s"}`)
         },
         onError: () => toast.error("Couldn't generate FAQs"),
@@ -110,8 +110,9 @@ export function FaqSection({
 
   function updateFaq(index: number, patch: Partial<Faq>) {
     const next = faqs.slice()
-    // Any manual edit promotes the FAQ to user-owned.
-    next[index] = { ...next[index]!, ...patch, source: "user" }
+    // Keep the source: an edited AI FAQ still counts as one of the 5 AI FAQs,
+    // and generation only appends (never overwrites), so edits are safe.
+    next[index] = { ...next[index]!, ...patch }
     onChange(next)
   }
 
