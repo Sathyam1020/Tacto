@@ -68,6 +68,35 @@ function exportHashKey(language: string): string {
   return `export:${language}`;
 }
 
+/** Languages that have narration audio ready — i.e. a video export in that
+ *  language would actually carry voiceover. The base language is offered
+ *  regardless (a silent video is still valid), so it's not required here. */
+export async function getVoiceoverLanguages(
+  guideId: string
+): Promise<string[]> {
+  const narrations = await prisma.narration.findMany({
+    where: { guideId },
+    select: {
+      language: true,
+      segments: {
+        select: {
+          renderRefs: {
+            where: { kind: "audio" },
+            select: { render: { select: { status: true } } },
+          },
+        },
+      },
+    },
+  });
+  return narrations
+    .filter((n) =>
+      n.segments.some((s) =>
+        s.renderRefs.some((r) => r.render?.status === "ready")
+      )
+    )
+    .map((n) => n.language);
+}
+
 /** Resolve the guide's brand accent + hotspot for the video overlay. */
 export async function gatherVideoStyle(guideId: string): Promise<VideoStyle> {
   const guide = await prisma.guide.findUnique({

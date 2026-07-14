@@ -6,6 +6,7 @@ import {
   generateNarrationForGuide,
   getNarration,
   getVideoExport,
+  getVoiceoverLanguages,
   getVoicePreview,
   markNarrationGenerating,
   markVideoExportGenerating,
@@ -56,6 +57,19 @@ voiceRouter.get(
 );
 
 // ── Video export ──────────────────────────────────────────────────────────
+// Languages whose video export would carry voiceover (audio ready). The web
+// menu offers video only for these (+ the base language).
+voiceRouter.get(
+  "/api/guides/:id/export/video/languages",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    await assertGuide(id, req.workspace!.id);
+    res.json({ languages: await getVoiceoverLanguages(id) });
+  }
+);
+
 // Read the export status (presigned MP4 URL when ready).
 voiceRouter.get(
   "/api/guides/:id/export/video",

@@ -51,6 +51,8 @@ import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
 import {
   exportLangLabel,
+  usePdfLanguages,
+  useVideoLanguages,
   VideoAutoDownload,
 } from "@/components/video-export-actions"
 import { authClient } from "@/lib/auth-client"
@@ -115,17 +117,12 @@ export default function GuidePage() {
   // The language whose video is currently being downloaded (null = none).
   const [videoLang, setVideoLang] = React.useState<string | null>(null)
   const clearVideoLang = React.useCallback(() => setVideoLang(null), [])
-  // Base language + any translation a reader can actually see.
   const { data: translations } = useGuideTranslations(params.id)
-  const exportLanguages = React.useMemo(
-    () => [
-      BASE_LANGUAGE,
-      ...(translations ?? [])
-        .filter((t) => t.published && t.status === "ready")
-        .map((t) => t.language),
-    ],
-    [translations]
-  )
+  // Video: base + translations with voiceover audio. PDF: base + translations
+  // whose script the PDF font can render. (Each format only offers what it can
+  // actually deliver.)
+  const videoLanguages = useVideoLanguages(params.id)
+  const pdfLanguages = usePdfLanguages(params.id)
   // Build the PDF for a language, swapping in translated content when needed.
   const downloadPdf = React.useCallback(
     (language: string) => {
@@ -170,7 +167,8 @@ export default function GuidePage() {
         <div className="flex items-center gap-2">
           {!lockedMode && <ViewModeToggle mode={mode} onChange={setMode} />}
           <GuideActionsMenu
-            languages={exportLanguages}
+            videoLanguages={videoLanguages}
+            pdfLanguages={pdfLanguages}
             busyLanguage={videoLang}
             onDownloadPdf={downloadPdf}
             onDownloadVideo={setVideoLang}
@@ -198,7 +196,8 @@ export default function GuidePage() {
       mode,
       lockedMode,
       params.id,
-      exportLanguages,
+      videoLanguages,
+      pdfLanguages,
       videoLang,
       downloadPdf,
     ]
@@ -362,21 +361,22 @@ export default function GuidePage() {
 
 /** Overflow menu for the guide's secondary actions — downloads + details. */
 function GuideActionsMenu({
-  languages,
+  videoLanguages,
+  pdfLanguages,
   busyLanguage,
   onDownloadPdf,
   onDownloadVideo,
   onAnalytics,
   onInfo,
 }: {
-  languages: string[]
+  videoLanguages: string[]
+  pdfLanguages: string[]
   busyLanguage: string | null
   onDownloadPdf: (language: string) => void
   onDownloadVideo: (language: string) => void
   onAnalytics: () => void
   onInfo: () => void
 }) {
-  const multi = languages.length > 1
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -387,14 +387,14 @@ function GuideActionsMenu({
         <MoreHorizontal className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
-        {multi ? (
+        {videoLanguages.length > 1 ? (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <Download className="size-4" />
               Download video
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              {languages.map((code) => (
+              {videoLanguages.map((code) => (
                 <DropdownMenuItem
                   key={code}
                   disabled={busyLanguage === code}
@@ -415,14 +415,14 @@ function GuideActionsMenu({
             {busyLanguage ? "Preparing video…" : "Download video"}
           </DropdownMenuItem>
         )}
-        {multi ? (
+        {pdfLanguages.length > 1 ? (
           <DropdownMenuSub>
             <DropdownMenuSubTrigger>
               <FileDown className="size-4" />
               Download PDF
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              {languages.map((code) => (
+              {pdfLanguages.map((code) => (
                 <DropdownMenuItem
                   key={code}
                   onClick={() => onDownloadPdf(code)}

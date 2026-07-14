@@ -34,6 +34,7 @@ export {
 export {
   gatherVideoInputs,
   gatherVideoStyle,
+  getVoiceoverLanguages,
   getVideoExport,
   markVideoExportGenerating,
   setVideoExportFailed,

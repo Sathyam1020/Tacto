@@ -8,6 +8,22 @@ function exportKey(guideId: string, language: string) {
   return ["video-export", guideId, language]
 }
 
+/** Languages whose video export carries voiceover (audio ready). The base
+ *  language is always downloadable (silent if it has no voiceover), so it's not
+ *  included here — the caller adds it. */
+export function useVoiceoverLanguages(guideId: string) {
+  return useQuery({
+    queryKey: ["voiceover-languages", guideId],
+    queryFn: async () => {
+      const { data } = await api.get<{ languages: string[] }>(
+        `/guides/${guideId}/export/video/languages`
+      )
+      return data.languages
+    },
+    enabled: !!guideId,
+  })
+}
+
 /** Poll the video-export status for a guide/language while it's rendering. */
 export function useVideoExport(guideId: string, language = BASE_LANGUAGE) {
   return useQuery({
