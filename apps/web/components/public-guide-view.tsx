@@ -23,6 +23,7 @@ import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { layoutMaxWidthClass } from "@/components/guide-customization-context"
+import { GuideFaqs } from "@/components/guide-faqs"
 import { GuideFeedback } from "@/components/guide-feedback"
 import { GuideBody, ViewModeToggle, type ViewMode } from "@/components/guide-view"
 import { guideFontFamily } from "@/lib/guide-fonts"
@@ -161,6 +162,8 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             customization={cust}
           />
         </div>
+
+        <GuideFaqs faqs={guide.faqs} />
 
         <GuideFeedback
           shareId={guide.shareId}

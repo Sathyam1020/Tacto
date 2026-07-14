@@ -4,6 +4,7 @@ import {
   type BlockType,
   type DraftBlock,
   type DraftDocumentV3,
+  type Faq,
   type GuideCustomization,
   type InteractivePresentation,
   type RetranslateTarget,
@@ -77,6 +78,8 @@ export type GuideDetail = {
   /** The published Interactive *presentation* (slides + per-step overrides).
    *  Step content/screenshots come from `blocks` (the canonical Steps). */
   interactive: InteractivePresentation
+  /** The published FAQ list. */
+  faqs: Faq[]
 }
 
 /** Merge stored (possibly null/partial) customization with defaults.

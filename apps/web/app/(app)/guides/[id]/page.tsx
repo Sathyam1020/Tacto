@@ -47,6 +47,7 @@ import {
   ViewModeToggle,
   type ViewMode,
 } from "@/components/guide-view"
+import { GuideFaqs } from "@/components/guide-faqs"
 import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
 import {
@@ -291,6 +292,8 @@ export default function GuidePage() {
           customization={cust}
         />
       </div>
+
+      <GuideFaqs faqs={guide.faqs} />
 
       <div className="mt-16 border-t pt-6 font-mono text-xs text-muted-foreground">
         captured by hand · written by machine

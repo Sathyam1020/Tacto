@@ -1,6 +1,7 @@
 import {
   commentInputSchema,
   reactionInputSchema,
+  readFaqs,
 } from "@workspace/contracts/guide";
 import { prisma } from "@workspace/db";
 import { getPublishedNarrationByLanguage } from "@workspace/generation";
@@ -115,6 +116,8 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
       interactive,
       // Voiceover audio per anchor (presigned) for walkthrough playback.
       narration,
+      // Published FAQ list (plain text — React escapes).
+      faqs: readFaqs(guide.faqs),
     },
   });
 });

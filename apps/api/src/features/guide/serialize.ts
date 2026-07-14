@@ -1,6 +1,7 @@
 import type { ClickRect } from "@workspace/contracts/capture";
 import {
   collectBlockAssets,
+  readFaqs,
   readInteractivePresentation,
   resolveCustomization,
   type DraftBlock,
@@ -127,6 +128,7 @@ export const draftSourceSelect = {
   summary: true,
   customization: true,
   interactive: true,
+  faqs: true,
   blocks: {
     orderBy: { position: "asc" },
     select: {
@@ -147,6 +149,7 @@ type GuideForDraft = {
   summary: string | null;
   customization: unknown;
   interactive: unknown; // WalkthroughTree JSON | null
+  faqs: unknown; // Faq[] JSON | null
   blocks: Array<{
     key: string;
     type: BlockType;
@@ -196,6 +199,7 @@ export function buildDraftDocument(guide: GuideForDraft): DraftDocumentV3 {
     customization: resolveCustomization(
       guide.customization as GuideCustomization | null
     ),
+    faqs: readFaqs(guide.faqs),
   };
 }
 

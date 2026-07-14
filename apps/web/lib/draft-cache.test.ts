@@ -25,6 +25,7 @@ const cache = (over: Partial<CachedDraft>): CachedDraft => ({
     interactive: { slides: [], stepPresentation: {} },
     assets: [],
     customization: {} as never,
+    faqs: [],
   },
   version: 1,
   unsynced: true,

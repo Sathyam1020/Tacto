@@ -9,6 +9,7 @@ import {
   type Asset,
   type BlockType,
   type DraftDocumentV3,
+  type Faq,
   type GuideCustomization,
   type InteractivePresentation,
   type PresentationSlide,
@@ -45,6 +46,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { AddBlockMenu } from "@/components/add-block-menu"
 import { BlockView, withStepNumbers } from "@/components/block-view"
 import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
+import { FaqSection } from "@/components/faq-editor"
 import { InteractiveEditor } from "@/components/interactive-editor"
 import {
   GuideCustomizationProvider,
@@ -102,6 +104,7 @@ type EditorDoc = {
   interactive: InteractivePresentation
   assets: Asset[]
   customization: GuideCustomization
+  faqs: Faq[]
 }
 
 const NEW_CONTENT: Record<BlockType, string> = {
@@ -119,6 +122,7 @@ const EMPTY_DOC: EditorDoc = {
   interactive: EMPTY_PRESENTATION,
   assets: [],
   customization: DEFAULT_CUSTOMIZATION,
+  faqs: [],
 }
 
 /** Coalesce typing into one undo step; debounce autosave. */
@@ -137,6 +141,7 @@ function toClientDoc(doc: EditorDoc): DraftDocumentClient {
     interactive: doc.interactive,
     assets: doc.assets,
     customization: doc.customization,
+    faqs: doc.faqs,
   }
 }
 
@@ -153,6 +158,8 @@ function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
     blocks,
     interactive: readInteractivePresentation(doc.interactive),
     assets: doc.assets ? doc.assets.map((a) => ({ ...a })) : [],
+    // Backward-compat: an old cache predating FAQs has no `faqs`.
+    faqs: doc.faqs ?? [],
   }
 }
 
@@ -199,6 +206,7 @@ function toDraftDocument(doc: EditorDoc): DraftDocumentV3 {
     interactive: doc.interactive,
     assets: doc.assets,
     customization: doc.customization,
+    faqs: doc.faqs,
   }
 }
 
@@ -1140,6 +1148,12 @@ export default function GuideEditPage() {
             />
           )}
         </div>
+
+        <FaqSection
+          guideId={params.id}
+          faqs={doc.faqs}
+          onChange={(faqs) => applyEdit((d) => ({ ...d, faqs }))}
+        />
 
         <input
           ref={fileInputRef}

@@ -513,6 +513,37 @@ export function migrateInteractiveV2ToPresentation(
   return { slides, stepPresentation };
 }
 
+// ── FAQ ─────────────────────────────────────────────────────────────────────
+
+/** A single guide FAQ. `source` tracks authorship: an AI-suggested FAQ becomes
+ *  "user" the moment it's edited, and user FAQs are never auto-replaced by a
+ *  regenerate. */
+export const faqSchema = z.object({
+  question: z.string().min(1).max(300),
+  answer: z.string().min(1).max(2000),
+  source: z.enum(["ai", "user"]),
+});
+export type Faq = z.infer<typeof faqSchema>;
+
+/** A guide's FAQ list. AI authors at most 5 (enforced at generation); users add
+ *  their own on top, so the list itself is capped higher for the draft's sake. */
+export const faqsSchema = z.array(faqSchema).max(20);
+
+/** Read a stored `Guide.faqs` JSON value as a validated FAQ list (default []).
+ *  Kept identical to the draft's `faqs` default so the dirty-check diff holds. */
+export function readFaqs(raw: unknown): Faq[] {
+  const parsed = faqsSchema.safeParse(raw ?? []);
+  return parsed.success ? parsed.data : [];
+}
+
+/** AI structured-output schema for FAQ generation. OpenAI strict mode forbids
+ *  optional/default fields, so every field is required; `source` is stamped
+ *  server-side (not by the model). */
+export const faqAiSchema = z.object({
+  faqs: z.array(z.object({ question: z.string(), answer: z.string() })),
+});
+export type FaqAiOutput = z.infer<typeof faqAiSchema>;
+
 // ── Draft document (versioned; migrate-on-read) ─────────────────────────────
 
 /** v1 — the original single-tree document (List blocks only). Still accepted on
@@ -551,6 +582,8 @@ export const draftDocumentV3Schema = z.object({
   interactive: interactivePresentationSchema,
   assets: z.array(assetSchema).max(1000).default([]),
   customization: guideCustomizationSchema,
+  // Defaulted so drafts saved before FAQs existed still parse (mirrors `assets`).
+  faqs: faqsSchema.default([]),
 });
 export type DraftDocumentV3 = z.infer<typeof draftDocumentV3Schema>;
 
@@ -586,6 +619,7 @@ export function migrateDraftV2ToV3(doc: DraftDocumentV2): DraftDocumentV3 {
     interactive: migrateInteractiveV2ToPresentation(doc.interactive.items),
     assets: doc.assets,
     customization: doc.customization,
+    faqs: [],
   };
 }
 

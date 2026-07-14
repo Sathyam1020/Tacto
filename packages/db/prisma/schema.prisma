@@ -253,6 +253,9 @@ model Guide {
   /// (step items + intro/chapter slides). Null = seed from `blocks` on read.
   /// Shape = WalkthroughTree in @workspace/contracts/guide.
   interactive   Json?
+  /// Published FAQ list ({question, answer, source}[], max 5). Null = none.
+  /// Shape = Faq[] in @workspace/contracts/guide.
+  faqs          Json?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

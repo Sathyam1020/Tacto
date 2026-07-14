@@ -1,4 +1,5 @@
 import type {
+  Faq,
   GuideCustomization,
   InteractivePresentation,
 } from "@workspace/contracts/guide"
@@ -41,6 +42,8 @@ export type PublicGuide = {
   interactive: InteractivePresentation
   /** Published voiceover audio per language → per anchor (presigned). */
   narration: Record<string, Record<string, { text: string; audioUrl: string }>>
+  /** Published FAQ list. */
+  faqs: Faq[]
 }
 
 /** Server-side fetch of a published guide by shareId (public, no auth). */

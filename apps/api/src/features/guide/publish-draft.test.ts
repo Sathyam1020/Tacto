@@ -129,6 +129,37 @@ async function main() {
     await test("re-publishing with no draft is a safe no-op", async () => {
       await publishDraft(guide.id); // must not throw
     });
+
+    await test("faqs publish from the draft to the guide", async () => {
+      const faqs = [
+        {
+          question: "What happens after publishing?",
+          answer: "It goes live.",
+          source: "user" as const,
+        },
+      ];
+      await prisma.guideDraft.create({
+        data: {
+          guideId: guide.id,
+          document: {
+            v: 3,
+            title: "PUBLISH-DRAFT TEST published",
+            summary: "new",
+            blocks: [],
+            interactive: {},
+            assets: [],
+            customization: DEFAULT_CUSTOMIZATION,
+            faqs,
+          },
+        },
+      });
+      await publishDraft(guide.id);
+      const g = await prisma.guide.findUnique({
+        where: { id: guide.id },
+        select: { faqs: true },
+      });
+      assert.deepEqual(g?.faqs, faqs);
+    });
   } finally {
     if (guideId) {
       await prisma.guide.delete({ where: { id: guideId } }).catch(() => {});

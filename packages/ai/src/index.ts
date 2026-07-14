@@ -1,6 +1,7 @@
 export { describeMoments, type Moment } from "./describe-moments.js";
 export { importStepsFromText } from "./import-document.js";
 export { generateNarration } from "./generate-narration.js";
+export { generateFaqs } from "./generate-faqs.js";
 export { getModel } from "./model.js";
 export {
   createElevenLabsProvider,

@@ -51,6 +51,7 @@ async function main() {
       summary: null,
       customization: null,
       interactive: null, // no published interactive → seed from blocks
+      faqs: null,
       blocks: [
         {
           key: "k1",
@@ -95,6 +96,7 @@ async function main() {
       summary: null,
       customization: null,
       interactive,
+      faqs: null,
       blocks: [
         {
           key: "k1",
@@ -426,6 +428,7 @@ async function main() {
       summary: null,
       customization: null,
       interactive: null,
+      faqs: null,
       blocks: [],
     };
     const a = buildDraftDocument(guide);

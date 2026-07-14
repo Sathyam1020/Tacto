@@ -33,6 +33,8 @@ async function applyDraftContent(
       // alongside the canonical Step rows. Step content/screenshots live only on
       // the Steps — the presentation carries no duplicated step content.
       interactive: doc.interactive as unknown as Prisma.InputJsonValue,
+      // Publish the FAQ list alongside the interactive presentation.
+      faqs: doc.faqs as unknown as Prisma.InputJsonValue,
     },
   });
 

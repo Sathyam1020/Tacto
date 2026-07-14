@@ -31,6 +31,7 @@ export {
   type NarrationPlayback,
   type NarrationView,
 } from "./narration.js";
+export { generateGuideFaqs } from "./faqs.js";
 export {
   gatherVideoInputs,
   gatherVideoStyle,
