@@ -4,8 +4,8 @@ import { defineConfig } from "wxt"
  * Tacto capture extension (MV3, Chrome).
  *
  * Env (build-time, WXT_ prefix):
- *  - WXT_API_BASE  the Tacto API origin        (dev: http://localhost:4000)
- *  - WXT_APP_URL   the Tacto web app origin     (dev: http://localhost:3000)
+ *  - WXT_API_BASE  the Tacto API origin        (dev: http://localhost:4100)
+ *  - WXT_APP_URL   the Tacto web app origin     (dev: http://localhost:3100)
  */
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],

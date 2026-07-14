@@ -9,7 +9,7 @@ const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
     .default("development"),
-  PORT: z.coerce.number().int().positive().default(4000),
+  PORT: z.coerce.number().int().positive().default(4100),
 
   /** Neon PostgreSQL connection string. */
   DATABASE_URL: z.url({ error: "DATABASE_URL must be a valid URL" }),
@@ -21,12 +21,12 @@ const envSchema = z.object({
 
   /**
    * Public origin the auth endpoints are reachable at. Because the web app
-   * proxies /api/* to this server, this is the WEB origin, not :4000.
+   * proxies /api/* to this server, this is the WEB origin, not :4100.
    */
   BETTER_AUTH_URL: z.url(),
 
   /** Web app origin, trusted for auth requests. */
-  WEB_ORIGIN: z.url().default("http://localhost:3000"),
+  WEB_ORIGIN: z.url().default("http://localhost:3100"),
 
   /** Redis, for enqueueing capture-processing jobs. */
   REDIS_URL: z.url().default("redis://localhost:6379"),

@@ -48,7 +48,7 @@ async function relay<T>(
 }
 
 export default defineContentScript({
-  matches: ["http://localhost:3000/*", "http://127.0.0.1:3000/*"],
+  matches: ["http://localhost:3100/*", "http://127.0.0.1:3100/*"],
   runAt: "document_start",
   main() {
     const origin = location.origin

@@ -3,11 +3,19 @@
 import * as React from "react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { ArrowLeft, BarChart3, Info, Share2 } from "lucide-react"
+import {
+  ArrowLeft,
+  BarChart3,
+  Download,
+  FileDown,
+  Info,
+  MoreHorizontal,
+  Share2,
+} from "lucide-react"
 
-import { DownloadIcon } from "@workspace/ui/components/download"
 import { SquarePenIcon } from "@workspace/ui/components/square-pen"
 
+import { BASE_LANGUAGE } from "@workspace/contracts/voice"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -17,6 +25,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Tooltip,
@@ -31,15 +49,24 @@ import {
 } from "@/components/guide-view"
 import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
-import { VideoExportButton } from "@/components/video-export-button"
+import {
+  exportLangLabel,
+  VideoAutoDownload,
+} from "@/components/video-export-actions"
 import { authClient } from "@/lib/auth-client"
 import { formatDate } from "@/lib/format"
 import { layoutMaxWidthClass } from "@/components/guide-customization-context"
 import { guideFontFamily } from "@/lib/guide-fonts"
-import { resolveCustomization, useGuide } from "@/lib/guides"
+import {
+  resolveCustomization,
+  useGuide,
+  useGuideTranslations,
+  type GuideTranslationFull,
+} from "@/lib/guides"
 import { useNarration } from "@/lib/narration"
 import { cn } from "@workspace/ui/lib/utils"
 import { downloadGuidePdf } from "@/lib/pdf"
+import { toast } from "sonner"
 
 /** Guide viewer — list/interactive modes + navbar action cluster. */
 export default function GuidePage() {
@@ -85,6 +112,36 @@ export default function GuidePage() {
   const [shareOpen, setShareOpen] = React.useState(false)
   const [analyticsOpen, setAnalyticsOpen] = React.useState(false)
   const [infoOpen, setInfoOpen] = React.useState(false)
+  // The language whose video is currently being downloaded (null = none).
+  const [videoLang, setVideoLang] = React.useState<string | null>(null)
+  const clearVideoLang = React.useCallback(() => setVideoLang(null), [])
+  // Base language + any translation a reader can actually see.
+  const { data: translations } = useGuideTranslations(params.id)
+  const exportLanguages = React.useMemo(
+    () => [
+      BASE_LANGUAGE,
+      ...(translations ?? [])
+        .filter((t) => t.published && t.status === "ready")
+        .map((t) => t.language),
+    ],
+    [translations]
+  )
+  // Build the PDF for a language, swapping in translated content when needed.
+  const downloadPdf = React.useCallback(
+    (language: string) => {
+      if (!guide) return
+      const t =
+        language === BASE_LANGUAGE
+          ? null
+          : translations?.find((x) => x.language === language)
+      void toast.promise(downloadGuidePdf(t ? translateGuide(guide, t) : guide), {
+        loading: "Preparing PDF…",
+        success: "PDF downloaded",
+        error: "Couldn't create the PDF",
+      })
+    },
+    [guide, translations]
+  )
 
   useSetNavbar(
     {
@@ -111,22 +168,15 @@ export default function GuidePage() {
       ) : null,
       actions: guide ? (
         <div className="flex items-center gap-2">
-          {!lockedMode && (
-            <ViewModeToggle mode={mode} onChange={setMode} />
-          )}
-          <IconButton label="Analytics" onClick={() => setAnalyticsOpen(true)}>
-            <BarChart3 className="size-4" />
-          </IconButton>
-          <IconButton label="Guide info" onClick={() => setInfoOpen(true)}>
-            <Info className="size-4" />
-          </IconButton>
-          <IconButton
-            label="Download PDF"
-            onClick={() => guide && void downloadGuidePdf(guide)}
-          >
-            <DownloadIcon size={16} />
-          </IconButton>
-          <VideoExportButton guideId={params.id} />
+          {!lockedMode && <ViewModeToggle mode={mode} onChange={setMode} />}
+          <GuideActionsMenu
+            languages={exportLanguages}
+            busyLanguage={videoLang}
+            onDownloadPdf={downloadPdf}
+            onDownloadVideo={setVideoLang}
+            onAnalytics={() => setAnalyticsOpen(true)}
+            onInfo={() => setInfoOpen(true)}
+          />
           <Button
             size="sm"
             variant="outline"
@@ -142,7 +192,16 @@ export default function GuidePage() {
         </div>
       ) : null,
     },
-    [guide?.title, guide?.status, mode, lockedMode, params.id]
+    [
+      guide?.title,
+      guide?.status,
+      mode,
+      lockedMode,
+      params.id,
+      exportLanguages,
+      videoLang,
+      downloadPdf,
+    ]
   )
 
   if (isPending) {
@@ -238,6 +297,15 @@ export default function GuidePage() {
         captured by hand · written by machine
       </div>
 
+      {videoLang && (
+        <VideoAutoDownload
+          key={videoLang}
+          guideId={params.id}
+          language={videoLang}
+          onDone={clearVideoLang}
+        />
+      )}
+
       <ShareDialog guide={guide} open={shareOpen} onOpenChange={setShareOpen} />
 
       {/* Analytics */}
@@ -292,26 +360,116 @@ export default function GuidePage() {
   )
 }
 
-function IconButton({
-  label,
-  onClick,
-  children,
+/** Overflow menu for the guide's secondary actions — downloads + details. */
+function GuideActionsMenu({
+  languages,
+  busyLanguage,
+  onDownloadPdf,
+  onDownloadVideo,
+  onAnalytics,
+  onInfo,
 }: {
-  label: string
-  onClick: () => void
-  children: React.ReactNode
+  languages: string[]
+  busyLanguage: string | null
+  onDownloadPdf: (language: string) => void
+  onDownloadVideo: (language: string) => void
+  onAnalytics: () => void
+  onInfo: () => void
 }) {
+  const multi = languages.length > 1
   return (
-    <Tooltip>
-      <TooltipTrigger
-        render={<Button size="icon-sm" variant="outline" aria-label={label} />}
-        onClick={onClick}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button size="icon-sm" variant="outline" aria-label="More actions" />
+        }
       >
-        {children}
-      </TooltipTrigger>
-      <TooltipContent side="bottom">{label}</TooltipContent>
-    </Tooltip>
+        <MoreHorizontal className="size-4" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        {multi ? (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Download className="size-4" />
+              Download video
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {languages.map((code) => (
+                <DropdownMenuItem
+                  key={code}
+                  disabled={busyLanguage === code}
+                  onClick={() => onDownloadVideo(code)}
+                >
+                  {exportLangLabel(code)}
+                  {busyLanguage === code && " — preparing…"}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        ) : (
+          <DropdownMenuItem
+            disabled={!!busyLanguage}
+            onClick={() => onDownloadVideo(BASE_LANGUAGE)}
+          >
+            <Download className="size-4" />
+            {busyLanguage ? "Preparing video…" : "Download video"}
+          </DropdownMenuItem>
+        )}
+        {multi ? (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <FileDown className="size-4" />
+              Download PDF
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              {languages.map((code) => (
+                <DropdownMenuItem
+                  key={code}
+                  onClick={() => onDownloadPdf(code)}
+                >
+                  {exportLangLabel(code)}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        ) : (
+          <DropdownMenuItem onClick={() => onDownloadPdf(BASE_LANGUAGE)}>
+            <FileDown className="size-4" />
+            Download PDF
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onAnalytics}>
+          <BarChart3 className="size-4" />
+          Analytics
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onInfo}>
+          <Info className="size-4" />
+          Guide info
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
+}
+
+/** Overlay a translation onto the guide (title/summary/block content by key),
+ *  so the PDF export renders in the chosen language. */
+function translateGuide<
+  G extends {
+    title: string
+    summary?: string | null
+    blocks: { key: string; content: string }[]
+  },
+>(guide: G, t: GuideTranslationFull): G {
+  return {
+    ...guide,
+    title: t.title || guide.title,
+    summary: t.summary ?? guide.summary,
+    blocks: guide.blocks.map((b) => ({
+      ...b,
+      content: t.steps[b.key] ?? b.content,
+    })),
+  }
 }
 
 function Row({ label, value }: { label: string; value: string }) {

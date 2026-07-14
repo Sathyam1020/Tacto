@@ -47,7 +47,7 @@ export type PublicGuide = {
 export async function fetchPublicGuide(
   shareId: string
 ): Promise<PublicGuide | null> {
-  const base = process.env.API_URL ?? "http://localhost:4000"
+  const base = process.env.API_URL ?? "http://localhost:4100"
   try {
     const res = await fetch(`${base}/api/public/guides/${shareId}`, {
       // Always fresh: view counts + presigned URLs must not be cached.

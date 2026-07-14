@@ -5,7 +5,7 @@ import type { NextConfig } from "next"
  * (Safari ITP blocks third-party auth cookies — see better-auth docs).
  * API_URL defaults to the local dev server; set it per environment in prod.
  */
-const API_URL = process.env.API_URL ?? "http://localhost:4000"
+const API_URL = process.env.API_URL ?? "http://localhost:4100"
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui"],
