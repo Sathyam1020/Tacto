@@ -100,23 +100,20 @@ export default defineBackground(() => {
   }
 
   /**
-   * Capture the visible tab WITHOUT the recording pill. On the pre-click path
-   * the content script has already hidden the pill synchronously, so we pass
-   * `pillHidden` to skip the hide round-trip — that round-trip is exactly what
-   * used to let a click's effect paint before the frame was grabbed.
+   * Capture the visible tab WITHOUT the recording pill. Hides the pill and waits
+   * for the content script to confirm the hide has PAINTED (its double-rAF ack)
+   * before grabbing the frame — otherwise the pill's `opacity:0` may not be
+   * composited yet and leaks into the screenshot. Always restores it afterward.
    */
-  async function captureShot(pillHidden = false): Promise<string | null> {
+  async function captureShot(): Promise<string | null> {
     if (recordingWindowId === null || recordingTabId === null) return null
     try {
-      if (!pillHidden) {
-        await sendToTab(recordingTabId, { type: "PILL", visible: false })
-      }
+      await sendToTab(recordingTabId, { type: "PILL", visible: false })
       return await captureVisible(recordingWindowId)
     } catch {
       return null
     } finally {
       lastCaptureAt = Date.now()
-      // Always restore — covers both our hide and the content script's.
       void sendToTab(recordingTabId, { type: "PILL", visible: true })
     }
   }
@@ -359,10 +356,12 @@ export default defineBackground(() => {
 
         case "PRE_ACTION": {
           if (recording && sender.tab?.id === recordingTabId) {
-            // Content script already hid the pill synchronously → capture the
-            // pre-click ("before") frame immediately, keyed by seq.
+            // Capture the pre-click ("before") frame, keyed by seq. captureShot
+            // hides the pill and waits for the hide to paint, so it's never in
+            // the shot; a human click's pointerup is slower than that wait, so
+            // the "before" state is still intact.
             pendingBefore.set(message.seq, {
-              promise: captureShot(true),
+              promise: captureShot(),
               at: Date.now(),
             })
           }

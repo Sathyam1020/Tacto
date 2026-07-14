@@ -31,6 +31,7 @@ import {
 } from "@/components/guide-view"
 import { useSetNavbar } from "@/components/navbar-context"
 import { ShareDialog } from "@/components/share-dialog"
+import { VideoExportButton } from "@/components/video-export-button"
 import { authClient } from "@/lib/auth-client"
 import { formatDate } from "@/lib/format"
 import { layoutMaxWidthClass } from "@/components/guide-customization-context"
@@ -125,6 +126,7 @@ export default function GuidePage() {
           >
             <DownloadIcon size={16} />
           </IconButton>
+          <VideoExportButton guideId={params.id} />
           <Button
             size="sm"
             variant="outline"

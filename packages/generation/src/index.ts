@@ -32,6 +32,20 @@ export {
   type NarrationView,
 } from "./narration.js";
 export {
+  gatherVideoInputs,
+  gatherVideoStyle,
+  getVideoExport,
+  markVideoExportGenerating,
+  setVideoExportFailed,
+  setVideoExportResult,
+  videoSourceHash,
+  type SlideAppearance,
+  type VideoItem,
+  type VideoSlide,
+  type VideoStep,
+  type VideoStyle,
+} from "./video-export.js";
+export {
   deleteTranslation,
   generateTranslation,
   getTranslations,

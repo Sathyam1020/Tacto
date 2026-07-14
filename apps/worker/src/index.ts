@@ -6,10 +6,13 @@ import {
   type CaptureJobData,
 } from "@workspace/contracts/capture";
 import {
+  EXPORT_QUEUE,
+  exportJobSchema,
   TRANSLATION_QUEUE,
   translationJobSchema,
   VOICE_QUEUE,
   voiceJobSchema,
+  type ExportJobData,
   type TranslationJobData,
   type VoiceJobData,
 } from "@workspace/contracts/voice";
@@ -21,11 +24,13 @@ import {
   generateTranslation,
   setNarrationStatus,
   setTranslationStatus,
+  setVideoExportFailed,
   synthesizeSegmentAudio,
 } from "@workspace/generation";
 import { Worker } from "bullmq";
 
 import { processCapture } from "./pipeline/process-capture.js";
+import { composeGuideVideo } from "./pipeline/video-export.js";
 import { startReaper } from "./reaper.js";
 
 /**
@@ -166,6 +171,38 @@ translationWorker.on("ready", () =>
   console.log(`tacto worker ready — queue "${TRANSLATION_QUEUE}"`)
 );
 
+// ── Video export (ffmpeg composition) ─────────────────────────────────────
+const exportWorker = new Worker<ExportJobData>(
+  EXPORT_QUEUE,
+  async (job) => {
+    const data = exportJobSchema.parse(job.data);
+    const t0 = Date.now();
+    await composeGuideVideo(data.guideId, data.language);
+    console.log(
+      `video.export ${data.guideId}/${data.language} in ${Date.now() - t0}ms`
+    );
+  },
+  // ffmpeg is CPU-heavy — keep concurrency low.
+  { connection, concurrency: 1, stalledInterval: 60_000, maxStalledCount: 1 }
+);
+
+exportWorker.on("failed", async (job, error) => {
+  console.error(`export job ${job?.id} failed:`, error.message);
+  if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
+  const parsed = exportJobSchema.safeParse(job.data);
+  if (parsed.success) {
+    await setVideoExportFailed(
+      parsed.data.guideId,
+      parsed.data.language,
+      error.message
+    );
+  }
+});
+
+exportWorker.on("ready", () =>
+  console.log(`tacto worker ready — queue "${EXPORT_QUEUE}"`)
+);
+
 // Self-healing sweep for captures orphaned outside the queue (abandoned
 // uploads, jobs lost while the worker was down).
 const reaperTimer = startReaper();
@@ -193,6 +230,7 @@ async function shutdown(signal: string) {
     worker.close(),
     voiceWorker.close(),
     translationWorker.close(),
+    exportWorker.close(),
   ]);
   process.exit(0);
 }

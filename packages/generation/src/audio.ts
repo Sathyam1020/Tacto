@@ -44,6 +44,7 @@ export async function collectOrphanRenders(
   const cutoff = new Date(Date.now() - graceMs);
   const orphans = await prisma.mediaRender.findMany({
     where: {
+      kind: "audio", // exports are guide-level, not segment-linked — leave them
       refs: { none: {} }, // referenced by no segment
       status: { not: "pending" }, // never mid-synthesis
       updatedAt: { lt: cutoff },

@@ -23,10 +23,37 @@ export const NARRATION_ANCHOR_OUTRO = "__outro__";
 export const voiceStatusSchema = z.enum(["pending", "ready", "failed"]);
 export type VoiceStatus = z.infer<typeof voiceStatusSchema>;
 
-/** Media render kinds. Only `audio` exists today; the enum is the extension
- *  point for avatar video / MP4 export / podcast without a schema redesign. */
-export const mediaRenderKindSchema = z.enum(["audio"]);
+/** Media render kinds. `audio` = per-segment narration; `export-mp4` = a full
+ *  composed walkthrough video. The enum is the extension point for avatar video
+ *  / podcast without a schema redesign. */
+export const mediaRenderKindSchema = z.enum(["audio", "export-mp4"]);
 export type MediaRenderKind = z.infer<typeof mediaRenderKindSchema>;
+
+// ── Video export ──────────────────────────────────────────────────────────────
+
+/** Async video-export job — compose a guide's walkthrough into an MP4 on the
+ *  worker (ffmpeg is heavy). One queue, one kind for now. */
+export const EXPORT_QUEUE = "export-process";
+
+export const exportJobSchema = z.object({
+  kind: z.literal("video.export"),
+  guideId: z.string(),
+  language: z.string(),
+});
+export type ExportJobData = z.infer<typeof exportJobSchema>;
+
+/** Video export status for the editor/reader to poll. */
+export type VideoExportStatus = "idle" | "generating" | "ready" | "failed";
+
+export type VideoExportView = {
+  language: string;
+  status: VideoExportStatus;
+  error: string | null;
+  /** Presigned MP4 URL when ready (else null). */
+  url: string | null;
+  /** Whether the ready video is stale vs. the current guide content. */
+  stale: boolean;
+};
 
 // ── Voice catalog ─────────────────────────────────────────────────────────────
 // A curated set of ElevenLabs voices, each ID validated to synthesize. The key

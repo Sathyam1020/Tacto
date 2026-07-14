@@ -5,15 +5,17 @@ import {
   editNarrationSegment,
   generateNarrationForGuide,
   getNarration,
+  getVideoExport,
   getVoicePreview,
   markNarrationGenerating,
+  markVideoExportGenerating,
   NarrationAnchorNotFound,
   prepareAudioBuild,
 } from "@workspace/generation";
 import { Router } from "express";
 import { z } from "zod";
 
-import { voiceQueue } from "../../lib/queue.js";
+import { exportQueue, voiceQueue } from "../../lib/queue.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
@@ -50,6 +52,40 @@ voiceRouter.get(
     }
     const url = await getVoicePreview(voiceId);
     res.json({ url });
+  }
+);
+
+// ── Video export ──────────────────────────────────────────────────────────
+// Read the export status (presigned MP4 URL when ready).
+voiceRouter.get(
+  "/api/guides/:id/export/video",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { language } = languageQuerySchema.parse(req.query);
+    await assertGuide(id, req.workspace!.id);
+    res.json({ export: await getVideoExport(id, language ?? BASE_LANGUAGE) });
+  }
+);
+
+// Kick off an async video export (ffmpeg composition on the worker).
+voiceRouter.post(
+  "/api/guides/:id/export/video",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { language } = languageQuerySchema.parse(req.query);
+    await assertGuide(id, req.workspace!.id);
+    const lang = language ?? BASE_LANGUAGE;
+    await markVideoExportGenerating(id, lang);
+    await exportQueue.add("export", {
+      kind: "video.export",
+      guideId: id,
+      language: lang,
+    });
+    res.json({ export: await getVideoExport(id, lang) });
   }
 );
 

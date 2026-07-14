@@ -79,6 +79,26 @@ export async function presignGet(
   );
 }
 
+/** Presigned read URL that forces a browser DOWNLOAD (Content-Disposition:
+ *  attachment). The `download` HTML attribute is ignored cross-origin, so the
+ *  disposition must come from the object response itself. */
+export async function presignGetDownload(
+  key: string,
+  filename: string,
+  expiresInSeconds = 86_400
+): Promise<string> {
+  const { client, bucket } = getClient();
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ResponseContentDisposition: `attachment; filename="${filename}"`,
+    }),
+    { expiresIn: expiresInSeconds }
+  );
+}
+
 /** Server-side upload (worker: extracted frames). */
 export async function putObject(
   key: string,

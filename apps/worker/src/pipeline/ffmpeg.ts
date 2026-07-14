@@ -18,6 +18,11 @@ if (!ffmpegPath) {
 }
 const FFMPEG: string = ffmpegPath;
 
+/** Run ffmpeg with the given args; throws (with stderr) on a non-zero exit. */
+export async function runFfmpeg(args: string[]): Promise<void> {
+  await execa(FFMPEG, args);
+}
+
 export type ProbeResult = {
   durationSec: number;
   hasAudio: boolean;

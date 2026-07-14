@@ -3,8 +3,10 @@ import {
   type CaptureJobData,
 } from "@workspace/contracts/capture";
 import {
+  EXPORT_QUEUE,
   TRANSLATION_QUEUE,
   VOICE_QUEUE,
+  type ExportJobData,
   type TranslationJobData,
   type VoiceJobData,
 } from "@workspace/contracts/voice";
@@ -47,3 +49,9 @@ export const translationQueue = new Queue<TranslationJobData>(
   TRANSLATION_QUEUE,
   { connection, defaultJobOptions }
 );
+
+/** Video-export (ffmpeg) jobs — heavy; one retry only. */
+export const exportQueue = new Queue<ExportJobData>(EXPORT_QUEUE, {
+  connection,
+  defaultJobOptions: { ...defaultJobOptions, attempts: 1 },
+});
