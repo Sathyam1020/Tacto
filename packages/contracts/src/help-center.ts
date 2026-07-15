@@ -211,3 +211,30 @@ export type HelpSearchHit = {
   collectionSlug: string;
   collectionName: string;
 };
+
+/** Brand + navigation shared by every public help-center page (header/footer). */
+export type PublicHelpChrome = {
+  slug: string;
+  name: string;
+  logoUrl: string | null;
+  brandColor: string | null;
+  theme: string;
+  navLinks: HelpNavLink[];
+  footerLinks: HelpNavLink[];
+  statusUrl: string | null;
+};
+
+export type PublicHelpCollectionPage = {
+  chrome: PublicHelpChrome;
+  collection: PublicHelpCollection;
+  siblings: { name: string; slug: string; icon: string | null }[];
+};
+
+export type PublicHelpArticlePage = {
+  chrome: PublicHelpChrome;
+  collection: { name: string; slug: string };
+  article: { title: string; slug: string };
+  /** The article's published guide — rendered by the existing Guide Reader. */
+  guideShareId: string;
+  related: PublicHelpArticle[];
+};

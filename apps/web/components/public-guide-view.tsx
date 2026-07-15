@@ -40,7 +40,15 @@ import type { PublicGuide } from "@/lib/public-guide"
  * Public guide reader — a standalone editorial page (no app chrome). This is
  * also marketing: every shared guide shows the Tacto mark.
  */
-export function PublicGuideView({ guide }: { guide: PublicGuide }) {
+export function PublicGuideView({
+  guide,
+  embedded = false,
+}: {
+  guide: PublicGuide
+  /** Rendered inside another page's chrome (e.g. a Help Center) — hides the
+   *  guide's standalone header/footer and floats the reader controls instead. */
+  embedded?: boolean
+}) {
   const cust = React.useMemo(
     () => resolveCustomization(guide.customization),
     [guide.customization]
@@ -158,10 +166,39 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     }
   }, [effectiveMode, displayBlocks, track])
 
+  const controls = (
+    <div className="flex items-center gap-2">
+      {translations.length > 0 && (
+        <LanguageSwitcher
+          translations={translations}
+          value={lang}
+          onChange={changeLang}
+        />
+      )}
+      {!lockedMode && <ViewModeToggle mode={mode} onChange={changeMode} />}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          track("pdf_download")
+          void downloadGuidePdf({
+            title: displayTitle,
+            summary: displaySummary,
+            blocks: displayBlocks,
+            customization: guide.customization,
+          })
+        }}
+      >
+        <DownloadIcon size={15} />
+        PDF
+      </Button>
+    </div>
+  )
+
   return (
     <GuideAnalyticsProvider tracker={tracker}>
     <div
-      className="min-h-svh"
+      className={embedded ? undefined : "min-h-svh"}
       dir={isRtl ? "rtl" : undefined}
       style={
         {
@@ -170,53 +207,31 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         } as React.CSSProperties
       }
     >
-      <header className="border-b">
-        <div className={cn("mx-auto flex h-14 items-center justify-between px-6", width)}>
-          {cust.brand.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cust.brand.logoUrl}
-              alt={guide.workspaceName}
-              className="h-6 w-auto max-w-[180px] object-contain"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <LogoMark className="size-5" />
-              <span className="text-muted-foreground font-mono text-xs">
-                {guide.workspaceName}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            {translations.length > 0 && (
-              <LanguageSwitcher
-                translations={translations}
-                value={lang}
-                onChange={changeLang}
+      {!embedded && (
+        <header className="border-b">
+          <div className={cn("mx-auto flex h-14 items-center justify-between px-6", width)}>
+            {cust.brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cust.brand.logoUrl}
+                alt={guide.workspaceName}
+                className="h-6 w-auto max-w-[180px] object-contain"
               />
+            ) : (
+              <div className="flex items-center gap-2">
+                <LogoMark className="size-5" />
+                <span className="text-muted-foreground font-mono text-xs">
+                  {guide.workspaceName}
+                </span>
+              </div>
             )}
-            {!lockedMode && <ViewModeToggle mode={mode} onChange={changeMode} />}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                track("pdf_download")
-                void downloadGuidePdf({
-                  title: displayTitle,
-                  summary: displaySummary,
-                  blocks: displayBlocks,
-                  customization: guide.customization,
-                })
-              }}
-            >
-              <DownloadIcon size={15} />
-              PDF
-            </Button>
+            {controls}
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className={cn("mx-auto px-6 py-14", width)}>
+      <main className={cn("mx-auto px-6", embedded ? "pt-6 pb-14" : "py-14", width)}>
+        {embedded && <div className="mb-6 flex justify-end">{controls}</div>}
         <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
           {displayTitle}
         </h1>
@@ -253,6 +268,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
           initialComments={guide.comments}
         />
 
+        {!embedded && (
         <footer className="mt-20 border-t pt-8 text-center">
           <a
             href="/"
@@ -262,6 +278,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             Made with Tacto
           </a>
         </footer>
+        )}
       </main>
     </div>
     </GuideAnalyticsProvider>
