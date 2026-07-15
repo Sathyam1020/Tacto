@@ -93,6 +93,25 @@ export type Capture = Prisma.CaptureModel
  */
 export type Guide = Prisma.GuideModel
 /**
+ * Model HelpCenter
+ * One per workspace. Draft → Publish mirrors Guide/Form. Branding fields
+ * mirror the guide brand block; JSON blobs (navLinks/footerLinks/seo) are
+ * small, owner-authored, and validated by @workspace/contracts/help-center.
+ */
+export type HelpCenter = Prisma.HelpCenterModel
+/**
+ * Model HelpCollection
+ * A category grouping published guides within a help center. Flat (no nesting).
+ */
+export type HelpCollection = Prisma.HelpCollectionModel
+/**
+ * Model HelpArticle
+ * A published guide placed in a collection. Content is the guide; only
+ * ordering + featured + an optional display label live here. Deleting the
+ * guide removes the placement (never the reverse).
+ */
+export type HelpArticle = Prisma.HelpArticleModel
+/**
  * Model GuideEvent
  * Anonymous, append-only reader-engagement event for a published guide — the
  * source of truth for analytics time-series + funnels. No PII: `anonId` is a

@@ -64,6 +64,9 @@ export const ModelName = {
   FormSubmission: 'FormSubmission',
   Capture: 'Capture',
   Guide: 'Guide',
+  HelpCenter: 'HelpCenter',
+  HelpCollection: 'HelpCollection',
+  HelpArticle: 'HelpArticle',
   GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
@@ -297,6 +300,61 @@ export const GuideScalarFieldEnum = {
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const HelpCenterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  slug: 'slug',
+  status: 'status',
+  listed: 'listed',
+  name: 'name',
+  logoUrl: 'logoUrl',
+  brandColor: 'brandColor',
+  theme: 'theme',
+  faviconUrl: 'faviconUrl',
+  heroTitle: 'heroTitle',
+  heroSubtitle: 'heroSubtitle',
+  navLinks: 'navLinks',
+  footerLinks: 'footerLinks',
+  contactFormId: 'contactFormId',
+  statusUrl: 'statusUrl',
+  seo: 'seo',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HelpCenterScalarFieldEnum = (typeof HelpCenterScalarFieldEnum)[keyof typeof HelpCenterScalarFieldEnum]
+
+
+export const HelpCollectionScalarFieldEnum = {
+  id: 'id',
+  helpCenterId: 'helpCenterId',
+  name: 'name',
+  description: 'description',
+  icon: 'icon',
+  slug: 'slug',
+  position: 'position',
+  hidden: 'hidden',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HelpCollectionScalarFieldEnum = (typeof HelpCollectionScalarFieldEnum)[keyof typeof HelpCollectionScalarFieldEnum]
+
+
+export const HelpArticleScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  guideId: 'guideId',
+  position: 'position',
+  featured: 'featured',
+  titleOverride: 'titleOverride',
+  createdAt: 'createdAt'
+} as const
+
+export type HelpArticleScalarFieldEnum = (typeof HelpArticleScalarFieldEnum)[keyof typeof HelpArticleScalarFieldEnum]
 
 
 export const GuideEventScalarFieldEnum = {

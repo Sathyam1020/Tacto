@@ -416,6 +416,23 @@ export type EnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
 }
 
+export type EnumHelpCenterStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel> | $Enums.HelpCenterStatus
+}
+
+export type EnumHelpCenterStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+}
+
 export type EnumGuideEventTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
   in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
@@ -798,6 +815,23 @@ export type NestedEnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumHelpCenterStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel> | $Enums.HelpCenterStatus
+}
+
+export type NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
 }
 
 export type NestedEnumGuideEventTypeFilter<$PrismaModel = never> = {

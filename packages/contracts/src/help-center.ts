@@ -1,0 +1,194 @@
+import { z } from "zod";
+
+/**
+ * Help Center contracts. A Help Center collects a workspace's PUBLISHED guides
+ * into branded, ordered collections at a public URL. An article is ALWAYS a
+ * published guide — these schemas cover organization, branding, and navigation
+ * only, never guide content (which the Guide Reader renders unchanged).
+ */
+
+export const helpCenterStatusSchema = z.enum(["DRAFT", "PUBLISHED"]);
+export type HelpCenterStatus = z.infer<typeof helpCenterStatusSchema>;
+
+/** Curated lucide icon names offered for collections. */
+export const COLLECTION_ICONS = [
+  "Rocket",
+  "BookOpen",
+  "Users",
+  "BarChart3",
+  "Code2",
+  "LifeBuoy",
+  "Settings2",
+  "Zap",
+  "Shield",
+  "CreditCard",
+  "Puzzle",
+  "MessageSquare",
+] as const;
+export const collectionIconSchema = z.enum(COLLECTION_ICONS);
+export type CollectionIcon = z.infer<typeof collectionIconSchema>;
+
+export const slugSchema = z
+  .string()
+  .trim()
+  .min(2, "Too short")
+  .max(48)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers, and dashes");
+
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a #RRGGBB hex color");
+
+export const helpNavLinkSchema = z.object({
+  label: z.string().trim().min(1).max(40),
+  href: z.string().trim().min(1).max(500),
+  external: z.boolean().default(false),
+});
+export type HelpNavLink = z.infer<typeof helpNavLinkSchema>;
+
+export const helpSeoSchema = z.object({
+  title: z.string().max(70).optional(),
+  description: z.string().max(200).optional(),
+  ogImage: z.string().url().optional(),
+});
+export type HelpSeo = z.infer<typeof helpSeoSchema>;
+
+/** PATCH /help-center — all fields optional (partial update of branding/chrome). */
+export const helpCenterSettingsSchema = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  slug: slugSchema.optional(),
+  listed: z.boolean().optional(),
+  logoUrl: z.string().url().nullable().optional(),
+  brandColor: hexColor.nullable().optional(),
+  theme: z.enum(["light", "dark", "system"]).optional(),
+  faviconUrl: z.string().url().nullable().optional(),
+  heroTitle: z.string().trim().min(1).max(80).optional(),
+  heroSubtitle: z.string().max(160).nullable().optional(),
+  navLinks: z.array(helpNavLinkSchema).max(6).optional(),
+  footerLinks: z.array(helpNavLinkSchema).max(6).optional(),
+  contactFormId: z.string().nullable().optional(),
+  statusUrl: z.string().url().nullable().optional(),
+  seo: helpSeoSchema.nullable().optional(),
+});
+export type HelpCenterSettingsInput = z.infer<typeof helpCenterSettingsSchema>;
+
+export const createCollectionSchema = z.object({
+  name: z.string().trim().min(1, "Name your collection").max(60),
+  description: z.string().max(200).optional(),
+  icon: collectionIconSchema.optional(),
+});
+export const updateCollectionSchema = z.object({
+  name: z.string().trim().min(1).max(60).optional(),
+  description: z.string().max(200).nullable().optional(),
+  icon: collectionIconSchema.nullable().optional(),
+  hidden: z.boolean().optional(),
+});
+
+/** Reorder collections or articles by id. */
+export const reorderSchema = z.object({ ids: z.array(z.string()).min(1) });
+export const addArticlesSchema = z.object({
+  guideIds: z.array(z.string()).min(1).max(100),
+});
+export const featureSchema = z.object({ featured: z.boolean() });
+
+/**
+ * Estimated read time from a guide's step count — shared by the API, the
+ * builder cards, and the public site so the number is consistent everywhere.
+ * Mirrors the guide-card heuristic (~0.6 min/step, min 1).
+ */
+export function estimateReadMinutes(stepCount: number): number {
+  return Math.max(1, Math.round(stepCount * 0.6));
+}
+
+// ── Response shapes (single source of truth for API + web) ──────────────────
+
+export type HelpArticleCard = {
+  id: string;
+  guideId: string;
+  title: string;
+  excerpt: string | null;
+  readMinutes: number;
+  featured: boolean;
+  slug: string;
+  status: "DRAFT" | "PUBLISHED";
+  stepCount: number;
+};
+
+export type HelpCollectionDetail = {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  slug: string;
+  position: number;
+  hidden: boolean;
+  articles: HelpArticleCard[];
+};
+
+export type HelpCenterDetail = {
+  id: string;
+  slug: string;
+  status: HelpCenterStatus;
+  listed: boolean;
+  name: string;
+  logoUrl: string | null;
+  brandColor: string | null;
+  theme: string;
+  faviconUrl: string | null;
+  heroTitle: string;
+  heroSubtitle: string | null;
+  navLinks: HelpNavLink[];
+  footerLinks: HelpNavLink[];
+  contactFormId: string | null;
+  statusUrl: string | null;
+  seo: HelpSeo | null;
+  publishedAt: string | null;
+  collections: HelpCollectionDetail[];
+};
+
+/** Reverse lookup for the guide editor's "Published In" section. */
+export type GuideHelpPlacement = {
+  helpCenterSlug: string;
+  featured: boolean;
+  collections: { id: string; name: string; slug: string }[];
+};
+
+// ── Public payloads ─────────────────────────────────────────────────────────
+
+export type PublicHelpArticle = {
+  title: string;
+  excerpt: string | null;
+  readMinutes: number;
+  slug: string;
+  collectionSlug: string;
+};
+
+export type PublicHelpCollection = {
+  name: string;
+  description: string | null;
+  icon: string | null;
+  slug: string;
+  count: number;
+  articles: PublicHelpArticle[];
+};
+
+export type PublicHelpCenter = {
+  slug: string;
+  name: string;
+  logoUrl: string | null;
+  brandColor: string | null;
+  theme: string;
+  heroTitle: string;
+  heroSubtitle: string | null;
+  navLinks: HelpNavLink[];
+  footerLinks: HelpNavLink[];
+  statusUrl: string | null;
+  collections: PublicHelpCollection[];
+  featured: PublicHelpArticle[];
+};
+
+export type HelpSearchHit = {
+  title: string;
+  excerpt: string;
+  slug: string;
+  collectionSlug: string;
+  collectionName: string;
+};
