@@ -348,6 +348,7 @@ export const HelpArticleScalarFieldEnum = {
   id: 'id',
   collectionId: 'collectionId',
   guideId: 'guideId',
+  slug: 'slug',
   position: 'position',
   featured: 'featured',
   titleOverride: 'titleOverride',

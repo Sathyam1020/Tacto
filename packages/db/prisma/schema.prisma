@@ -476,6 +476,9 @@ model HelpArticle {
   collection    HelpCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   guideId       String
   guide         Guide          @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  /// Stable, human public slug (from the guide title on add) — the article URL.
+  /// Kept stable across title edits so links never break. Unique per collection.
+  slug          String
   position      Int            @default(0)
   /// Surfaces on the homepage's "Popular articles" shelf.
   featured      Boolean        @default(false)
@@ -484,6 +487,7 @@ model HelpArticle {
   createdAt     DateTime       @default(now())
 
   @@unique([collectionId, guideId])
+  @@unique([collectionId, slug])
   @@index([collectionId, position])
   @@index([guideId])
   @@map("help_article")

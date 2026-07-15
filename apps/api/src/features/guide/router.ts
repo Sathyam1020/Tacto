@@ -799,3 +799,47 @@ guideRouter.get(
     res.send(csv);
   }
 );
+
+// ── Help Center placement ("Published In") ─────────────────────────────────
+// Read-only reverse lookup so the editor can show where a guide appears in the
+// help center (collections + whether it's featured). Never a second editor.
+guideRouter.get(
+  "/api/guides/:id/help-placements",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const articles = await prisma.helpArticle.findMany({
+      where: {
+        guideId: id,
+        collection: { helpCenter: { organizationId: req.workspace!.id } },
+      },
+      select: {
+        featured: true,
+        collection: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            helpCenter: { select: { slug: true } },
+          },
+        },
+      },
+    });
+    if (articles.length === 0) {
+      res.json({ placement: null });
+      return;
+    }
+    res.json({
+      placement: {
+        helpCenterSlug: articles[0]!.collection.helpCenter.slug,
+        featured: articles.some((a) => a.featured),
+        collections: articles.map((a) => ({
+          id: a.collection.id,
+          name: a.collection.name,
+          slug: a.collection.slug,
+        })),
+      },
+    });
+  }
+);

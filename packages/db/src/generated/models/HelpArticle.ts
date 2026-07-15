@@ -40,6 +40,7 @@ export type HelpArticleMinAggregateOutputType = {
   id: string | null
   collectionId: string | null
   guideId: string | null
+  slug: string | null
   position: number | null
   featured: boolean | null
   titleOverride: string | null
@@ -50,6 +51,7 @@ export type HelpArticleMaxAggregateOutputType = {
   id: string | null
   collectionId: string | null
   guideId: string | null
+  slug: string | null
   position: number | null
   featured: boolean | null
   titleOverride: string | null
@@ -60,6 +62,7 @@ export type HelpArticleCountAggregateOutputType = {
   id: number
   collectionId: number
   guideId: number
+  slug: number
   position: number
   featured: number
   titleOverride: number
@@ -80,6 +83,7 @@ export type HelpArticleMinAggregateInputType = {
   id?: true
   collectionId?: true
   guideId?: true
+  slug?: true
   position?: true
   featured?: true
   titleOverride?: true
@@ -90,6 +94,7 @@ export type HelpArticleMaxAggregateInputType = {
   id?: true
   collectionId?: true
   guideId?: true
+  slug?: true
   position?: true
   featured?: true
   titleOverride?: true
@@ -100,6 +105,7 @@ export type HelpArticleCountAggregateInputType = {
   id?: true
   collectionId?: true
   guideId?: true
+  slug?: true
   position?: true
   featured?: true
   titleOverride?: true
@@ -197,6 +203,7 @@ export type HelpArticleGroupByOutputType = {
   id: string
   collectionId: string
   guideId: string
+  slug: string
   position: number
   featured: boolean
   titleOverride: string | null
@@ -230,6 +237,7 @@ export type HelpArticleWhereInput = {
   id?: Prisma.StringFilter<"HelpArticle"> | string
   collectionId?: Prisma.StringFilter<"HelpArticle"> | string
   guideId?: Prisma.StringFilter<"HelpArticle"> | string
+  slug?: Prisma.StringFilter<"HelpArticle"> | string
   position?: Prisma.IntFilter<"HelpArticle"> | number
   featured?: Prisma.BoolFilter<"HelpArticle"> | boolean
   titleOverride?: Prisma.StringNullableFilter<"HelpArticle"> | string | null
@@ -242,6 +250,7 @@ export type HelpArticleOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   collectionId?: Prisma.SortOrder
   guideId?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   position?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   titleOverride?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -253,23 +262,26 @@ export type HelpArticleOrderByWithRelationInput = {
 export type HelpArticleWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   collectionId_guideId?: Prisma.HelpArticleCollectionIdGuideIdCompoundUniqueInput
+  collectionId_slug?: Prisma.HelpArticleCollectionIdSlugCompoundUniqueInput
   AND?: Prisma.HelpArticleWhereInput | Prisma.HelpArticleWhereInput[]
   OR?: Prisma.HelpArticleWhereInput[]
   NOT?: Prisma.HelpArticleWhereInput | Prisma.HelpArticleWhereInput[]
   collectionId?: Prisma.StringFilter<"HelpArticle"> | string
   guideId?: Prisma.StringFilter<"HelpArticle"> | string
+  slug?: Prisma.StringFilter<"HelpArticle"> | string
   position?: Prisma.IntFilter<"HelpArticle"> | number
   featured?: Prisma.BoolFilter<"HelpArticle"> | boolean
   titleOverride?: Prisma.StringNullableFilter<"HelpArticle"> | string | null
   createdAt?: Prisma.DateTimeFilter<"HelpArticle"> | Date | string
   collection?: Prisma.XOR<Prisma.HelpCollectionScalarRelationFilter, Prisma.HelpCollectionWhereInput>
   guide?: Prisma.XOR<Prisma.GuideScalarRelationFilter, Prisma.GuideWhereInput>
-}, "id" | "collectionId_guideId">
+}, "id" | "collectionId_guideId" | "collectionId_slug">
 
 export type HelpArticleOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   collectionId?: Prisma.SortOrder
   guideId?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   position?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   titleOverride?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -288,6 +300,7 @@ export type HelpArticleScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"HelpArticle"> | string
   collectionId?: Prisma.StringWithAggregatesFilter<"HelpArticle"> | string
   guideId?: Prisma.StringWithAggregatesFilter<"HelpArticle"> | string
+  slug?: Prisma.StringWithAggregatesFilter<"HelpArticle"> | string
   position?: Prisma.IntWithAggregatesFilter<"HelpArticle"> | number
   featured?: Prisma.BoolWithAggregatesFilter<"HelpArticle"> | boolean
   titleOverride?: Prisma.StringNullableWithAggregatesFilter<"HelpArticle"> | string | null
@@ -296,6 +309,7 @@ export type HelpArticleScalarWhereWithAggregatesInput = {
 
 export type HelpArticleCreateInput = {
   id?: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -308,6 +322,7 @@ export type HelpArticleUncheckedCreateInput = {
   id?: string
   collectionId: string
   guideId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -316,6 +331,7 @@ export type HelpArticleUncheckedCreateInput = {
 
 export type HelpArticleUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -328,6 +344,7 @@ export type HelpArticleUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   collectionId?: Prisma.StringFieldUpdateOperationsInput | string
   guideId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -338,6 +355,7 @@ export type HelpArticleCreateManyInput = {
   id?: string
   collectionId: string
   guideId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -346,6 +364,7 @@ export type HelpArticleCreateManyInput = {
 
 export type HelpArticleUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -356,6 +375,7 @@ export type HelpArticleUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   collectionId?: Prisma.StringFieldUpdateOperationsInput | string
   guideId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -377,10 +397,16 @@ export type HelpArticleCollectionIdGuideIdCompoundUniqueInput = {
   guideId: string
 }
 
+export type HelpArticleCollectionIdSlugCompoundUniqueInput = {
+  collectionId: string
+  slug: string
+}
+
 export type HelpArticleCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   collectionId?: Prisma.SortOrder
   guideId?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   position?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   titleOverride?: Prisma.SortOrder
@@ -395,6 +421,7 @@ export type HelpArticleMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   collectionId?: Prisma.SortOrder
   guideId?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   position?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   titleOverride?: Prisma.SortOrder
@@ -405,6 +432,7 @@ export type HelpArticleMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   collectionId?: Prisma.SortOrder
   guideId?: Prisma.SortOrder
+  slug?: Prisma.SortOrder
   position?: Prisma.SortOrder
   featured?: Prisma.SortOrder
   titleOverride?: Prisma.SortOrder
@@ -501,6 +529,7 @@ export type HelpArticleUncheckedUpdateManyWithoutCollectionNestedInput = {
 
 export type HelpArticleCreateWithoutGuideInput = {
   id?: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -511,6 +540,7 @@ export type HelpArticleCreateWithoutGuideInput = {
 export type HelpArticleUncheckedCreateWithoutGuideInput = {
   id?: string
   collectionId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -550,6 +580,7 @@ export type HelpArticleScalarWhereInput = {
   id?: Prisma.StringFilter<"HelpArticle"> | string
   collectionId?: Prisma.StringFilter<"HelpArticle"> | string
   guideId?: Prisma.StringFilter<"HelpArticle"> | string
+  slug?: Prisma.StringFilter<"HelpArticle"> | string
   position?: Prisma.IntFilter<"HelpArticle"> | number
   featured?: Prisma.BoolFilter<"HelpArticle"> | boolean
   titleOverride?: Prisma.StringNullableFilter<"HelpArticle"> | string | null
@@ -558,6 +589,7 @@ export type HelpArticleScalarWhereInput = {
 
 export type HelpArticleCreateWithoutCollectionInput = {
   id?: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -568,6 +600,7 @@ export type HelpArticleCreateWithoutCollectionInput = {
 export type HelpArticleUncheckedCreateWithoutCollectionInput = {
   id?: string
   guideId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -603,6 +636,7 @@ export type HelpArticleUpdateManyWithWhereWithoutCollectionInput = {
 export type HelpArticleCreateManyGuideInput = {
   id?: string
   collectionId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -611,6 +645,7 @@ export type HelpArticleCreateManyGuideInput = {
 
 export type HelpArticleUpdateWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -621,6 +656,7 @@ export type HelpArticleUpdateWithoutGuideInput = {
 export type HelpArticleUncheckedUpdateWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   collectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -630,6 +666,7 @@ export type HelpArticleUncheckedUpdateWithoutGuideInput = {
 export type HelpArticleUncheckedUpdateManyWithoutGuideInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   collectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -639,6 +676,7 @@ export type HelpArticleUncheckedUpdateManyWithoutGuideInput = {
 export type HelpArticleCreateManyCollectionInput = {
   id?: string
   guideId: string
+  slug: string
   position?: number
   featured?: boolean
   titleOverride?: string | null
@@ -647,6 +685,7 @@ export type HelpArticleCreateManyCollectionInput = {
 
 export type HelpArticleUpdateWithoutCollectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -657,6 +696,7 @@ export type HelpArticleUpdateWithoutCollectionInput = {
 export type HelpArticleUncheckedUpdateWithoutCollectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guideId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -666,6 +706,7 @@ export type HelpArticleUncheckedUpdateWithoutCollectionInput = {
 export type HelpArticleUncheckedUpdateManyWithoutCollectionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   guideId?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
   position?: Prisma.IntFieldUpdateOperationsInput | number
   featured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   titleOverride?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -678,6 +719,7 @@ export type HelpArticleSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   id?: boolean
   collectionId?: boolean
   guideId?: boolean
+  slug?: boolean
   position?: boolean
   featured?: boolean
   titleOverride?: boolean
@@ -690,6 +732,7 @@ export type HelpArticleSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   collectionId?: boolean
   guideId?: boolean
+  slug?: boolean
   position?: boolean
   featured?: boolean
   titleOverride?: boolean
@@ -702,6 +745,7 @@ export type HelpArticleSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   id?: boolean
   collectionId?: boolean
   guideId?: boolean
+  slug?: boolean
   position?: boolean
   featured?: boolean
   titleOverride?: boolean
@@ -714,13 +758,14 @@ export type HelpArticleSelectScalar = {
   id?: boolean
   collectionId?: boolean
   guideId?: boolean
+  slug?: boolean
   position?: boolean
   featured?: boolean
   titleOverride?: boolean
   createdAt?: boolean
 }
 
-export type HelpArticleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "collectionId" | "guideId" | "position" | "featured" | "titleOverride" | "createdAt", ExtArgs["result"]["helpArticle"]>
+export type HelpArticleOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "collectionId" | "guideId" | "slug" | "position" | "featured" | "titleOverride" | "createdAt", ExtArgs["result"]["helpArticle"]>
 export type HelpArticleInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   collection?: boolean | Prisma.HelpCollectionDefaultArgs<ExtArgs>
   guide?: boolean | Prisma.GuideDefaultArgs<ExtArgs>
@@ -744,6 +789,11 @@ export type $HelpArticlePayload<ExtArgs extends runtime.Types.Extensions.Interna
     id: string
     collectionId: string
     guideId: string
+    /**
+     * Stable, human public slug (from the guide title on add) — the article URL.
+     * Kept stable across title edits so links never break. Unique per collection.
+     */
+    slug: string
     position: number
     /**
      * Surfaces on the homepage's "Popular articles" shelf.
@@ -1182,6 +1232,7 @@ export interface HelpArticleFieldRefs {
   readonly id: Prisma.FieldRef<"HelpArticle", 'String'>
   readonly collectionId: Prisma.FieldRef<"HelpArticle", 'String'>
   readonly guideId: Prisma.FieldRef<"HelpArticle", 'String'>
+  readonly slug: Prisma.FieldRef<"HelpArticle", 'String'>
   readonly position: Prisma.FieldRef<"HelpArticle", 'Int'>
   readonly featured: Prisma.FieldRef<"HelpArticle", 'Boolean'>
   readonly titleOverride: Prisma.FieldRef<"HelpArticle", 'String'>
