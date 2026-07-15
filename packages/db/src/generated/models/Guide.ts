@@ -324,6 +324,7 @@ export type GuideWhereInput = {
   comments?: Prisma.GuideCommentListRelationFilter
   narrations?: Prisma.NarrationListRelationFilter
   mediaRenders?: Prisma.MediaRenderListRelationFilter
+  events?: Prisma.GuideEventListRelationFilter
 }
 
 export type GuideOrderByWithRelationInput = {
@@ -357,6 +358,7 @@ export type GuideOrderByWithRelationInput = {
   comments?: Prisma.GuideCommentOrderByRelationAggregateInput
   narrations?: Prisma.NarrationOrderByRelationAggregateInput
   mediaRenders?: Prisma.MediaRenderOrderByRelationAggregateInput
+  events?: Prisma.GuideEventOrderByRelationAggregateInput
 }
 
 export type GuideWhereUniqueInput = Prisma.AtLeast<{
@@ -393,6 +395,7 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   comments?: Prisma.GuideCommentListRelationFilter
   narrations?: Prisma.NarrationListRelationFilter
   mediaRenders?: Prisma.MediaRenderListRelationFilter
+  events?: Prisma.GuideEventListRelationFilter
 }, "id" | "shareId">
 
 export type GuideOrderByWithAggregationInput = {
@@ -474,6 +477,7 @@ export type GuideCreateInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateInput = {
@@ -503,6 +507,7 @@ export type GuideUncheckedCreateInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUpdateInput = {
@@ -532,6 +537,7 @@ export type GuideUpdateInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateInput = {
@@ -561,6 +567,7 @@ export type GuideUncheckedUpdateInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateManyInput = {
@@ -878,6 +885,20 @@ export type EnumGuideStatusFieldUpdateOperationsInput = {
   set?: $Enums.GuideStatus
 }
 
+export type GuideCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutEventsInput, Prisma.GuideUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutEventsInput
+  connect?: Prisma.GuideWhereUniqueInput
+}
+
+export type GuideUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.GuideCreateWithoutEventsInput, Prisma.GuideUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.GuideCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.GuideUpsertWithoutEventsInput
+  connect?: Prisma.GuideWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.GuideUpdateToOneWithWhereWithoutEventsInput, Prisma.GuideUpdateWithoutEventsInput>, Prisma.GuideUncheckedUpdateWithoutEventsInput>
+}
+
 export type GuideCreateNestedOneWithoutDraftInput = {
   create?: Prisma.XOR<Prisma.GuideCreateWithoutDraftInput, Prisma.GuideUncheckedCreateWithoutDraftInput>
   connectOrCreate?: Prisma.GuideCreateOrConnectWithoutDraftInput
@@ -1002,6 +1023,7 @@ export type GuideCreateWithoutCreatedByInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutCreatedByInput = {
@@ -1030,6 +1052,7 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutCreatedByInput = {
@@ -1109,6 +1132,7 @@ export type GuideCreateWithoutOrganizationInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutOrganizationInput = {
@@ -1137,6 +1161,7 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutOrganizationInput = {
@@ -1191,6 +1216,7 @@ export type GuideCreateWithoutFolderInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutFolderInput = {
@@ -1219,6 +1245,7 @@ export type GuideUncheckedCreateWithoutFolderInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutFolderInput = {
@@ -1273,6 +1300,7 @@ export type GuideCreateWithoutCaptureInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutCaptureInput = {
@@ -1301,6 +1329,7 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutCaptureInput = {
@@ -1329,6 +1358,138 @@ export type GuideUpdateManyWithWhereWithoutCaptureInput = {
   data: Prisma.XOR<Prisma.GuideUpdateManyMutationInput, Prisma.GuideUncheckedUpdateManyWithoutCaptureInput>
 }
 
+export type GuideCreateWithoutEventsInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
+  capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
+  createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
+  folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
+  blocks?: Prisma.StepCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftCreateNestedOneWithoutGuideInput
+  translations?: Prisma.GuideTranslationCreateNestedManyWithoutGuideInput
+  reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
+  comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
+  narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
+  mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+}
+
+export type GuideUncheckedCreateWithoutEventsInput = {
+  id?: string
+  title: string
+  summary?: string | null
+  status?: $Enums.GuideStatus
+  shareId?: string | null
+  publishedAt?: Date | string | null
+  viewCount?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  pinnedAt?: Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organizationId: string
+  captureId?: string | null
+  createdById: string
+  folderId?: string | null
+  blocks?: Prisma.StepUncheckedCreateNestedManyWithoutGuideInput
+  draft?: Prisma.GuideDraftUncheckedCreateNestedOneWithoutGuideInput
+  translations?: Prisma.GuideTranslationUncheckedCreateNestedManyWithoutGuideInput
+  reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
+  comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
+  narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
+  mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+}
+
+export type GuideCreateOrConnectWithoutEventsInput = {
+  where: Prisma.GuideWhereUniqueInput
+  create: Prisma.XOR<Prisma.GuideCreateWithoutEventsInput, Prisma.GuideUncheckedCreateWithoutEventsInput>
+}
+
+export type GuideUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.GuideUpdateWithoutEventsInput, Prisma.GuideUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.GuideCreateWithoutEventsInput, Prisma.GuideUncheckedCreateWithoutEventsInput>
+  where?: Prisma.GuideWhereInput
+}
+
+export type GuideUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.GuideWhereInput
+  data: Prisma.XOR<Prisma.GuideUpdateWithoutEventsInput, Prisma.GuideUncheckedUpdateWithoutEventsInput>
+}
+
+export type GuideUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
+  capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
+  createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
+  folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
+  blocks?: Prisma.StepUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUpdateOneWithoutGuideNestedInput
+  translations?: Prisma.GuideTranslationUpdateManyWithoutGuideNestedInput
+  reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
+  comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
+  narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
+  mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+}
+
+export type GuideUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  summary?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumGuideStatusFieldUpdateOperationsInput | $Enums.GuideStatus
+  shareId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  viewCount?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  pinnedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.StringFieldUpdateOperationsInput | string
+  folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blocks?: Prisma.StepUncheckedUpdateManyWithoutGuideNestedInput
+  draft?: Prisma.GuideDraftUncheckedUpdateOneWithoutGuideNestedInput
+  translations?: Prisma.GuideTranslationUncheckedUpdateManyWithoutGuideNestedInput
+  reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
+  comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
+  narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
+  mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+}
+
 export type GuideCreateWithoutDraftInput = {
   id?: string
   title: string
@@ -1355,6 +1516,7 @@ export type GuideCreateWithoutDraftInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutDraftInput = {
@@ -1383,6 +1545,7 @@ export type GuideUncheckedCreateWithoutDraftInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutDraftInput = {
@@ -1427,6 +1590,7 @@ export type GuideUpdateWithoutDraftInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutDraftInput = {
@@ -1455,6 +1619,7 @@ export type GuideUncheckedUpdateWithoutDraftInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutTranslationsInput = {
@@ -1483,6 +1648,7 @@ export type GuideCreateWithoutTranslationsInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutTranslationsInput = {
@@ -1511,6 +1677,7 @@ export type GuideUncheckedCreateWithoutTranslationsInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutTranslationsInput = {
@@ -1555,6 +1722,7 @@ export type GuideUpdateWithoutTranslationsInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutTranslationsInput = {
@@ -1583,6 +1751,7 @@ export type GuideUncheckedUpdateWithoutTranslationsInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutReactionsInput = {
@@ -1611,6 +1780,7 @@ export type GuideCreateWithoutReactionsInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutReactionsInput = {
@@ -1639,6 +1809,7 @@ export type GuideUncheckedCreateWithoutReactionsInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutReactionsInput = {
@@ -1683,6 +1854,7 @@ export type GuideUpdateWithoutReactionsInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutReactionsInput = {
@@ -1711,6 +1883,7 @@ export type GuideUncheckedUpdateWithoutReactionsInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutCommentsInput = {
@@ -1739,6 +1912,7 @@ export type GuideCreateWithoutCommentsInput = {
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutCommentsInput = {
@@ -1767,6 +1941,7 @@ export type GuideUncheckedCreateWithoutCommentsInput = {
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutCommentsInput = {
@@ -1811,6 +1986,7 @@ export type GuideUpdateWithoutCommentsInput = {
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutCommentsInput = {
@@ -1839,6 +2015,7 @@ export type GuideUncheckedUpdateWithoutCommentsInput = {
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutBlocksInput = {
@@ -1867,6 +2044,7 @@ export type GuideCreateWithoutBlocksInput = {
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutBlocksInput = {
@@ -1895,6 +2073,7 @@ export type GuideUncheckedCreateWithoutBlocksInput = {
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutBlocksInput = {
@@ -1939,6 +2118,7 @@ export type GuideUpdateWithoutBlocksInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutBlocksInput = {
@@ -1967,6 +2147,7 @@ export type GuideUncheckedUpdateWithoutBlocksInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutNarrationsInput = {
@@ -1995,6 +2176,7 @@ export type GuideCreateWithoutNarrationsInput = {
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutNarrationsInput = {
@@ -2023,6 +2205,7 @@ export type GuideUncheckedCreateWithoutNarrationsInput = {
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   mediaRenders?: Prisma.MediaRenderUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutNarrationsInput = {
@@ -2067,6 +2250,7 @@ export type GuideUpdateWithoutNarrationsInput = {
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutNarrationsInput = {
@@ -2095,6 +2279,7 @@ export type GuideUncheckedUpdateWithoutNarrationsInput = {
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateWithoutMediaRendersInput = {
@@ -2123,6 +2308,7 @@ export type GuideCreateWithoutMediaRendersInput = {
   reactions?: Prisma.GuideReactionCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventCreateNestedManyWithoutGuideInput
 }
 
 export type GuideUncheckedCreateWithoutMediaRendersInput = {
@@ -2151,6 +2337,7 @@ export type GuideUncheckedCreateWithoutMediaRendersInput = {
   reactions?: Prisma.GuideReactionUncheckedCreateNestedManyWithoutGuideInput
   comments?: Prisma.GuideCommentUncheckedCreateNestedManyWithoutGuideInput
   narrations?: Prisma.NarrationUncheckedCreateNestedManyWithoutGuideInput
+  events?: Prisma.GuideEventUncheckedCreateNestedManyWithoutGuideInput
 }
 
 export type GuideCreateOrConnectWithoutMediaRendersInput = {
@@ -2195,6 +2382,7 @@ export type GuideUpdateWithoutMediaRendersInput = {
   reactions?: Prisma.GuideReactionUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutMediaRendersInput = {
@@ -2223,6 +2411,7 @@ export type GuideUncheckedUpdateWithoutMediaRendersInput = {
   reactions?: Prisma.GuideReactionUncheckedUpdateManyWithoutGuideNestedInput
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideCreateManyCreatedByInput = {
@@ -2272,6 +2461,7 @@ export type GuideUpdateWithoutCreatedByInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutCreatedByInput = {
@@ -2300,6 +2490,7 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
@@ -2370,6 +2561,7 @@ export type GuideUpdateWithoutOrganizationInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutOrganizationInput = {
@@ -2398,6 +2590,7 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
@@ -2468,6 +2661,7 @@ export type GuideUpdateWithoutFolderInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutFolderInput = {
@@ -2496,6 +2690,7 @@ export type GuideUncheckedUpdateWithoutFolderInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutFolderInput = {
@@ -2566,6 +2761,7 @@ export type GuideUpdateWithoutCaptureInput = {
   comments?: Prisma.GuideCommentUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateWithoutCaptureInput = {
@@ -2594,6 +2790,7 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   comments?: Prisma.GuideCommentUncheckedUpdateManyWithoutGuideNestedInput
   narrations?: Prisma.NarrationUncheckedUpdateManyWithoutGuideNestedInput
   mediaRenders?: Prisma.MediaRenderUncheckedUpdateManyWithoutGuideNestedInput
+  events?: Prisma.GuideEventUncheckedUpdateManyWithoutGuideNestedInput
 }
 
 export type GuideUncheckedUpdateManyWithoutCaptureInput = {
@@ -2629,6 +2826,7 @@ export type GuideCountOutputType = {
   comments: number
   narrations: number
   mediaRenders: number
+  events: number
 }
 
 export type GuideCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2638,6 +2836,7 @@ export type GuideCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.
   comments?: boolean | GuideCountOutputTypeCountCommentsArgs
   narrations?: boolean | GuideCountOutputTypeCountNarrationsArgs
   mediaRenders?: boolean | GuideCountOutputTypeCountMediaRendersArgs
+  events?: boolean | GuideCountOutputTypeCountEventsArgs
 }
 
 /**
@@ -2692,6 +2891,13 @@ export type GuideCountOutputTypeCountMediaRendersArgs<ExtArgs extends runtime.Ty
   where?: Prisma.MediaRenderWhereInput
 }
 
+/**
+ * GuideCountOutputType without action
+ */
+export type GuideCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.GuideEventWhereInput
+}
+
 
 export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -2724,6 +2930,7 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   comments?: boolean | Prisma.Guide$commentsArgs<ExtArgs>
   narrations?: boolean | Prisma.Guide$narrationsArgs<ExtArgs>
   mediaRenders?: boolean | Prisma.Guide$mediaRendersArgs<ExtArgs>
+  events?: boolean | Prisma.Guide$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["guide"]>
 
@@ -2814,6 +3021,7 @@ export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   comments?: boolean | Prisma.Guide$commentsArgs<ExtArgs>
   narrations?: boolean | Prisma.Guide$narrationsArgs<ExtArgs>
   mediaRenders?: boolean | Prisma.Guide$mediaRendersArgs<ExtArgs>
+  events?: boolean | Prisma.Guide$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.GuideCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type GuideIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2843,6 +3051,7 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     comments: Prisma.$GuideCommentPayload<ExtArgs>[]
     narrations: Prisma.$NarrationPayload<ExtArgs>[]
     mediaRenders: Prisma.$MediaRenderPayload<ExtArgs>[]
+    events: Prisma.$GuideEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3296,6 +3505,7 @@ export interface Prisma__GuideClient<T, Null = never, ExtArgs extends runtime.Ty
   comments<T extends Prisma.Guide$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuideCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   narrations<T extends Prisma.Guide$narrationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$narrationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$NarrationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   mediaRenders<T extends Prisma.Guide$mediaRendersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$mediaRendersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MediaRenderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  events<T extends Prisma.Guide$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Guide$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuideEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3943,6 +4153,30 @@ export type Guide$mediaRendersArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.MediaRenderScalarFieldEnum | Prisma.MediaRenderScalarFieldEnum[]
+}
+
+/**
+ * Guide.events
+ */
+export type Guide$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the GuideEvent
+   */
+  select?: Prisma.GuideEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the GuideEvent
+   */
+  omit?: Prisma.GuideEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.GuideEventInclude<ExtArgs> | null
+  where?: Prisma.GuideEventWhereInput
+  orderBy?: Prisma.GuideEventOrderByWithRelationInput | Prisma.GuideEventOrderByWithRelationInput[]
+  cursor?: Prisma.GuideEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.GuideEventScalarFieldEnum | Prisma.GuideEventScalarFieldEnum[]
 }
 
 /**

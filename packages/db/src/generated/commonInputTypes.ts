@@ -416,6 +416,23 @@ export type EnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
 }
 
+export type EnumGuideEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel> | $Enums.GuideEventType
+}
+
+export type EnumGuideEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGuideEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.GuideEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel>
+}
+
 export type EnumBlockTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.BlockType | Prisma.EnumBlockTypeFieldRefInput<$PrismaModel>
   in?: $Enums.BlockType[] | Prisma.ListEnumBlockTypeFieldRefInput<$PrismaModel>
@@ -781,6 +798,23 @@ export type NestedEnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumGuideEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel> | $Enums.GuideEventType
+}
+
+export type NestedEnumGuideEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumGuideEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.GuideEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumGuideEventTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumBlockTypeFilter<$PrismaModel = never> = {

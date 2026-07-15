@@ -93,6 +93,15 @@ export type Capture = Prisma.CaptureModel
  */
 export type Guide = Prisma.GuideModel
 /**
+ * Model GuideEvent
+ * Anonymous, append-only reader-engagement event for a published guide — the
+ * source of truth for analytics time-series + funnels. No PII: `anonId` is a
+ * localStorage uuid (shared with reactions), the referrer is stored host-only.
+ * `context` is a small, forward-compatible bag; shape = guideEventContextSchema
+ * in @workspace/contracts/guide-analytics. Rows cascade with the guide.
+ */
+export type GuideEvent = Prisma.GuideEventModel
+/**
  * Model GuideDraft
  * A guide's private working draft — one versioned JSON document per guide.
  * The editor reads and autosaves this; the published Guide/Step rows are

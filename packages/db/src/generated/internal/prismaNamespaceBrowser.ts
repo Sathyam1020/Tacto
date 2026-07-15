@@ -64,6 +64,7 @@ export const ModelName = {
   FormSubmission: 'FormSubmission',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
   GuideReaction: 'GuideReaction',
@@ -296,6 +297,19 @@ export const GuideScalarFieldEnum = {
 } as const
 
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
+
+
+export const GuideEventScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  context: 'context',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideEventScalarFieldEnum = (typeof GuideEventScalarFieldEnum)[keyof typeof GuideEventScalarFieldEnum]
 
 
 export const GuideDraftScalarFieldEnum = {

@@ -197,6 +197,20 @@ enum GuideStatus {
   PUBLISHED
 }
 
+/// Reader-engagement event types for a published guide (see GuideEvent).
+enum GuideEventType {
+  VIEW
+  WALKTHROUGH_START
+  WALKTHROUGH_STEP
+  COMPLETE
+  PDF_DOWNLOAD
+  LANGUAGE_SWITCH
+  MODE_SWITCH
+  EMBED_OPEN
+  EMBED_SUBMIT
+  SESSION_END
+}
+
 enum FormStatus {
   DRAFT
   PUBLISHED
@@ -372,10 +386,35 @@ model Guide {
   comments     GuideComment[]
   narrations   Narration[]
   mediaRenders MediaRender[]
+  events       GuideEvent[]
 
   @@index([organizationId, status])
   @@index([organizationId, folderId])
   @@map("guide")
+}
+
+/// Anonymous, append-only reader-engagement event for a published guide — the
+/// source of truth for analytics time-series + funnels. No PII: `anonId` is a
+/// localStorage uuid (shared with reactions), the referrer is stored host-only.
+/// `context` is a small, forward-compatible bag; shape = guideEventContextSchema
+/// in @workspace/contracts/guide-analytics. Rows cascade with the guide.
+model GuideEvent {
+  id        String         @id @default(uuid())
+  guideId   String
+  guide     Guide          @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  type      GuideEventType
+  /// localStorage tacto_anon_id — groups a viewer across sessions. Null if blocked.
+  anonId    String?
+  /// Per page-load id — groups events into one viewing session (client-minted).
+  sessionId String
+  /// Event-specific bag: stepIndex, language, mode, formId, durationMs,
+  /// referrerHost, guideVersion, deviceType, browser, utm{Source,Medium,Campaign}.
+  context   Json?
+  createdAt DateTime       @default(now())
+
+  @@index([guideId, createdAt])
+  @@index([guideId, type, createdAt])
+  @@map("guide_event")
 }
 
 /// A guide's private working draft — one versioned JSON document per guide.

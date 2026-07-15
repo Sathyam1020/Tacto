@@ -397,6 +397,7 @@ export const ModelName = {
   FormSubmission: 'FormSubmission',
   Capture: 'Capture',
   Guide: 'Guide',
+  GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
   GuideReaction: 'GuideReaction',
@@ -422,7 +423,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1385,6 +1386,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.GuideCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.GuideCountAggregateOutputType> | number
+        }
+      }
+    }
+    GuideEvent: {
+      payload: Prisma.$GuideEventPayload<ExtArgs>
+      fields: Prisma.GuideEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.GuideEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.GuideEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        findFirst: {
+          args: Prisma.GuideEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.GuideEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        findMany: {
+          args: Prisma.GuideEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>[]
+        }
+        create: {
+          args: Prisma.GuideEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        createMany: {
+          args: Prisma.GuideEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.GuideEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>[]
+        }
+        delete: {
+          args: Prisma.GuideEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        update: {
+          args: Prisma.GuideEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.GuideEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.GuideEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.GuideEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.GuideEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$GuideEventPayload>
+        }
+        aggregate: {
+          args: Prisma.GuideEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateGuideEvent>
+        }
+        groupBy: {
+          args: Prisma.GuideEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.GuideEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.GuideEventCountAggregateOutputType> | number
         }
       }
     }
@@ -2373,6 +2448,19 @@ export const GuideScalarFieldEnum = {
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
 
 
+export const GuideEventScalarFieldEnum = {
+  id: 'id',
+  guideId: 'guideId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  context: 'context',
+  createdAt: 'createdAt'
+} as const
+
+export type GuideEventScalarFieldEnum = (typeof GuideEventScalarFieldEnum)[keyof typeof GuideEventScalarFieldEnum]
+
+
 export const GuideDraftScalarFieldEnum = {
   id: 'id',
   guideId: 'guideId',
@@ -2728,6 +2816,20 @@ export type ListEnumGuideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'GuideEventType'
+ */
+export type EnumGuideEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'GuideEventType[]'
+ */
+export type ListEnumGuideEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideEventType[]'>
+    
+
+
+/**
  * Reference to a field of type 'BlockType'
  */
 export type EnumBlockTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BlockType'>
@@ -2863,6 +2965,7 @@ export type GlobalOmitConfig = {
   formSubmission?: Prisma.FormSubmissionOmit
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
+  guideEvent?: Prisma.GuideEventOmit
   guideDraft?: Prisma.GuideDraftOmit
   guideTranslation?: Prisma.GuideTranslationOmit
   guideReaction?: Prisma.GuideReactionOmit

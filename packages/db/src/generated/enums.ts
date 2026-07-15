@@ -44,6 +44,22 @@ export const GuideStatus = {
 export type GuideStatus = (typeof GuideStatus)[keyof typeof GuideStatus]
 
 
+export const GuideEventType = {
+  VIEW: 'VIEW',
+  WALKTHROUGH_START: 'WALKTHROUGH_START',
+  WALKTHROUGH_STEP: 'WALKTHROUGH_STEP',
+  COMPLETE: 'COMPLETE',
+  PDF_DOWNLOAD: 'PDF_DOWNLOAD',
+  LANGUAGE_SWITCH: 'LANGUAGE_SWITCH',
+  MODE_SWITCH: 'MODE_SWITCH',
+  EMBED_OPEN: 'EMBED_OPEN',
+  EMBED_SUBMIT: 'EMBED_SUBMIT',
+  SESSION_END: 'SESSION_END'
+} as const
+
+export type GuideEventType = (typeof GuideEventType)[keyof typeof GuideEventType]
+
+
 export const FormStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED'

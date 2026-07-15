@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import {
   ArrowLeft,
@@ -30,6 +29,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
@@ -87,10 +88,11 @@ export default function FormBuilderPage() {
   const [selection, setSelection] = React.useState<Selection | null>(null)
   const [paletteOpen, setPaletteOpen] = React.useState(false)
   const [previewOpen, setPreviewOpen] = React.useState(false)
-  // Whether the draft is ahead of what's published — gates the Update button.
-  // Seeded once from the server, then set true on any edit / false on publish.
-  const [dirty, setDirty] = React.useState(false)
-  const dirtySeeded = React.useRef(false)
+  const [leaveOpen, setLeaveOpen] = React.useState(false)
+  // Edits made in THIS session — for immediate feedback before the server
+  // re-derives hasUnpublishedChanges. `dirty` (below) OR-s this with the
+  // server's view so reopened drafts still enable Update.
+  const [locallyEdited, setLocallyEdited] = React.useState(false)
 
   const doc = history?.present ?? null
 
@@ -113,14 +115,6 @@ export default function FormBuilderPage() {
     versionRef.current = d.version
     if (d.document.fields[0]) setSelection({ kind: "field", key: d.document.fields[0].key })
   }, [draftQuery.data])
-
-  // Seed the dirty flag once the form loads: a never-published form, or one
-  // whose draft already diverges from the published doc, has changes to publish.
-  React.useEffect(() => {
-    if (dirtySeeded.current || !form) return
-    dirtySeeded.current = true
-    setDirty(form.status !== "PUBLISHED" || form.hasUnpublishedChanges)
-  }, [form])
 
   const flush = React.useCallback(async () => {
     if (savingRef.current || !dirtyRef.current || !presentRef.current) return
@@ -164,7 +158,7 @@ export default function FormBuilderPage() {
         return canCoalesce ? amend(h, next) : commit(h, next)
       })
       dirtyRef.current = true
-      setDirty(true)
+      setLocallyEdited(true)
       setSaveState("saving")
       scheduleFlush()
     },
@@ -207,7 +201,7 @@ export default function FormBuilderPage() {
       await flush()
       try {
         await publish.mutateAsync()
-        setDirty(false)
+        setLocallyEdited(false)
         toast.success("Form published")
         // The form's home is where you land after publishing — not the builder.
         router.push(`/forms/${params.id}`)
@@ -216,6 +210,14 @@ export default function FormBuilderPage() {
       }
     })()
   }
+
+  // Update is enabled whenever the draft is ahead of the published form: the
+  // server says so (draft ≠ published — survives leaving + reopening), or we've
+  // edited this session, or it was never published. Derived (not seeded once)
+  // so a background refetch of the form re-enables Update correctly on reopen.
+  const dirty =
+    locallyEdited ||
+    (form ? form.status !== "PUBLISHED" || form.hasUnpublishedChanges : false)
 
   // ── Navbar (injected into the shared editor chrome — one bar, not two) ──────
   const cU = history ? canUndo(history) : false
@@ -230,7 +232,9 @@ export default function FormBuilderPage() {
           <Button
             variant="ghost"
             size="sm"
-            render={<Link href={`/forms/${params.id}`} />}
+            onClick={() =>
+              dirty ? setLeaveOpen(true) : router.push(`/forms/${params.id}`)
+            }
           >
             <ArrowLeft className="size-4" />
             Back
@@ -599,6 +603,35 @@ export default function FormBuilderPage() {
           <div className="max-h-[70vh] overflow-y-auto">
             <PublicFormView previewDoc={doc} embedded />
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leave editor — changes autosave to a private draft; publish makes them live. */}
+      <Dialog open={leaveOpen} onOpenChange={setLeaveOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Leave editor?</DialogTitle>
+            <DialogDescription>
+              Your changes are saved as a private draft — they won&apos;t be live
+              until you publish the form.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setLeaveOpen(false)}>
+              Continue editing
+            </Button>
+            <Button
+              onClick={() => {
+                setLeaveOpen(false)
+                void (async () => {
+                  await flush()
+                  router.push(`/forms/${params.id}`)
+                })()
+              }}
+            >
+              Leave &amp; keep draft
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
