@@ -5,6 +5,9 @@ import { HelpHome } from "@/components/help/help-site"
 import { fetchHelpHome } from "@/lib/public-help"
 
 /** Public Help Center homepage — SSR for SEO. Lives outside (app): no chrome. */
+// Always fresh: slug/branding edits must reflect immediately (no stale cache).
+export const dynamic = "force-dynamic"
+
 type Params = { params: Promise<{ slug: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

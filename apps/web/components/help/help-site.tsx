@@ -11,9 +11,7 @@ import {
   FileText,
   Globe,
   Headphones,
-  Moon,
   Search,
-  Sun,
   X,
 } from "lucide-react"
 
@@ -32,28 +30,22 @@ import { publicCollectionIcon } from "@/components/help/public-icon"
 import type { GuideBlock } from "@/lib/guides"
 import type { PublicGuide } from "@/lib/public-guide"
 
-/* ── theme ───────────────────────────────────────────────────────────────── */
-function useHelpTheme(theme: string) {
-  const [dark, setDark] = React.useState(false)
-  React.useEffect(() => {
-    const prefersDark = window.matchMedia?.("(prefers-color-scheme: dark)").matches
-    setDark(theme === "dark" || (theme === "system" && !!prefersDark))
-  }, [theme])
+/** Force light mode on the public help center (the app defaults to a `.dark`
+ *  class; the public reader is intentionally light-only). Restored on leave. */
+function useForceLight() {
   React.useEffect(() => {
     const el = document.documentElement
-    const prev = el.getAttribute("data-theme")
-    el.setAttribute("data-theme", dark ? "dark" : "light")
+    const wasDark = el.classList.contains("dark")
+    el.classList.remove("dark")
     return () => {
-      if (prev) el.setAttribute("data-theme", prev)
-      else el.removeAttribute("data-theme")
+      if (wasDark) el.classList.add("dark")
     }
-  }, [dark])
-  return { dark, toggle: () => setDark((d) => !d) }
+  }, [])
 }
 
 /**
  * Brand-colored header + footer shell for the whole help center. Flex column so
- * the footer is always pinned to the bottom, even on short pages.
+ * the footer is always pinned to the bottom, even on short pages. Light-only.
  */
 export function HelpChrome({
   chrome,
@@ -64,7 +56,7 @@ export function HelpChrome({
   onSearch?: () => void
   children: React.ReactNode
 }) {
-  const { dark, toggle } = useHelpTheme(chrome.theme)
+  useForceLight()
   return (
     <div
       className="flex min-h-svh flex-col bg-[var(--l-canvas)] text-[var(--l-ink)]"
@@ -100,9 +92,6 @@ export function HelpChrome({
                 <Search className="size-4" />
               </Link>
             )}
-            <button onClick={toggle} aria-label="Toggle theme" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
-              {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            </button>
           </div>
         </div>
       </header>
@@ -301,10 +290,11 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
   )
   return (
     <HelpChrome chrome={chrome}>
-      <div className="mx-auto flex max-w-6xl gap-8 px-6">
+      {/* Full-bleed: sidebar hugs the viewport left, content fills the rest. */}
+      <div className="flex">
         {steps.length > 0 && <StepsSidebar steps={steps} />}
         <div className="min-w-0 flex-1">
-          <div className="pt-6">
+          <div className="mx-auto max-w-3xl px-6 pt-6">
             <Breadcrumb
               slug={chrome.slug}
               trail={[
@@ -315,7 +305,7 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
           </div>
           <PublicGuideView guide={guide} embedded />
           {related.length > 0 && (
-            <div className="pb-16">
+            <div className="mx-auto max-w-3xl px-6 pb-16">
               <h2 className="mb-3 text-sm font-semibold">Related articles</h2>
               <div className="overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)]">
                 {related.map((a, i) => (
@@ -335,14 +325,19 @@ function StepsSidebar({ steps }: { steps: { key: string; n: number; label: strin
     document.querySelector(`[data-step-key="${key}"]`)?.scrollIntoView({ behavior: "smooth", block: "start" })
   }
   return (
-    <aside className="sticky top-16 hidden h-[calc(100svh-4rem)] w-64 shrink-0 self-start overflow-y-auto border-r border-[var(--l-hairline)] py-6 pr-4 lg:block">
-      <p className="mb-3 text-[15px] font-semibold">Steps</p>
+    <aside className="sticky top-16 hidden h-[calc(100svh-4rem)] w-80 shrink-0 self-start overflow-y-auto border-r border-[var(--l-hairline)] bg-[var(--l-card)] lg:block">
+      <div className="sticky top-0 z-10 border-b border-[var(--l-hairline)] bg-[var(--l-chrome)] px-6 py-4">
+        <p className="text-[15px] font-semibold">Steps</p>
+      </div>
       <ol className="flex flex-col">
         {steps.map((s) => (
-          <li key={s.key} className="border-t border-[var(--l-hairline)] first:border-t-0">
-            <button onClick={() => go(s.key)} className="block w-full py-3 text-left text-[13px] leading-relaxed text-[var(--l-ink-subtle)] transition-colors hover:text-[var(--l-ink)]">
-              <span className="font-semibold text-[var(--l-ink)]">{s.n}.</span>{" "}
-              <span className="line-clamp-2">{s.label}</span>
+          <li key={s.key} className="border-b border-[var(--l-hairline)]">
+            <button
+              onClick={() => go(s.key)}
+              className="flex w-full gap-2 px-6 py-4 text-left text-[13.5px] leading-relaxed text-[var(--l-ink-subtle)] transition-colors hover:bg-[var(--l-hover)] hover:text-[var(--l-ink)]"
+            >
+              <span className="font-semibold text-[var(--l-ink)]">{s.n}.</span>
+              <span className="line-clamp-3">{s.label}</span>
             </button>
           </li>
         ))}

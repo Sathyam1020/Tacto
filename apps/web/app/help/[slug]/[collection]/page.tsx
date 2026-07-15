@@ -4,6 +4,8 @@ import { notFound } from "next/navigation"
 import { HelpCollection } from "@/components/help/help-site"
 import { fetchHelpCollection } from "@/lib/public-help"
 
+export const dynamic = "force-dynamic"
+
 type Params = { params: Promise<{ slug: string; collection: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

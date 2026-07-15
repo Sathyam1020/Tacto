@@ -7,6 +7,8 @@ import { fetchPublicGuide } from "@/lib/public-guide"
 
 /** A help-center article = a published guide, rendered by the Guide Reader
  *  inside the help-center chrome. */
+export const dynamic = "force-dynamic"
+
 type Params = { params: Promise<{ slug: string; collection: string; article: string }> }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
