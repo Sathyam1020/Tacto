@@ -4,14 +4,17 @@ import * as React from "react"
 
 /**
  * A dependency-free SVG area chart for a daily series. Theme-aware via
- * currentColor + the primary token; responsive via a viewBox.
+ * currentColor + the primary token; responsive via a viewBox. Shared by the
+ * Forms and Guide analytics pages.
  */
 export function TrendChart({
   data,
   height = 200,
+  ariaLabel = "Trend over time",
 }: {
   data: { date: string; count: number }[]
   height?: number
+  ariaLabel?: string
 }) {
   const [hover, setHover] = React.useState<number | null>(null)
   const W = 720
@@ -38,7 +41,7 @@ export function TrendChart({
         className="w-full text-primary"
         preserveAspectRatio="none"
         role="img"
-        aria-label="Submissions over time"
+        aria-label={ariaLabel}
       >
         <defs>
           <linearGradient id="trend-fill" x1="0" y1="0" x2="0" y2="1">

@@ -19,7 +19,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useGuideCustomization } from "@/components/guide-customization-context"
 import { RichText } from "@/components/rich-text"
 import { HotspotGlyph } from "@/components/screenshot-frame"
-import { useGuideAnalytics } from "@/lib/guide-tracker"
+import { useGuideTrackerContext } from "@/lib/guide-tracker"
 import {
   buildInteractiveSequence,
   EMPTY_PRESENTATION,
@@ -108,7 +108,7 @@ export function InteractiveView({
 
   // Analytics: walkthrough entered (once), each frame reached (deduped by the
   // tracker), and completion on the final frame. Inert outside a reader.
-  const { track } = useGuideAnalytics()
+  const { track } = useGuideTrackerContext()
   React.useEffect(() => {
     track("walkthrough_start")
   }, [track])

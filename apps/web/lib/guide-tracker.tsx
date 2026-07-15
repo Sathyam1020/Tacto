@@ -30,7 +30,7 @@ const GuideAnalyticsContext = React.createContext<GuideTracker>(NOOP)
 
 /** Consume the ambient guide tracker. Returns a no-op tracker outside a
  *  provider (e.g. the editor preview) so instrumentation is inert there. */
-export function useGuideAnalytics(): GuideTracker {
+export function useGuideTrackerContext(): GuideTracker {
   return React.useContext(GuideAnalyticsContext)
 }
 

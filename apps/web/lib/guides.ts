@@ -9,10 +9,29 @@ import {
   type InteractivePresentation,
   type RetranslateTarget,
 } from "@workspace/contracts/guide"
+import type {
+  AnalyticsRange,
+  GuideAnalytics,
+} from "@workspace/contracts/guide-analytics"
 import axios from "axios"
 import { toast } from "sonner"
 
 import { api } from "@/lib/api"
+
+/** Owner-facing guide analytics for a range (mirrors useFormAnalytics). */
+export function useGuideAnalytics(guideId: string, range: AnalyticsRange) {
+  return useQuery({
+    queryKey: ["guide-analytics", guideId, range],
+    queryFn: async () => {
+      const { data } = await api.get<{ analytics: GuideAnalytics }>(
+        `/guides/${guideId}/analytics`,
+        { params: { range } }
+      )
+      return data.analytics
+    },
+    enabled: !!guideId,
+  })
+}
 
 /** Guide API types — mirrors apps/api guide feature responses. */
 export type GuideListItem = {

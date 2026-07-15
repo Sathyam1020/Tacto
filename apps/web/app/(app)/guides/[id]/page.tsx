@@ -114,7 +114,6 @@ export default function GuidePage() {
     }
   }, [guide, dv])
   const [shareOpen, setShareOpen] = React.useState(false)
-  const [analyticsOpen, setAnalyticsOpen] = React.useState(false)
   const [infoOpen, setInfoOpen] = React.useState(false)
   // The video currently being downloaded (null = none).
   const [videoReq, setVideoReq] = React.useState<VideoDownloadItem | null>(null)
@@ -173,7 +172,7 @@ export default function GuidePage() {
             busyVideoKey={videoReq?.key ?? null}
             onDownloadPdf={downloadPdf}
             onDownloadVideo={setVideoReq}
-            onAnalytics={() => setAnalyticsOpen(true)}
+            onAnalytics={() => router.push(`/guides/${params.id}/analytics`)}
             onInfo={() => setInfoOpen(true)}
           />
           <Button
@@ -310,29 +309,6 @@ export default function GuidePage() {
       )}
 
       <ShareDialog guide={guide} open={shareOpen} onOpenChange={setShareOpen} />
-
-      {/* Analytics */}
-      <Dialog open={analyticsOpen} onOpenChange={setAnalyticsOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl font-medium tracking-tight">
-              Analytics
-            </DialogTitle>
-            <DialogDescription>How this guide is performing.</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-3 text-sm">
-            <Row label="Views" value={String(guide.viewCount)} />
-            <Row
-              label="Status"
-              value={guide.status === "PUBLISHED" ? "Published" : "Draft"}
-            />
-            <Row label="Steps" value={String(stepCount)} />
-            {guide.publishedAt && (
-              <Row label="Published" value={formatDate(guide.publishedAt)} />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Info */}
       <Dialog open={infoOpen} onOpenChange={setInfoOpen}>

@@ -10,7 +10,7 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { FormFieldView } from "@/components/form-builder/form-field-view"
-import { TrendChart } from "@/components/form-builder/trend-chart"
+import { TrendChart } from "@/components/analytics/trend-chart"
 import { useSetNavbar } from "@/components/navbar-context"
 import { authClient } from "@/lib/auth-client"
 import {
@@ -307,7 +307,7 @@ function AnalyticsTab({ formId }: { formId: string }) {
         {isPending || !data ? (
           <div className="h-48 animate-pulse rounded-lg bg-muted" />
         ) : (
-          <TrendChart data={data.trend} />
+          <TrendChart data={data.trend} ariaLabel="Submissions over time" />
         )}
       </div>
     </div>

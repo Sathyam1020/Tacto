@@ -5,7 +5,7 @@ import * as React from "react"
 import { Dialog, DialogContent } from "@workspace/ui/components/dialog"
 
 import { PublicFormView } from "@/components/public-form-view"
-import { useGuideAnalytics } from "@/lib/guide-tracker"
+import { useGuideTrackerContext } from "@/lib/guide-tracker"
 import type { PublicGuideEmbed } from "@/lib/public-guide"
 
 /**
@@ -24,7 +24,7 @@ export function FormEmbedOverlay({
   const seenKey = `tacto:embed-seen:${guideId}:${embed.id}`
   const [open, setOpen] = React.useState(false)
   const [settled, setSettled] = React.useState(false) // dismissed/completed → gone
-  const { track } = useGuideAnalytics()
+  const { track } = useGuideTrackerContext()
 
   // Analytics: the overlay was shown (once per form, deduped by the tracker).
   React.useEffect(() => {
