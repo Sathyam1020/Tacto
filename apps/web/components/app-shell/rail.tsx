@@ -250,6 +250,7 @@ export function Rail() {
   const { setView } = useLibraryViewState()
 
   const onForms = pathname?.startsWith("/forms") ?? false
+  const onHelp = pathname?.startsWith("/help-center") ?? false
   const onLibrary = pathname === "/home"
 
   return (
@@ -303,7 +304,13 @@ export function Rail() {
 
       <div className="flex-1" />
 
-      <RailButton label="Help center">
+      <RailButton
+        label="Help center"
+        active={onHelp}
+        onClick={() => {
+          if (!onHelp) router.push("/help-center")
+        }}
+      >
         <LifeBuoy className="size-[19px]" />
       </RailButton>
       <RailButton

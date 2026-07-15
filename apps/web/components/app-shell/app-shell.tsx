@@ -9,6 +9,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { CaptureButton } from "@/components/capture-button"
 import { FoldersPanel } from "@/components/app-shell/folders-panel"
 import { FormsPanel } from "@/components/app-shell/forms-panel"
+import { HelpCenterPanel } from "@/components/app-shell/help-center-panel"
 import { Rail } from "@/components/app-shell/rail"
 import { useLibraryViewState } from "@/components/app-shell/view-context"
 import { useNavbar } from "@/components/navbar-context"
@@ -27,6 +28,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // The Forms section (its library + detail/builder) shows the Forms sidebar;
   // everything else shows the Guides folders panel.
   const inForms = pathname?.startsWith("/forms") ?? false
+  const inHelp = pathname?.startsWith("/help-center") ?? false
   // A capture started while viewing a folder lands in that folder.
   const captureFolderId = view.type === "folder" ? view.id : null
 
@@ -50,7 +52,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <Rail />
-        {inForms ? <FormsPanel /> : <FoldersPanel />}
+        {inHelp ? <HelpCenterPanel /> : inForms ? <FormsPanel /> : <FoldersPanel />}
       </div>
 
       {/* Content card */}
