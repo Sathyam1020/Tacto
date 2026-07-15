@@ -15,6 +15,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
     title: hc.name,
     description: hc.heroSubtitle ?? `Guides and answers for ${hc.name}.`,
     openGraph: { title: hc.name, description: hc.heroSubtitle ?? undefined, type: "website" },
+    robots: hc.noindex ? { index: false, follow: false } : undefined,
   }
 }
 

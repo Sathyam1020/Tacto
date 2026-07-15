@@ -85,7 +85,7 @@ export default function HelpCenterBuilderPage() {
               render={<a href={`/help/${hc.slug}`} target="_blank" rel="noreferrer" />}
             >
               <Eye className="size-4" />
-              View
+              {published ? "View" : "Preview"}
             </Button>
           )}
           {!published && (

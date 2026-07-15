@@ -200,6 +200,7 @@ export type PublicHelpCenter = {
   navLinks: HelpNavLink[];
   footerLinks: HelpNavLink[];
   statusUrl: string | null;
+  noindex: boolean;
   collections: PublicHelpCollection[];
   featured: PublicHelpArticle[];
 };
@@ -222,6 +223,8 @@ export type PublicHelpChrome = {
   navLinks: HelpNavLink[];
   footerLinks: HelpNavLink[];
   statusUrl: string | null;
+  /** True until published (or when unlisted) — the page renders but is noindex. */
+  noindex: boolean;
 };
 
 export type PublicHelpCollectionPage = {

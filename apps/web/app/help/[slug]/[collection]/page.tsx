@@ -13,6 +13,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${page.collection.name} · ${page.chrome.name}`,
     description: page.collection.description ?? undefined,
+    robots: page.chrome.noindex ? { index: false, follow: false } : undefined,
   }
 }
 

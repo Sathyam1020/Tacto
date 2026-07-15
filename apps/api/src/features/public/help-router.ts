@@ -15,11 +15,12 @@ import { z } from "zod";
 import { AppError } from "../../middleware/error.js";
 
 /**
- * Public, unauthenticated Help Center by slug. Only PUBLISHED help centers are
- * visible; only PUBLISHED guides appear as articles; hidden collections are
- * omitted. Article content is served by the existing public guide endpoint
- * (this returns the guide's shareId) — the Guide Reader renders it, so
- * walkthrough / voiceover / FAQs / forms / PDF / translations all work.
+ * Public, unauthenticated Help Center by slug. Reachable as soon as it exists
+ * (so owners can preview), but `noindex` until published + listed. Only
+ * PUBLISHED guides appear as articles; hidden collections are omitted. Article
+ * content is served by the existing public guide endpoint (this returns the
+ * guide's shareId) — the Guide Reader renders it, so walkthrough / voiceover /
+ * FAQs / forms / PDF / translations all keep working.
  */
 export const helpPublicRouter: Router = Router();
 
@@ -63,9 +64,14 @@ const publicArticleWhere = {
   guide: { status: "PUBLISHED" as const, deletedAt: null },
 };
 
-async function findPublishedCenter(slug: string) {
+/**
+ * A help center is reachable by its (unguessable) slug as soon as it exists —
+ * so the owner can preview it before publishing. `status`/`listed` only control
+ * search-engine indexing: the page is `noindex` until published + listed.
+ */
+async function findCenter(slug: string) {
   const hc = await prisma.helpCenter.findFirst({
-    where: { slug, status: "PUBLISHED" },
+    where: { slug },
     select: {
       slug: true,
       name: true,
@@ -77,13 +83,15 @@ async function findPublishedCenter(slug: string) {
       navLinks: true,
       footerLinks: true,
       statusUrl: true,
+      status: true,
+      listed: true,
     },
   });
   if (!hc) throw new AppError(404, "NOT_FOUND", "Help center not found");
   return hc;
 }
 
-function chromeOf(hc: Awaited<ReturnType<typeof findPublishedCenter>>): PublicHelpChrome {
+function chromeOf(hc: Awaited<ReturnType<typeof findCenter>>): PublicHelpChrome {
   return {
     slug: hc.slug,
     name: hc.name,
@@ -93,13 +101,14 @@ function chromeOf(hc: Awaited<ReturnType<typeof findPublishedCenter>>): PublicHe
     navLinks: (hc.navLinks as HelpNavLink[] | null) ?? [],
     footerLinks: (hc.footerLinks as HelpNavLink[] | null) ?? [],
     statusUrl: hc.statusUrl,
+    noindex: hc.status !== "PUBLISHED" || !hc.listed,
   };
 }
 
 // ── Homepage ────────────────────────────────────────────────────────────────
 helpPublicRouter.get("/api/public/help/:slug", async (req, res) => {
   const { slug } = slugParam.parse(req.params);
-  const hc = await findPublishedCenter(slug);
+  const hc = await findCenter(slug);
 
   const collections = await prisma.helpCollection.findMany({
     where: { helpCenter: { slug }, hidden: false },
@@ -142,7 +151,7 @@ helpPublicRouter.get("/api/public/help/:slug", async (req, res) => {
 // ── Collection ──────────────────────────────────────────────────────────────
 helpPublicRouter.get("/api/public/help/:slug/:cslug", async (req, res) => {
   const { slug, cslug } = collectionParam.parse(req.params);
-  const hc = await findPublishedCenter(slug);
+  const hc = await findCenter(slug);
 
   const collection = await prisma.helpCollection.findFirst({
     where: { helpCenter: { slug }, slug: cslug, hidden: false },
@@ -184,7 +193,7 @@ helpPublicRouter.get("/api/public/help/:slug/:cslug", async (req, res) => {
 // ── Article (→ guide shareId for the Guide Reader) ──────────────────────────
 helpPublicRouter.get("/api/public/help/:slug/:cslug/:aslug", async (req, res) => {
   const { slug, cslug, aslug } = articleParam.parse(req.params);
-  const hc = await findPublishedCenter(slug);
+  const hc = await findCenter(slug);
 
   const article = await prisma.helpArticle.findFirst({
     where: {

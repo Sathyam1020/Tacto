@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: `${page.article.title} · ${page.chrome.name}`,
     openGraph: { title: page.article.title, type: "article" },
+    robots: page.chrome.noindex ? { index: false, follow: false } : undefined,
   }
 }
 
