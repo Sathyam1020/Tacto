@@ -5,11 +5,13 @@ import {
   readFaqs,
   readGuideEmbeds,
 } from "@workspace/contracts/guide";
-import { prisma } from "@workspace/db";
+import { ingestGuideEventsSchema } from "@workspace/contracts/guide-analytics";
+import { Prisma, prisma } from "@workspace/db";
 import { getPublishedNarrationByLanguage } from "@workspace/generation";
 import { Router } from "express";
 import { z } from "zod";
 
+import { rateLimit } from "../../lib/rate-limit.js";
 import { sanitizeContent } from "../../lib/sanitize.js";
 import { AppError } from "../../middleware/error.js";
 import {
@@ -92,10 +94,8 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
   });
   if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
 
-  // Fire-and-forget view count; never block the response on it.
-  void prisma.guide
-    .update({ where: { id: guide.id }, data: { viewCount: { increment: 1 } } })
-    .catch(() => {});
+  // View counting moved to the client `view` beacon (deduped per session) —
+  // see POST /events below. The GET no longer blind-increments viewCount.
 
   const { allowReactions, allowComments } = feedbackFlags(guide.customization);
   const [blocks, interactive, reactions, comments, translations, narration] =
@@ -207,4 +207,50 @@ publicRouter.post("/api/public/guides/:shareId/comments", async (req, res) => {
     select: { id: true, authorName: true, body: true, createdAt: true },
   });
   res.json({ comment });
+});
+
+/**
+ * Anonymous reader-engagement beacon — a batched set of events for one viewing
+ * session. Best-effort by design: rate-limited and malformed batches are
+ * silently dropped (a beacon must never surface an error), and all writes are
+ * fire-and-forget so they never block the response. The client dedups (one
+ * `view` per session, each step once), so one `view` in a batch = one lifetime
+ * viewCount increment.
+ */
+publicRouter.post("/api/public/guides/:shareId/events", async (req, res) => {
+  const { shareId } = shareParamSchema.parse(req.params);
+  const ip = req.ip ?? "unknown";
+  // Generous — batching keeps a normal session well under this.
+  if (!rateLimit(`gevents:${ip}:${shareId}`, 60, 60_000)) {
+    res.status(204).end();
+    return;
+  }
+  const parsed = ingestGuideEventsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(204).end();
+    return;
+  }
+  const { anonId, sessionId, events } = parsed.data;
+
+  const guide = await prisma.guide.findFirst({
+    where: { shareId, status: "PUBLISHED", deletedAt: null },
+    select: { id: true },
+  });
+  if (guide) {
+    const rows: Prisma.GuideEventCreateManyInput[] = events.map((e) => ({
+      guideId: guide.id,
+      // Contract values are the lowercase of the DB enum (underscores preserved).
+      type: e.type.toUpperCase() as Prisma.GuideEventCreateManyInput["type"],
+      anonId,
+      sessionId,
+      context: e.context ? (e.context as Prisma.InputJsonValue) : Prisma.DbNull,
+    }));
+    void prisma.guideEvent.createMany({ data: rows }).catch(() => {});
+    if (events.some((e) => e.type === "view")) {
+      void prisma.guide
+        .update({ where: { id: guide.id }, data: { viewCount: { increment: 1 } } })
+        .catch(() => {});
+    }
+  }
+  res.status(204).end();
 });

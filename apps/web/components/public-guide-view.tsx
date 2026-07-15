@@ -28,6 +28,10 @@ import { GuideFaqs } from "@/components/guide-faqs"
 import { GuideFeedback } from "@/components/guide-feedback"
 import { GuideBody, ViewModeToggle, type ViewMode } from "@/components/guide-view"
 import { guideFontFamily } from "@/lib/guide-fonts"
+import {
+  GuideAnalyticsProvider,
+  useGuideTracker,
+} from "@/lib/guide-tracker"
 import { resolveCustomization } from "@/lib/guides"
 import { downloadGuidePdf } from "@/lib/pdf"
 import type { PublicGuide } from "@/lib/public-guide"
@@ -85,7 +89,77 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     cust.brand.rtl ||
     (lang ? (RTL_LANGUAGE_CODES as readonly string[]).includes(lang) : false)
 
+  // ── Analytics ──────────────────────────────────────────────────────────────
+  const tracker = useGuideTracker(guide.shareId)
+  const { track } = tracker
+  const started = React.useRef(false)
+
+  // Count one view per session + record the initial reading mode.
+  React.useEffect(() => {
+    if (started.current) return
+    started.current = true
+    track("view")
+    track("mode_switch", { mode: effectiveMode })
+  }, [track, effectiveMode])
+
+  const changeMode = React.useCallback(
+    (next: ViewMode) => {
+      setMode(next)
+      track("mode_switch", { mode: next })
+    },
+    [track]
+  )
+  const changeLang = React.useCallback(
+    (next: string | null) => {
+      setLang(next)
+      if (next) track("language_switch", { language: next })
+    },
+    [track]
+  )
+
+  // Scroll-mode completion: require reading ≥80% of steps AND the final step, so
+  // a fast scroll-to-bottom doesn't inflate completion (walkthrough completion
+  // is handled inside InteractiveView by reaching the last frame).
+  React.useEffect(() => {
+    if (effectiveMode !== "list") return
+    const stepKeys = displayBlocks
+      .filter((b) => b.type === "STEP")
+      .map((b) => b.key)
+    const total = stepKeys.length
+    if (total === 0) return
+    const lastKey = stepKeys[total - 1]
+    const seen = new Set<string>()
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue
+          const key = (e.target as HTMLElement).dataset.stepKey
+          if (key) seen.add(key)
+        }
+        if (seen.size / total >= 0.8 && lastKey && seen.has(lastKey)) {
+          track("complete")
+          io.disconnect()
+        }
+      },
+      { threshold: 0.6 }
+    )
+    const observeAll = () => {
+      for (const key of stepKeys) {
+        const el = document.querySelector(`[data-step-key="${key}"]`)
+        if (el) io.observe(el)
+      }
+    }
+    observeAll()
+    // Steps may mount just after this effect (view switch) — retry once.
+    const t = setTimeout(observeAll, 400)
+    return () => {
+      clearTimeout(t)
+      io.disconnect()
+    }
+  }, [effectiveMode, displayBlocks, track])
+
   return (
+    <GuideAnalyticsProvider tracker={tracker}>
     <div
       className="min-h-svh"
       dir={isRtl ? "rtl" : undefined}
@@ -118,21 +192,22 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
               <LanguageSwitcher
                 translations={translations}
                 value={lang}
-                onChange={setLang}
+                onChange={changeLang}
               />
             )}
-            {!lockedMode && <ViewModeToggle mode={mode} onChange={setMode} />}
+            {!lockedMode && <ViewModeToggle mode={mode} onChange={changeMode} />}
             <Button
               size="sm"
               variant="outline"
-              onClick={() =>
+              onClick={() => {
+                track("pdf_download")
                 void downloadGuidePdf({
                   title: displayTitle,
                   summary: displaySummary,
                   blocks: displayBlocks,
                   customization: guide.customization,
                 })
-              }
+              }}
             >
               <DownloadIcon size={15} />
               PDF
@@ -189,6 +264,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         </footer>
       </main>
     </div>
+    </GuideAnalyticsProvider>
   )
 }
 

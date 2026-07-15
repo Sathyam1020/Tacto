@@ -8,23 +8,9 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useAnonId } from "@/lib/anon-id"
 import { formatDate } from "@/lib/format"
 import type { GuideComment, GuideReactionCount } from "@/lib/public-guide"
-
-/** Stable per-browser id for anonymous reactions/comments. */
-function useAnonId(): string {
-  const [id, setId] = React.useState("")
-  React.useEffect(() => {
-    const KEY = "tacto_anon_id"
-    let v = localStorage.getItem(KEY)
-    if (!v) {
-      v = crypto.randomUUID()
-      localStorage.setItem(KEY, v)
-    }
-    setId(v)
-  }, [])
-  return id
-}
 
 /**
  * Reactions + comments for a published guide. Each is shown only when the

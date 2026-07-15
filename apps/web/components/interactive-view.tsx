@@ -19,6 +19,7 @@ import { cn } from "@workspace/ui/lib/utils"
 import { useGuideCustomization } from "@/components/guide-customization-context"
 import { RichText } from "@/components/rich-text"
 import { HotspotGlyph } from "@/components/screenshot-frame"
+import { useGuideAnalytics } from "@/lib/guide-tracker"
 import {
   buildInteractiveSequence,
   EMPTY_PRESENTATION,
@@ -104,6 +105,18 @@ export function InteractiveView({
   const [index, setIndex] = React.useState(0)
   // Whether the last move came from clicking the on-image target (snappier).
   const [fast, setFast] = React.useState(false)
+
+  // Analytics: walkthrough entered (once), each frame reached (deduped by the
+  // tracker), and completion on the final frame. Inert outside a reader.
+  const { track } = useGuideAnalytics()
+  React.useEffect(() => {
+    track("walkthrough_start")
+  }, [track])
+  React.useEffect(() => {
+    if (frames.length === 0) return
+    track("walkthrough_step", { stepIndex: index })
+    if (index >= frames.length - 1) track("complete")
+  }, [index, frames.length, track])
   const [fullscreen, setFullscreen] = React.useState(false)
   // Reserve the image's height so remounting the screenshot on step change
   // never collapses the layout (which would clamp the page scroll toward top).
