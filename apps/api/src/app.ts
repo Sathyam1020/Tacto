@@ -6,6 +6,8 @@ import { captureRouter } from "./features/capture/router.js";
 import { extensionRouter } from "./features/extension/router.js";
 import { faqRouter } from "./features/faq/router.js";
 import { folderRouter } from "./features/folder/router.js";
+import { formPublicRouter } from "./features/form/public-router.js";
+import { formRouter } from "./features/form/router.js";
 import { guideRouter } from "./features/guide/router.js";
 import { healthRouter } from "./features/health/router.js";
 import { mediaRouter } from "./features/media/router.js";
@@ -64,12 +66,14 @@ export function createApp(): Express {
 
   app.use(healthRouter);
   app.use(publicRouter);
+  app.use(formPublicRouter);
   app.use(meRouter);
   app.use(workspaceRouter);
   app.use(captureRouter);
   app.use(guideRouter);
   app.use(voiceRouter);
   app.use(faqRouter);
+  app.use(formRouter);
   app.use(folderRouter);
   app.use(mediaRouter);
   app.use(extensionRouter);

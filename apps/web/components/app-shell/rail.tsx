@@ -249,6 +249,7 @@ export function Rail() {
   const pathname = usePathname()
   const { setView } = useLibraryViewState()
 
+  const onForms = pathname?.startsWith("/forms") ?? false
   const onLibrary = pathname === "/home"
 
   return (
@@ -274,7 +275,14 @@ export function Rail() {
           <path d="M4 5a1 1 0 0 1 1-1h5l2 2h7a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1z" />
         </svg>
       </RailButton>
-      <RailButton label="Forms">
+      <RailButton
+        label="Forms"
+        active={onForms}
+        onClick={() => {
+          setView({ type: "all" })
+          if (!onForms) router.push("/forms")
+        }}
+      >
         <ClipboardList className="size-[19px]" />
       </RailButton>
       <RailButton label="Analytics">

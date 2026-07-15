@@ -544,6 +544,34 @@ export const faqAiSchema = z.object({
 });
 export type FaqAiOutput = z.infer<typeof faqAiSchema>;
 
+// ── Form embeds (overlays shown inside a guide) ─────────────────────────────
+
+/** An embedded form shown as an OVERLAY over the guide (never a step in the
+ *  sequence) when its trigger fires. Both the List and Interactive views read
+ *  this and render their own overlay. */
+export const formEmbedSchema = z.object({
+  id: z.string().min(1),
+  formId: z.string().min(1),
+  trigger: z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("after-delay"), seconds: z.number().int().min(1).max(3600) }),
+    z.object({ kind: z.literal("after-step"), stepKey: z.string().min(1) }),
+  ]),
+  style: z.enum(["modal", "sheet"]).default("modal"),
+  dismissible: z.boolean().default(true),
+  showOnce: z.boolean().default(true),
+});
+export type FormEmbed = z.infer<typeof formEmbedSchema>;
+
+/** A guide's form embeds — at most five. */
+export const guideEmbedsSchema = z.array(formEmbedSchema).max(5);
+
+/** Read a stored `Guide.embeds` JSON value as a validated list (default []).
+ *  Byte-identical to the draft default so the dirty-check diff holds. */
+export function readGuideEmbeds(raw: unknown): FormEmbed[] {
+  const parsed = guideEmbedsSchema.safeParse(raw ?? []);
+  return parsed.success ? parsed.data : [];
+}
+
 // ── Draft document (versioned; migrate-on-read) ─────────────────────────────
 
 /** v1 — the original single-tree document (List blocks only). Still accepted on
@@ -584,6 +612,8 @@ export const draftDocumentV3Schema = z.object({
   customization: guideCustomizationSchema,
   // Defaulted so drafts saved before FAQs existed still parse (mirrors `assets`).
   faqs: faqsSchema.default([]),
+  // Form overlays (after step / after delay). Defaulted like `faqs`.
+  embeds: guideEmbedsSchema.default([]),
 });
 export type DraftDocumentV3 = z.infer<typeof draftDocumentV3Schema>;
 
@@ -620,6 +650,7 @@ export function migrateDraftV2ToV3(doc: DraftDocumentV2): DraftDocumentV3 {
     assets: doc.assets,
     customization: doc.customization,
     faqs: [],
+    embeds: [],
   };
 }
 

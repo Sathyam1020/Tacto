@@ -1,8 +1,15 @@
+import type { FormDocument } from "@workspace/contracts/form"
 import type {
   Faq,
+  FormEmbed,
   GuideCustomization,
   InteractivePresentation,
 } from "@workspace/contracts/guide"
+
+/** A guide's form embed with its referenced published form inlined. */
+export type PublicGuideEmbed = FormEmbed & {
+  form: { shareId: string | null; version: number; document: FormDocument }
+}
 
 import type { GuideBlock } from "@/lib/guides"
 
@@ -44,6 +51,8 @@ export type PublicGuide = {
   narration: Record<string, Record<string, { text: string; audioUrl: string }>>
   /** Published FAQ list. */
   faqs: Faq[]
+  /** Form overlays with their forms inlined. */
+  embeds: PublicGuideEmbed[]
 }
 
 /** Server-side fetch of a published guide by shareId (public, no auth). */

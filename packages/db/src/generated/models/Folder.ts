@@ -14,8 +14,9 @@ import type * as Prisma from "../internal/prismaNamespace.js"
 
 /**
  * Model Folder
- * A folder groups guides within a workspace. Flat (no nesting); a guide
- * belongs to at most one folder (folderId null = uncategorized / All guides).
+ * A folder groups guides OR forms within a workspace (never both — see `kind`).
+ * Flat (no nesting); an item belongs to at most one folder (folderId null =
+ * uncategorized / All).
  */
 export type FolderModel = runtime.Types.Result.DefaultSelection<Prisma.$FolderPayload>
 
@@ -38,6 +39,7 @@ export type FolderSumAggregateOutputType = {
 export type FolderMinAggregateOutputType = {
   id: string | null
   name: string | null
+  kind: $Enums.FolderKind | null
   isDefault: boolean | null
   position: number | null
   createdAt: Date | null
@@ -48,6 +50,7 @@ export type FolderMinAggregateOutputType = {
 export type FolderMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  kind: $Enums.FolderKind | null
   isDefault: boolean | null
   position: number | null
   createdAt: Date | null
@@ -58,6 +61,7 @@ export type FolderMaxAggregateOutputType = {
 export type FolderCountAggregateOutputType = {
   id: number
   name: number
+  kind: number
   isDefault: number
   position: number
   createdAt: number
@@ -78,6 +82,7 @@ export type FolderSumAggregateInputType = {
 export type FolderMinAggregateInputType = {
   id?: true
   name?: true
+  kind?: true
   isDefault?: true
   position?: true
   createdAt?: true
@@ -88,6 +93,7 @@ export type FolderMinAggregateInputType = {
 export type FolderMaxAggregateInputType = {
   id?: true
   name?: true
+  kind?: true
   isDefault?: true
   position?: true
   createdAt?: true
@@ -98,6 +104,7 @@ export type FolderMaxAggregateInputType = {
 export type FolderCountAggregateInputType = {
   id?: true
   name?: true
+  kind?: true
   isDefault?: true
   position?: true
   createdAt?: true
@@ -195,6 +202,7 @@ export type FolderGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type FolderGroupByOutputType = {
   id: string
   name: string
+  kind: $Enums.FolderKind
   isDefault: boolean
   position: number
   createdAt: Date
@@ -228,6 +236,7 @@ export type FolderWhereInput = {
   NOT?: Prisma.FolderWhereInput | Prisma.FolderWhereInput[]
   id?: Prisma.StringFilter<"Folder"> | string
   name?: Prisma.StringFilter<"Folder"> | string
+  kind?: Prisma.EnumFolderKindFilter<"Folder"> | $Enums.FolderKind
   isDefault?: Prisma.BoolFilter<"Folder"> | boolean
   position?: Prisma.IntFilter<"Folder"> | number
   createdAt?: Prisma.DateTimeFilter<"Folder"> | Date | string
@@ -236,11 +245,13 @@ export type FolderWhereInput = {
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   guides?: Prisma.GuideListRelationFilter
   captures?: Prisma.CaptureListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }
 
 export type FolderOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -249,6 +260,7 @@ export type FolderOrderByWithRelationInput = {
   organization?: Prisma.OrganizationOrderByWithRelationInput
   guides?: Prisma.GuideOrderByRelationAggregateInput
   captures?: Prisma.CaptureOrderByRelationAggregateInput
+  forms?: Prisma.FormOrderByRelationAggregateInput
 }
 
 export type FolderWhereUniqueInput = Prisma.AtLeast<{
@@ -257,6 +269,7 @@ export type FolderWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.FolderWhereInput[]
   NOT?: Prisma.FolderWhereInput | Prisma.FolderWhereInput[]
   name?: Prisma.StringFilter<"Folder"> | string
+  kind?: Prisma.EnumFolderKindFilter<"Folder"> | $Enums.FolderKind
   isDefault?: Prisma.BoolFilter<"Folder"> | boolean
   position?: Prisma.IntFilter<"Folder"> | number
   createdAt?: Prisma.DateTimeFilter<"Folder"> | Date | string
@@ -265,11 +278,13 @@ export type FolderWhereUniqueInput = Prisma.AtLeast<{
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   guides?: Prisma.GuideListRelationFilter
   captures?: Prisma.CaptureListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }, "id">
 
 export type FolderOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -288,6 +303,7 @@ export type FolderScalarWhereWithAggregatesInput = {
   NOT?: Prisma.FolderScalarWhereWithAggregatesInput | Prisma.FolderScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Folder"> | string
   name?: Prisma.StringWithAggregatesFilter<"Folder"> | string
+  kind?: Prisma.EnumFolderKindWithAggregatesFilter<"Folder"> | $Enums.FolderKind
   isDefault?: Prisma.BoolWithAggregatesFilter<"Folder"> | boolean
   position?: Prisma.IntWithAggregatesFilter<"Folder"> | number
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Folder"> | Date | string
@@ -298,6 +314,7 @@ export type FolderScalarWhereWithAggregatesInput = {
 export type FolderCreateInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
@@ -305,11 +322,13 @@ export type FolderCreateInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutFoldersInput
   guides?: Prisma.GuideCreateNestedManyWithoutFolderInput
   captures?: Prisma.CaptureCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormCreateNestedManyWithoutFolderInput
 }
 
 export type FolderUncheckedCreateInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
@@ -317,11 +336,13 @@ export type FolderUncheckedCreateInput = {
   organizationId: string
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutFolderInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutFolderInput
 }
 
 export type FolderUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -329,11 +350,13 @@ export type FolderUpdateInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutFoldersNestedInput
   guides?: Prisma.GuideUpdateManyWithoutFolderNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -341,11 +364,13 @@ export type FolderUncheckedUpdateInput = {
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   guides?: Prisma.GuideUncheckedUpdateManyWithoutFolderNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderCreateManyInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
@@ -356,6 +381,7 @@ export type FolderCreateManyInput = {
 export type FolderUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -365,6 +391,7 @@ export type FolderUpdateManyMutationInput = {
 export type FolderUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -385,6 +412,7 @@ export type FolderOrderByRelationAggregateInput = {
 export type FolderCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -399,6 +427,7 @@ export type FolderAvgOrderByAggregateInput = {
 export type FolderMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -409,6 +438,7 @@ export type FolderMaxOrderByAggregateInput = {
 export type FolderMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  kind?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   position?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -467,12 +497,32 @@ export type FolderUncheckedUpdateManyWithoutOrganizationNestedInput = {
   deleteMany?: Prisma.FolderScalarWhereInput | Prisma.FolderScalarWhereInput[]
 }
 
+export type EnumFolderKindFieldUpdateOperationsInput = {
+  set?: $Enums.FolderKind
+}
+
 export type IntFieldUpdateOperationsInput = {
   set?: number
   increment?: number
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type FolderCreateNestedOneWithoutFormsInput = {
+  create?: Prisma.XOR<Prisma.FolderCreateWithoutFormsInput, Prisma.FolderUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.FolderCreateOrConnectWithoutFormsInput
+  connect?: Prisma.FolderWhereUniqueInput
+}
+
+export type FolderUpdateOneWithoutFormsNestedInput = {
+  create?: Prisma.XOR<Prisma.FolderCreateWithoutFormsInput, Prisma.FolderUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.FolderCreateOrConnectWithoutFormsInput
+  upsert?: Prisma.FolderUpsertWithoutFormsInput
+  disconnect?: Prisma.FolderWhereInput | boolean
+  delete?: Prisma.FolderWhereInput | boolean
+  connect?: Prisma.FolderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.FolderUpdateToOneWithWhereWithoutFormsInput, Prisma.FolderUpdateWithoutFormsInput>, Prisma.FolderUncheckedUpdateWithoutFormsInput>
 }
 
 export type FolderCreateNestedOneWithoutCapturesInput = {
@@ -510,23 +560,27 @@ export type FolderUpdateOneWithoutGuidesNestedInput = {
 export type FolderCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   guides?: Prisma.GuideCreateNestedManyWithoutFolderInput
   captures?: Prisma.CaptureCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormCreateNestedManyWithoutFolderInput
 }
 
 export type FolderUncheckedCreateWithoutOrganizationInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutFolderInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutFolderInput
 }
 
 export type FolderCreateOrConnectWithoutOrganizationInput = {
@@ -561,6 +615,7 @@ export type FolderScalarWhereInput = {
   NOT?: Prisma.FolderScalarWhereInput | Prisma.FolderScalarWhereInput[]
   id?: Prisma.StringFilter<"Folder"> | string
   name?: Prisma.StringFilter<"Folder"> | string
+  kind?: Prisma.EnumFolderKindFilter<"Folder"> | $Enums.FolderKind
   isDefault?: Prisma.BoolFilter<"Folder"> | boolean
   position?: Prisma.IntFilter<"Folder"> | number
   createdAt?: Prisma.DateTimeFilter<"Folder"> | Date | string
@@ -568,26 +623,98 @@ export type FolderScalarWhereInput = {
   organizationId?: Prisma.StringFilter<"Folder"> | string
 }
 
-export type FolderCreateWithoutCapturesInput = {
+export type FolderCreateWithoutFormsInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutFoldersInput
   guides?: Prisma.GuideCreateNestedManyWithoutFolderInput
+  captures?: Prisma.CaptureCreateNestedManyWithoutFolderInput
 }
 
-export type FolderUncheckedCreateWithoutCapturesInput = {
+export type FolderUncheckedCreateWithoutFormsInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   organizationId: string
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutFolderInput
+  captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutFolderInput
+}
+
+export type FolderCreateOrConnectWithoutFormsInput = {
+  where: Prisma.FolderWhereUniqueInput
+  create: Prisma.XOR<Prisma.FolderCreateWithoutFormsInput, Prisma.FolderUncheckedCreateWithoutFormsInput>
+}
+
+export type FolderUpsertWithoutFormsInput = {
+  update: Prisma.XOR<Prisma.FolderUpdateWithoutFormsInput, Prisma.FolderUncheckedUpdateWithoutFormsInput>
+  create: Prisma.XOR<Prisma.FolderCreateWithoutFormsInput, Prisma.FolderUncheckedCreateWithoutFormsInput>
+  where?: Prisma.FolderWhereInput
+}
+
+export type FolderUpdateToOneWithWhereWithoutFormsInput = {
+  where?: Prisma.FolderWhereInput
+  data: Prisma.XOR<Prisma.FolderUpdateWithoutFormsInput, Prisma.FolderUncheckedUpdateWithoutFormsInput>
+}
+
+export type FolderUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutFoldersNestedInput
+  guides?: Prisma.GuideUpdateManyWithoutFolderNestedInput
+  captures?: Prisma.CaptureUpdateManyWithoutFolderNestedInput
+}
+
+export type FolderUncheckedUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
+  isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  position?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
+  guides?: Prisma.GuideUncheckedUpdateManyWithoutFolderNestedInput
+  captures?: Prisma.CaptureUncheckedUpdateManyWithoutFolderNestedInput
+}
+
+export type FolderCreateWithoutCapturesInput = {
+  id?: string
+  name: string
+  kind?: $Enums.FolderKind
+  isDefault?: boolean
+  position?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutFoldersInput
+  guides?: Prisma.GuideCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormCreateNestedManyWithoutFolderInput
+}
+
+export type FolderUncheckedCreateWithoutCapturesInput = {
+  id?: string
+  name: string
+  kind?: $Enums.FolderKind
+  isDefault?: boolean
+  position?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organizationId: string
+  guides?: Prisma.GuideUncheckedCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutFolderInput
 }
 
 export type FolderCreateOrConnectWithoutCapturesInput = {
@@ -609,45 +736,53 @@ export type FolderUpdateToOneWithWhereWithoutCapturesInput = {
 export type FolderUpdateWithoutCapturesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutFoldersNestedInput
   guides?: Prisma.GuideUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderUncheckedUpdateWithoutCapturesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   guides?: Prisma.GuideUncheckedUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderCreateWithoutGuidesInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutFoldersInput
   captures?: Prisma.CaptureCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormCreateNestedManyWithoutFolderInput
 }
 
 export type FolderUncheckedCreateWithoutGuidesInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
   updatedAt?: Date | string
   organizationId: string
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutFolderInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutFolderInput
 }
 
 export type FolderCreateOrConnectWithoutGuidesInput = {
@@ -669,28 +804,33 @@ export type FolderUpdateToOneWithWhereWithoutGuidesInput = {
 export type FolderUpdateWithoutGuidesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutFoldersNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderUncheckedUpdateWithoutGuidesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderCreateManyOrganizationInput = {
   id?: string
   name: string
+  kind?: $Enums.FolderKind
   isDefault?: boolean
   position?: number
   createdAt?: Date | string
@@ -700,28 +840,33 @@ export type FolderCreateManyOrganizationInput = {
 export type FolderUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guides?: Prisma.GuideUpdateManyWithoutFolderNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   guides?: Prisma.GuideUncheckedUpdateManyWithoutFolderNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutFolderNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutFolderNestedInput
 }
 
 export type FolderUncheckedUpdateManyWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  kind?: Prisma.EnumFolderKindFieldUpdateOperationsInput | $Enums.FolderKind
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   position?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -736,11 +881,13 @@ export type FolderUncheckedUpdateManyWithoutOrganizationInput = {
 export type FolderCountOutputType = {
   guides: number
   captures: number
+  forms: number
 }
 
 export type FolderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   guides?: boolean | FolderCountOutputTypeCountGuidesArgs
   captures?: boolean | FolderCountOutputTypeCountCapturesArgs
+  forms?: boolean | FolderCountOutputTypeCountFormsArgs
 }
 
 /**
@@ -767,10 +914,18 @@ export type FolderCountOutputTypeCountCapturesArgs<ExtArgs extends runtime.Types
   where?: Prisma.CaptureWhereInput
 }
 
+/**
+ * FolderCountOutputType without action
+ */
+export type FolderCountOutputTypeCountFormsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FormWhereInput
+}
+
 
 export type FolderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  kind?: boolean
   isDefault?: boolean
   position?: boolean
   createdAt?: boolean
@@ -779,12 +934,14 @@ export type FolderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   guides?: boolean | Prisma.Folder$guidesArgs<ExtArgs>
   captures?: boolean | Prisma.Folder$capturesArgs<ExtArgs>
+  forms?: boolean | Prisma.Folder$formsArgs<ExtArgs>
   _count?: boolean | Prisma.FolderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["folder"]>
 
 export type FolderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  kind?: boolean
   isDefault?: boolean
   position?: boolean
   createdAt?: boolean
@@ -796,6 +953,7 @@ export type FolderSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type FolderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  kind?: boolean
   isDefault?: boolean
   position?: boolean
   createdAt?: boolean
@@ -807,6 +965,7 @@ export type FolderSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type FolderSelectScalar = {
   id?: boolean
   name?: boolean
+  kind?: boolean
   isDefault?: boolean
   position?: boolean
   createdAt?: boolean
@@ -814,11 +973,12 @@ export type FolderSelectScalar = {
   organizationId?: boolean
 }
 
-export type FolderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "isDefault" | "position" | "createdAt" | "updatedAt" | "organizationId", ExtArgs["result"]["folder"]>
+export type FolderOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "kind" | "isDefault" | "position" | "createdAt" | "updatedAt" | "organizationId", ExtArgs["result"]["folder"]>
 export type FolderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   guides?: boolean | Prisma.Folder$guidesArgs<ExtArgs>
   captures?: boolean | Prisma.Folder$capturesArgs<ExtArgs>
+  forms?: boolean | Prisma.Folder$formsArgs<ExtArgs>
   _count?: boolean | Prisma.FolderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type FolderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -834,13 +994,18 @@ export type $FolderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     organization: Prisma.$OrganizationPayload<ExtArgs>
     guides: Prisma.$GuidePayload<ExtArgs>[]
     captures: Prisma.$CapturePayload<ExtArgs>[]
+    forms: Prisma.$FormPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
     /**
-     * The workspace's default folder — new/uncategorized guides land here, and
-     * it can't be deleted (exactly one per workspace).
+     * The library this folder belongs to. Guide and Form folders are disjoint.
+     */
+    kind: $Enums.FolderKind
+    /**
+     * The workspace's default folder for this kind — new/uncategorized items land
+     * here, and it can't be deleted (exactly one per workspace per kind).
      */
     isDefault: boolean
     /**
@@ -1247,6 +1412,7 @@ export interface Prisma__FolderClient<T, Null = never, ExtArgs extends runtime.T
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   guides<T extends Prisma.Folder$guidesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Folder$guidesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuidePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   captures<T extends Prisma.Folder$capturesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Folder$capturesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CapturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  forms<T extends Prisma.Folder$formsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Folder$formsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1278,6 +1444,7 @@ export interface Prisma__FolderClient<T, Null = never, ExtArgs extends runtime.T
 export interface FolderFieldRefs {
   readonly id: Prisma.FieldRef<"Folder", 'String'>
   readonly name: Prisma.FieldRef<"Folder", 'String'>
+  readonly kind: Prisma.FieldRef<"Folder", 'FolderKind'>
   readonly isDefault: Prisma.FieldRef<"Folder", 'Boolean'>
   readonly position: Prisma.FieldRef<"Folder", 'Int'>
   readonly createdAt: Prisma.FieldRef<"Folder", 'DateTime'>
@@ -1729,6 +1896,30 @@ export type Folder$capturesArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.CaptureScalarFieldEnum | Prisma.CaptureScalarFieldEnum[]
+}
+
+/**
+ * Folder.forms
+ */
+export type Folder$formsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Form
+   */
+  select?: Prisma.FormSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Form
+   */
+  omit?: Prisma.FormOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FormInclude<ExtArgs> | null
+  where?: Prisma.FormWhereInput
+  orderBy?: Prisma.FormOrderByWithRelationInput | Prisma.FormOrderByWithRelationInput[]
+  cursor?: Prisma.FormWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FormScalarFieldEnum | Prisma.FormScalarFieldEnum[]
 }
 
 /**

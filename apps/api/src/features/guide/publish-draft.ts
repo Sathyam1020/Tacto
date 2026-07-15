@@ -35,6 +35,7 @@ async function applyDraftContent(
       interactive: doc.interactive as unknown as Prisma.InputJsonValue,
       // Publish the FAQ list alongside the interactive presentation.
       faqs: doc.faqs as unknown as Prisma.InputJsonValue,
+      embeds: doc.embeds as unknown as Prisma.InputJsonValue,
     },
   });
 

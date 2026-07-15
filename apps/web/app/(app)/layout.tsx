@@ -69,14 +69,18 @@ export default function AppLayout({
 
 /** Chrome-free editing surface — only the page's injected Back/Save bar. */
 function EditorChrome({ children }: { children: React.ReactNode }) {
-  const { leftActions, actions } = useNavbar()
+  const { leftActions, actions, bleed } = useNavbar()
   return (
     <div className="flex h-svh flex-col bg-background text-foreground">
       <header className="flex h-14 flex-none items-center justify-between gap-3 border-b px-5">
         <div className="flex min-w-0 items-center gap-2">{leftActions}</div>
         {actions}
       </header>
-      <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">{children}</div>
+      {bleed ? (
+        <div className="min-h-0 flex-1">{children}</div>
+      ) : (
+        <div className="flex-1 overflow-y-auto px-5 py-6 sm:px-6">{children}</div>
+      )}
     </div>
   )
 }

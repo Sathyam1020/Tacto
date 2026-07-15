@@ -10,6 +10,7 @@ import {
   type BlockType,
   type DraftDocumentV3,
   type Faq,
+  type FormEmbed,
   type GuideCustomization,
   type InteractivePresentation,
   type PresentationSlide,
@@ -105,6 +106,7 @@ type EditorDoc = {
   assets: Asset[]
   customization: GuideCustomization
   faqs: Faq[]
+  embeds: FormEmbed[]
 }
 
 const NEW_CONTENT: Record<BlockType, string> = {
@@ -123,6 +125,7 @@ const EMPTY_DOC: EditorDoc = {
   assets: [],
   customization: DEFAULT_CUSTOMIZATION,
   faqs: [],
+  embeds: [],
 }
 
 /** Coalesce typing into one undo step; debounce autosave. */
@@ -142,6 +145,7 @@ function toClientDoc(doc: EditorDoc): DraftDocumentClient {
     assets: doc.assets,
     customization: doc.customization,
     faqs: doc.faqs,
+    embeds: doc.embeds,
   }
 }
 
@@ -160,6 +164,7 @@ function fromClientDoc(doc: DraftDocumentClient): EditorDoc {
     assets: doc.assets ? doc.assets.map((a) => ({ ...a })) : [],
     // Backward-compat: an old cache predating FAQs has no `faqs`.
     faqs: doc.faqs ?? [],
+    embeds: doc.embeds ?? [],
   }
 }
 
@@ -207,6 +212,7 @@ function toDraftDocument(doc: EditorDoc): DraftDocumentV3 {
     assets: doc.assets,
     customization: doc.customization,
     faqs: doc.faqs,
+    embeds: doc.embeds,
   }
 }
 
@@ -1045,6 +1051,14 @@ export default function GuideEditPage() {
           onImport={importBlocks}
           onDirty={markDirty}
           onExport={exportPdf}
+          embeds={doc.embeds}
+          steps={doc.blocks
+            .filter((b) => b.type === "STEP")
+            .map((b) => ({
+              key: b.key,
+              label: b.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().slice(0, 60),
+            }))}
+          onEmbedsApply={(embeds) => applyEdit((d) => ({ ...d, embeds }))}
         />
       )}
       <div

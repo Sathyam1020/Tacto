@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const FolderKind = {
+  GUIDE: 'GUIDE',
+  FORM: 'FORM'
+} as const
+
+export type FolderKind = (typeof FolderKind)[keyof typeof FolderKind]
+
+
 export const CaptureSource = {
   EXTENSION: 'EXTENSION',
   VIDEO_UPLOAD: 'VIDEO_UPLOAD',
@@ -34,6 +42,14 @@ export const GuideStatus = {
 } as const
 
 export type GuideStatus = (typeof GuideStatus)[keyof typeof GuideStatus]
+
+
+export const FormStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type FormStatus = (typeof FormStatus)[keyof typeof FormStatus]
 
 
 export const BlockType = {

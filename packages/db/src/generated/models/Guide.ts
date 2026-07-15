@@ -86,6 +86,7 @@ export type GuideCountAggregateOutputType = {
   customization: number
   interactive: number
   faqs: number
+  embeds: number
   organizationId: number
   captureId: number
   createdById: number
@@ -153,6 +154,7 @@ export type GuideCountAggregateInputType = {
   customization?: true
   interactive?: true
   faqs?: true
+  embeds?: true
   organizationId?: true
   captureId?: true
   createdById?: true
@@ -261,6 +263,7 @@ export type GuideGroupByOutputType = {
   customization: runtime.JsonValue | null
   interactive: runtime.JsonValue | null
   faqs: runtime.JsonValue | null
+  embeds: runtime.JsonValue | null
   organizationId: string
   captureId: string | null
   createdById: string
@@ -305,6 +308,7 @@ export type GuideWhereInput = {
   customization?: Prisma.JsonNullableFilter<"Guide">
   interactive?: Prisma.JsonNullableFilter<"Guide">
   faqs?: Prisma.JsonNullableFilter<"Guide">
+  embeds?: Prisma.JsonNullableFilter<"Guide">
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -337,6 +341,7 @@ export type GuideOrderByWithRelationInput = {
   customization?: Prisma.SortOrderInput | Prisma.SortOrder
   interactive?: Prisma.SortOrderInput | Prisma.SortOrder
   faqs?: Prisma.SortOrderInput | Prisma.SortOrder
+  embeds?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -372,6 +377,7 @@ export type GuideWhereUniqueInput = Prisma.AtLeast<{
   customization?: Prisma.JsonNullableFilter<"Guide">
   interactive?: Prisma.JsonNullableFilter<"Guide">
   faqs?: Prisma.JsonNullableFilter<"Guide">
+  embeds?: Prisma.JsonNullableFilter<"Guide">
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -404,6 +410,7 @@ export type GuideOrderByWithAggregationInput = {
   customization?: Prisma.SortOrderInput | Prisma.SortOrder
   interactive?: Prisma.SortOrderInput | Prisma.SortOrder
   faqs?: Prisma.SortOrderInput | Prisma.SortOrder
+  embeds?: Prisma.SortOrderInput | Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -433,6 +440,7 @@ export type GuideScalarWhereWithAggregatesInput = {
   customization?: Prisma.JsonNullableWithAggregatesFilter<"Guide">
   interactive?: Prisma.JsonNullableWithAggregatesFilter<"Guide">
   faqs?: Prisma.JsonNullableWithAggregatesFilter<"Guide">
+  embeds?: Prisma.JsonNullableWithAggregatesFilter<"Guide">
   organizationId?: Prisma.StringWithAggregatesFilter<"Guide"> | string
   captureId?: Prisma.StringNullableWithAggregatesFilter<"Guide"> | string | null
   createdById?: Prisma.StringWithAggregatesFilter<"Guide"> | string
@@ -454,6 +462,7 @@ export type GuideCreateInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -482,6 +491,7 @@ export type GuideUncheckedCreateInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -510,6 +520,7 @@ export type GuideUpdateInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -538,6 +549,7 @@ export type GuideUncheckedUpdateInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -566,6 +578,7 @@ export type GuideCreateManyInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -587,6 +600,7 @@ export type GuideUpdateManyMutationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
 }
 
 export type GuideUncheckedUpdateManyInput = {
@@ -604,6 +618,7 @@ export type GuideUncheckedUpdateManyInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -635,6 +650,7 @@ export type GuideCountOrderByAggregateInput = {
   customization?: Prisma.SortOrder
   interactive?: Prisma.SortOrder
   faqs?: Prisma.SortOrder
+  embeds?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
   captureId?: Prisma.SortOrder
   createdById?: Prisma.SortOrder
@@ -975,6 +991,7 @@ export type GuideCreateWithoutCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
@@ -1002,6 +1019,7 @@ export type GuideUncheckedCreateWithoutCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   folderId?: string | null
@@ -1058,6 +1076,7 @@ export type GuideScalarWhereInput = {
   customization?: Prisma.JsonNullableFilter<"Guide">
   interactive?: Prisma.JsonNullableFilter<"Guide">
   faqs?: Prisma.JsonNullableFilter<"Guide">
+  embeds?: Prisma.JsonNullableFilter<"Guide">
   organizationId?: Prisma.StringFilter<"Guide"> | string
   captureId?: Prisma.StringNullableFilter<"Guide"> | string | null
   createdById?: Prisma.StringFilter<"Guide"> | string
@@ -1079,6 +1098,7 @@ export type GuideCreateWithoutOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
@@ -1106,6 +1126,7 @@ export type GuideUncheckedCreateWithoutOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   captureId?: string | null
   createdById: string
   folderId?: string | null
@@ -1159,6 +1180,7 @@ export type GuideCreateWithoutFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1186,6 +1208,7 @@ export type GuideUncheckedCreateWithoutFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1239,6 +1262,7 @@ export type GuideCreateWithoutCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
   folder?: Prisma.FolderCreateNestedOneWithoutGuidesInput
@@ -1266,6 +1290,7 @@ export type GuideUncheckedCreateWithoutCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   createdById: string
   folderId?: string | null
@@ -1319,6 +1344,7 @@ export type GuideCreateWithoutDraftInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1346,6 +1372,7 @@ export type GuideUncheckedCreateWithoutDraftInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1389,6 +1416,7 @@ export type GuideUpdateWithoutDraftInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -1416,6 +1444,7 @@ export type GuideUncheckedUpdateWithoutDraftInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1443,6 +1472,7 @@ export type GuideCreateWithoutTranslationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1470,6 +1500,7 @@ export type GuideUncheckedCreateWithoutTranslationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1513,6 +1544,7 @@ export type GuideUpdateWithoutTranslationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -1540,6 +1572,7 @@ export type GuideUncheckedUpdateWithoutTranslationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1567,6 +1600,7 @@ export type GuideCreateWithoutReactionsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1594,6 +1628,7 @@ export type GuideUncheckedCreateWithoutReactionsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1637,6 +1672,7 @@ export type GuideUpdateWithoutReactionsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -1664,6 +1700,7 @@ export type GuideUncheckedUpdateWithoutReactionsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1691,6 +1728,7 @@ export type GuideCreateWithoutCommentsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1718,6 +1756,7 @@ export type GuideUncheckedCreateWithoutCommentsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1761,6 +1800,7 @@ export type GuideUpdateWithoutCommentsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -1788,6 +1828,7 @@ export type GuideUncheckedUpdateWithoutCommentsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1815,6 +1856,7 @@ export type GuideCreateWithoutBlocksInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1842,6 +1884,7 @@ export type GuideUncheckedCreateWithoutBlocksInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -1885,6 +1928,7 @@ export type GuideUpdateWithoutBlocksInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -1912,6 +1956,7 @@ export type GuideUncheckedUpdateWithoutBlocksInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1939,6 +1984,7 @@ export type GuideCreateWithoutNarrationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -1966,6 +2012,7 @@ export type GuideUncheckedCreateWithoutNarrationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -2009,6 +2056,7 @@ export type GuideUpdateWithoutNarrationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -2036,6 +2084,7 @@ export type GuideUncheckedUpdateWithoutNarrationsInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2063,6 +2112,7 @@ export type GuideCreateWithoutMediaRendersInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization: Prisma.OrganizationCreateNestedOneWithoutGuidesInput
   capture?: Prisma.CaptureCreateNestedOneWithoutGuidesInput
   createdBy: Prisma.UserCreateNestedOneWithoutGuidesInput
@@ -2090,6 +2140,7 @@ export type GuideUncheckedCreateWithoutMediaRendersInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -2133,6 +2184,7 @@ export type GuideUpdateWithoutMediaRendersInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -2160,6 +2212,7 @@ export type GuideUncheckedUpdateWithoutMediaRendersInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2187,6 +2240,7 @@ export type GuideCreateManyCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   folderId?: string | null
@@ -2207,6 +2261,7 @@ export type GuideUpdateWithoutCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
@@ -2234,6 +2289,7 @@ export type GuideUncheckedUpdateWithoutCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2261,6 +2317,7 @@ export type GuideUncheckedUpdateManyWithoutCreatedByInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2281,6 +2338,7 @@ export type GuideCreateManyOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   captureId?: string | null
   createdById: string
   folderId?: string | null
@@ -2301,6 +2359,7 @@ export type GuideUpdateWithoutOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
@@ -2328,6 +2387,7 @@ export type GuideUncheckedUpdateWithoutOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2355,6 +2415,7 @@ export type GuideUncheckedUpdateManyWithoutOrganizationInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2375,6 +2436,7 @@ export type GuideCreateManyFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   captureId?: string | null
   createdById: string
@@ -2395,6 +2457,7 @@ export type GuideUpdateWithoutFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   capture?: Prisma.CaptureUpdateOneWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
@@ -2422,6 +2485,7 @@ export type GuideUncheckedUpdateWithoutFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2449,6 +2513,7 @@ export type GuideUncheckedUpdateManyWithoutFolderInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   captureId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
@@ -2469,6 +2534,7 @@ export type GuideCreateManyCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId: string
   createdById: string
   folderId?: string | null
@@ -2489,6 +2555,7 @@ export type GuideUpdateWithoutCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutGuidesNestedInput
   createdBy?: Prisma.UserUpdateOneRequiredWithoutGuidesNestedInput
   folder?: Prisma.FolderUpdateOneWithoutGuidesNestedInput
@@ -2516,6 +2583,7 @@ export type GuideUncheckedUpdateWithoutCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2543,6 +2611,7 @@ export type GuideUncheckedUpdateManyWithoutCaptureInput = {
   customization?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   interactive?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   faqs?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  embeds?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   createdById?: Prisma.StringFieldUpdateOperationsInput | string
   folderId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -2639,6 +2708,7 @@ export type GuideSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   customization?: boolean
   interactive?: boolean
   faqs?: boolean
+  embeds?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -2672,6 +2742,7 @@ export type GuideSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   customization?: boolean
   interactive?: boolean
   faqs?: boolean
+  embeds?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -2697,6 +2768,7 @@ export type GuideSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   customization?: boolean
   interactive?: boolean
   faqs?: boolean
+  embeds?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
@@ -2722,13 +2794,14 @@ export type GuideSelectScalar = {
   customization?: boolean
   interactive?: boolean
   faqs?: boolean
+  embeds?: boolean
   organizationId?: boolean
   captureId?: boolean
   createdById?: boolean
   folderId?: boolean
 }
 
-export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "pinnedAt" | "customization" | "interactive" | "faqs" | "organizationId" | "captureId" | "createdById" | "folderId", ExtArgs["result"]["guide"]>
+export type GuideOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "title" | "summary" | "status" | "shareId" | "publishedAt" | "viewCount" | "createdAt" | "updatedAt" | "deletedAt" | "pinnedAt" | "customization" | "interactive" | "faqs" | "embeds" | "organizationId" | "captureId" | "createdById" | "folderId", ExtArgs["result"]["guide"]>
 export type GuideInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   capture?: boolean | Prisma.Guide$captureArgs<ExtArgs>
@@ -2805,6 +2878,11 @@ export type $GuidePayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
      * Shape = Faq[] in @workspace/contracts/guide.
      */
     faqs: runtime.JsonValue | null
+    /**
+     * Published form embeds (overlays shown in the guide). Null = none.
+     * Shape = FormEmbed[] in @workspace/contracts/guide.
+     */
+    embeds: runtime.JsonValue | null
     organizationId: string
     captureId: string | null
     createdById: string
@@ -3261,6 +3339,7 @@ export interface GuideFieldRefs {
   readonly customization: Prisma.FieldRef<"Guide", 'Json'>
   readonly interactive: Prisma.FieldRef<"Guide", 'Json'>
   readonly faqs: Prisma.FieldRef<"Guide", 'Json'>
+  readonly embeds: Prisma.FieldRef<"Guide", 'Json'>
   readonly organizationId: Prisma.FieldRef<"Guide", 'String'>
   readonly captureId: Prisma.FieldRef<"Guide", 'String'>
   readonly createdById: Prisma.FieldRef<"Guide", 'String'>

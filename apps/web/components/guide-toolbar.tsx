@@ -11,7 +11,7 @@ import {
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 
-import type { GuideCustomization } from "@workspace/contracts/guide"
+import type { FormEmbed, GuideCustomization } from "@workspace/contracts/guide"
 
 import { CustomizeGuideDialog } from "@/components/customize-guide-dialog"
 import {
@@ -38,6 +38,9 @@ export function GuideToolbar({
   onImport,
   onDirty,
   onExport,
+  embeds,
+  steps,
+  onEmbedsApply,
 }: {
   guide: GuideDetail
   /** The editor's working-copy customization (previewed live). */
@@ -57,6 +60,10 @@ export function GuideToolbar({
   onDirty: () => void
   /** Export the current draft to PDF (reflects unsaved edits). */
   onExport: () => void
+  /** Form embeds + steps + apply, for the Customize dialog's Forms tab. */
+  embeds: FormEmbed[]
+  steps: { key: string; label: string }[]
+  onEmbedsApply: (embeds: FormEmbed[]) => void
 }) {
   const [customizeOpen, setCustomizeOpen] = React.useState(false)
   const [sortOpen, setSortOpen] = React.useState(false)
@@ -115,6 +122,9 @@ export function GuideToolbar({
         guideId={guide.id}
         value={customization}
         onApply={onCustomizationChange}
+        embeds={embeds}
+        steps={steps}
+        onEmbedsApply={onEmbedsApply}
         open={customizeOpen}
         onOpenChange={setCustomizeOpen}
       />

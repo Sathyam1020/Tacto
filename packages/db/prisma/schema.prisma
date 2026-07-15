@@ -31,6 +31,7 @@ model User {
   invitations Invitation[]
   captures    Capture[]
   guides      Guide[]
+  forms       Form[]
 
   @@map("user")
 }
@@ -102,17 +103,28 @@ model Organization {
   captures    Capture[]
   guides      Guide[]
   folders     Folder[]
+  forms       Form[]
 
   @@map("organization")
 }
 
-/// A folder groups guides within a workspace. Flat (no nesting); a guide
-/// belongs to at most one folder (folderId null = uncategorized / All guides).
+/// Which library a folder belongs to. Forms and Guides keep independent folder
+/// namespaces even though they share this table.
+enum FolderKind {
+  GUIDE
+  FORM
+}
+
+/// A folder groups guides OR forms within a workspace (never both — see `kind`).
+/// Flat (no nesting); an item belongs to at most one folder (folderId null =
+/// uncategorized / All).
 model Folder {
   id        String   @id @default(uuid())
   name      String
-  /// The workspace's default folder — new/uncategorized guides land here, and
-  /// it can't be deleted (exactly one per workspace).
+  /// The library this folder belongs to. Guide and Form folders are disjoint.
+  kind      FolderKind @default(GUIDE)
+  /// The workspace's default folder for this kind — new/uncategorized items land
+  /// here, and it can't be deleted (exactly one per workspace per kind).
   isDefault Boolean  @default(false)
   /// Manual sort order within the workspace (lower = higher in the list).
   position  Int      @default(0)
@@ -124,6 +136,7 @@ model Folder {
 
   guides   Guide[]
   captures Capture[]
+  forms    Form[]
 
   @@index([organizationId])
   @@map("folder")
@@ -182,6 +195,87 @@ enum CaptureStatus {
 enum GuideStatus {
   DRAFT
   PUBLISHED
+}
+
+enum FormStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// A form (survey/quiz/application). Published content is a JSON document
+/// (fields + thankYou + design + settings) — not a relational field table —
+/// mirroring how Guide carries customization/interactive as JSON. Shape =
+/// FormDocument in @workspace/contracts/form.
+model Form {
+  id          String     @id @default(uuid())
+  title       String
+  description String?
+  status      FormStatus @default(DRAFT)
+  /// Unlisted public id, minted (nanoid) on first publish; stable across republishes.
+  shareId     String?    @unique
+  publishedAt DateTime?
+  pinnedAt    DateTime?
+  deletedAt   DateTime?
+
+  /// Published form document. Null until first publish.
+  document Json?
+  /// Monotonic version, incremented on every successful publish. Submissions
+  /// record the version they were filled against (for future reporting).
+  documentVersion Int @default(0)
+
+  /// Analytics counters (fire-and-forget increments; never block a response).
+  viewCount   Int @default(0)
+  startCount  Int @default(0)
+  submitCount Int @default(0)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById    String
+  createdBy      User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  folderId       String?
+  folder         Folder?      @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  draft       FormDraft?
+  submissions FormSubmission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, status])
+  @@index([organizationId, folderId])
+  @@map("form")
+}
+
+/// The editable working document for a form (one per form), versioned for
+/// optimistic-concurrency autosave. Mirrors GuideDraft.
+model FormDraft {
+  id              String   @id @default(uuid())
+  formId          String   @unique
+  form            Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  document        Json
+  version         Int      @default(1)
+  updatedByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("form_draft")
+}
+
+/// A public submission — answers keyed by stable field key, plus the form
+/// document version it was submitted against.
+model FormSubmission {
+  id          String   @id @default(uuid())
+  formId      String
+  form        Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
+  anonId      String?
+  answers     Json
+  formVersion Int
+  durationMs  Int?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([formId, createdAt])
+  @@map("form_submission")
 }
 
 /// A guide is an ordered list of typed blocks. Only STEP blocks are numbered
@@ -256,6 +350,9 @@ model Guide {
   /// Published FAQ list ({question, answer, source}[], max 5). Null = none.
   /// Shape = Faq[] in @workspace/contracts/guide.
   faqs          Json?
+  /// Published form embeds (overlays shown in the guide). Null = none.
+  /// Shape = FormEmbed[] in @workspace/contracts/guide.
+  embeds        Json?
 
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)

@@ -23,6 +23,7 @@ import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { layoutMaxWidthClass } from "@/components/guide-customization-context"
+import { FormEmbedOverlay } from "@/components/form-embed-overlay"
 import { GuideFaqs } from "@/components/guide-faqs"
 import { GuideFeedback } from "@/components/guide-feedback"
 import { GuideBody, ViewModeToggle, type ViewMode } from "@/components/guide-view"
@@ -164,6 +165,10 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         </div>
 
         <GuideFaqs faqs={guide.faqs} />
+
+        {guide.embeds.map((embed) => (
+          <FormEmbedOverlay key={embed.id} embed={embed} guideId={guide.shareId} />
+        ))}
 
         <GuideFeedback
           shareId={guide.shareId}

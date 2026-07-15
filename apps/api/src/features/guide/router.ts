@@ -7,6 +7,7 @@ import {
   parseDraftDocument,
   moveGuideSchema,
   readFaqs,
+  readGuideEmbeds,
   retranslateTargetSchema,
   setGuideFolderSchema,
 } from "@workspace/contracts/guide";
@@ -180,6 +181,7 @@ guideRouter.get(
         blocks: await serializeBlocks(guide.blocks),
         interactive: serializeInteractive(guide.interactive),
         faqs: readFaqs(guide.faqs),
+        embeds: readGuideEmbeds(guide.embeds),
       },
     });
   }

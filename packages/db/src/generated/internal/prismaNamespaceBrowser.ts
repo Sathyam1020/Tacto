@@ -59,6 +59,9 @@ export const ModelName = {
   Folder: 'Folder',
   Member: 'Member',
   Invitation: 'Invitation',
+  Form: 'Form',
+  FormDraft: 'FormDraft',
+  FormSubmission: 'FormSubmission',
   Capture: 'Capture',
   Guide: 'Guide',
   GuideDraft: 'GuideDraft',
@@ -163,6 +166,7 @@ export type OrganizationScalarFieldEnum = (typeof OrganizationScalarFieldEnum)[k
 export const FolderScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  kind: 'kind',
   isDefault: 'isDefault',
   position: 'position',
   createdAt: 'createdAt',
@@ -196,6 +200,57 @@ export const InvitationScalarFieldEnum = {
 } as const
 
 export type InvitationScalarFieldEnum = (typeof InvitationScalarFieldEnum)[keyof typeof InvitationScalarFieldEnum]
+
+
+export const FormScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  shareId: 'shareId',
+  publishedAt: 'publishedAt',
+  pinnedAt: 'pinnedAt',
+  deletedAt: 'deletedAt',
+  document: 'document',
+  documentVersion: 'documentVersion',
+  viewCount: 'viewCount',
+  startCount: 'startCount',
+  submitCount: 'submitCount',
+  organizationId: 'organizationId',
+  createdById: 'createdById',
+  folderId: 'folderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FormScalarFieldEnum = (typeof FormScalarFieldEnum)[keyof typeof FormScalarFieldEnum]
+
+
+export const FormDraftScalarFieldEnum = {
+  id: 'id',
+  formId: 'formId',
+  document: 'document',
+  version: 'version',
+  updatedByUserId: 'updatedByUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type FormDraftScalarFieldEnum = (typeof FormDraftScalarFieldEnum)[keyof typeof FormDraftScalarFieldEnum]
+
+
+export const FormSubmissionScalarFieldEnum = {
+  id: 'id',
+  formId: 'formId',
+  anonId: 'anonId',
+  answers: 'answers',
+  formVersion: 'formVersion',
+  durationMs: 'durationMs',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type FormSubmissionScalarFieldEnum = (typeof FormSubmissionScalarFieldEnum)[keyof typeof FormSubmissionScalarFieldEnum]
 
 
 export const CaptureScalarFieldEnum = {
@@ -233,6 +288,7 @@ export const GuideScalarFieldEnum = {
   customization: 'customization',
   interactive: 'interactive',
   faqs: 'faqs',
+  embeds: 'embeds',
   organizationId: 'organizationId',
   captureId: 'captureId',
   createdById: 'createdById',

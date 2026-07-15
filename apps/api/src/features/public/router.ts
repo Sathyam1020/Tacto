@@ -1,7 +1,9 @@
+import { readFormDocument } from "@workspace/contracts/form";
 import {
   commentInputSchema,
   reactionInputSchema,
   readFaqs,
+  readGuideEmbeds,
 } from "@workspace/contracts/guide";
 import { prisma } from "@workspace/db";
 import { getPublishedNarrationByLanguage } from "@workspace/generation";
@@ -49,6 +51,34 @@ function feedbackFlags(customization: unknown): {
 export const publicRouter: Router = Router();
 
 const shareParamSchema = z.object({ shareId: z.string().min(1) });
+
+/** Resolve a guide's form embeds, inlining each referenced PUBLISHED form's
+ *  document so the reader can fill it inline. Drops broken/unpublished refs. */
+async function resolveGuideEmbeds(raw: unknown) {
+  const embeds = readGuideEmbeds(raw);
+  if (embeds.length === 0) return [];
+  const formIds = [...new Set(embeds.map((e) => e.formId))];
+  const forms = await prisma.form.findMany({
+    where: { id: { in: formIds }, status: "PUBLISHED", deletedAt: null },
+    select: { id: true, shareId: true, document: true, documentVersion: true },
+  });
+  const byId = new Map(forms.map((f) => [f.id, f]));
+  return embeds.flatMap((embed) => {
+    const form = byId.get(embed.formId);
+    const document = form ? readFormDocument(form.document) : null;
+    if (!form || !document) return [];
+    return [
+      {
+        ...embed,
+        form: {
+          shareId: form.shareId,
+          version: form.documentVersion,
+          document,
+        },
+      },
+    ];
+  });
+}
 
 publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
   const { shareId } = shareParamSchema.parse(req.params);
@@ -118,6 +148,10 @@ publicRouter.get("/api/public/guides/:shareId", async (req, res) => {
       narration,
       // Published FAQ list (plain text — React escapes).
       faqs: readFaqs(guide.faqs),
+      // Form overlays, each with its referenced published form inlined so the
+      // reader can fill it without a second round-trip. Broken/unpublished
+      // references are dropped.
+      embeds: await resolveGuideEmbeds(guide.embeds),
     },
   });
 });

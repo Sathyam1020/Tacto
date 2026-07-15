@@ -1,5 +1,6 @@
 import {
   createFolderSchema,
+  folderKindSchema,
   renameFolderSchema,
 } from "@workspace/contracts/folder";
 import { ensureDefaultFolder, prisma } from "@workspace/db";
@@ -12,7 +13,8 @@ import { requireWorkspace } from "../../middleware/require-workspace.js";
 
 const idParamSchema = z.object({ id: z.string() });
 
-/** Folders — flat, workspace-scoped groupings of guides. */
+/** Folders — flat, workspace-scoped groupings. Guides and Forms keep separate
+ *  folder namespaces via `kind` (?kind=GUIDE|FORM, default GUIDE). */
 export const folderRouter: Router = Router();
 
 // ── List ─────────────────────────────────────────────────────────────────
@@ -25,6 +27,7 @@ folderRouter.get(
     // folders — as long as the caller is a member of it.
     const requested =
       typeof req.query.workspaceId === "string" ? req.query.workspaceId : null;
+    const kind = folderKindSchema.catch("GUIDE").parse(req.query.kind);
     let organizationId = req.workspace!.id;
     if (requested && requested !== organizationId) {
       const member = await prisma.member.findFirst({
@@ -36,11 +39,11 @@ folderRouter.get(
       organizationId = requested;
     }
 
-    // A workspace always has its default folder (self-heal legacy workspaces).
-    await ensureDefaultFolder(prisma, organizationId);
+    // A workspace always has its default folder for this kind (self-heal legacy).
+    await ensureDefaultFolder(prisma, organizationId, kind);
 
     const folders = await prisma.folder.findMany({
-      where: { organizationId },
+      where: { organizationId, kind },
       orderBy: [{ isDefault: "desc" }, { position: "asc" }, { createdAt: "asc" }],
       select: {
         id: true,
@@ -49,7 +52,7 @@ folderRouter.get(
         position: true,
         createdAt: true,
         updatedAt: true,
-        _count: { select: { guides: true } },
+        _count: { select: { guides: true, forms: true } },
       },
     });
 
@@ -59,7 +62,7 @@ folderRouter.get(
         name: f.name,
         isDefault: f.isDefault,
         position: f.position,
-        guideCount: f._count.guides,
+        itemCount: kind === "FORM" ? f._count.forms : f._count.guides,
         createdAt: f.createdAt,
         updatedAt: f.updatedAt,
       })),
@@ -73,11 +76,11 @@ folderRouter.post(
   requireAuth,
   requireWorkspace,
   async (req, res) => {
-    const { name } = createFolderSchema.parse(req.body);
+    const { name, kind } = createFolderSchema.parse(req.body);
 
-    // New folders land at the bottom of the list.
+    // New folders land at the bottom of their kind's list.
     const last = await prisma.folder.findFirst({
-      where: { organizationId: req.workspace!.id },
+      where: { organizationId: req.workspace!.id, kind },
       orderBy: { position: "desc" },
       select: { position: true },
     });
@@ -85,6 +88,7 @@ folderRouter.post(
     const folder = await prisma.folder.create({
       data: {
         name,
+        kind,
         organizationId: req.workspace!.id,
         position: (last?.position ?? -1) + 1,
       },
@@ -92,7 +96,7 @@ folderRouter.post(
     });
 
     res.status(201).json({
-      folder: { ...folder, guideCount: 0 },
+      folder: { ...folder, itemCount: 0 },
     });
   }
 );
@@ -121,7 +125,7 @@ folderRouter.patch(
   }
 );
 
-// ── Delete (guides fall back to uncategorized via SetNull) ─────────────────
+// ── Delete (items fall back to that kind's default folder) ─────────────────
 folderRouter.delete(
   "/api/folders/:id",
   requireAuth,
@@ -131,7 +135,7 @@ folderRouter.delete(
 
     const folder = await prisma.folder.findFirst({
       where: { id, organizationId: req.workspace!.id },
-      select: { id: true, isDefault: true },
+      select: { id: true, isDefault: true, kind: true },
     });
     if (!folder) throw new AppError(404, "NOT_FOUND", "Folder not found");
     if (folder.isDefault)
@@ -141,14 +145,25 @@ folderRouter.delete(
         "The default folder can't be deleted"
       );
 
-    // Guides always belong to a folder — move this folder's guides to the
-    // default before removing it (never orphan a guide).
+    // Items always belong to a folder — move this folder's items to the
+    // same-kind default before removing it (never orphan a guide/form).
     await prisma.$transaction(async (tx) => {
-      const defaultId = await ensureDefaultFolder(tx, req.workspace!.id);
-      await tx.guide.updateMany({
-        where: { folderId: id },
-        data: { folderId: defaultId },
-      });
+      const defaultId = await ensureDefaultFolder(
+        tx,
+        req.workspace!.id,
+        folder.kind
+      );
+      if (folder.kind === "FORM") {
+        await tx.form.updateMany({
+          where: { folderId: id },
+          data: { folderId: defaultId },
+        });
+      } else {
+        await tx.guide.updateMany({
+          where: { folderId: id },
+          data: { folderId: defaultId },
+        });
+      }
       await tx.folder.delete({ where: { id } });
     });
     res.status(204).end();

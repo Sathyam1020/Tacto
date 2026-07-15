@@ -410,7 +410,10 @@ export function InteractiveView({
             />
           </div>
         )}
-        <div className="bg-card overflow-hidden rounded-xl border">
+        <div
+          className="bg-card overflow-hidden rounded-xl border"
+          data-step-key={stepFrame ? currentFrameId : undefined}
+        >
           <ChromeBar actions={chromeActions} />
 
           {frame.kind === "slide" ? (

@@ -16,6 +16,9 @@ type NavbarState = {
   actions: React.ReactNode | null
   /** Minimal chrome: hide the sidebar trigger + default page title. */
   minimal: boolean
+  /** Full-bleed content: drop the chrome's padding + outer scroll so the page
+   *  fills the surface itself (e.g. the form builder's fixed 3-pane layout). */
+  bleed: boolean
 }
 
 type NavbarContextValue = NavbarState & {
@@ -31,6 +34,7 @@ export function NavbarProvider({ children }: { children: React.ReactNode }) {
     leftActions: null,
     actions: null,
     minimal: false,
+    bleed: false,
   })
 
   const set = React.useCallback((partial: Partial<NavbarState>) => {
@@ -43,6 +47,7 @@ export function NavbarProvider({ children }: { children: React.ReactNode }) {
         leftActions: null,
         actions: null,
         minimal: false,
+        bleed: false,
       }),
     []
   )

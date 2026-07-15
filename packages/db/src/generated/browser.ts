@@ -44,8 +44,9 @@ export type Verification = Prisma.VerificationModel
 export type Organization = Prisma.OrganizationModel
 /**
  * Model Folder
- * A folder groups guides within a workspace. Flat (no nesting); a guide
- * belongs to at most one folder (folderId null = uncategorized / All guides).
+ * A folder groups guides OR forms within a workspace (never both — see `kind`).
+ * Flat (no nesting); an item belongs to at most one folder (folderId null =
+ * uncategorized / All).
  */
 export type Folder = Prisma.FolderModel
 /**
@@ -58,6 +59,26 @@ export type Member = Prisma.MemberModel
  * 
  */
 export type Invitation = Prisma.InvitationModel
+/**
+ * Model Form
+ * A form (survey/quiz/application). Published content is a JSON document
+ * (fields + thankYou + design + settings) — not a relational field table —
+ * mirroring how Guide carries customization/interactive as JSON. Shape =
+ * FormDocument in @workspace/contracts/form.
+ */
+export type Form = Prisma.FormModel
+/**
+ * Model FormDraft
+ * The editable working document for a form (one per form), versioned for
+ * optimistic-concurrency autosave. Mirrors GuideDraft.
+ */
+export type FormDraft = Prisma.FormDraftModel
+/**
+ * Model FormSubmission
+ * A public submission — answers keyed by stable field key, plus the form
+ * document version it was submitted against.
+ */
+export type FormSubmission = Prisma.FormSubmissionModel
 /**
  * Model Capture
  * Immutable raw material: the recorded event log. Never edited after

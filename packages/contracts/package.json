@@ -8,6 +8,7 @@
     "./auth": "./src/auth.ts",
     "./capture": "./src/capture.ts",
     "./folder": "./src/folder.ts",
+    "./form": "./src/form.ts",
     "./guide": "./src/guide.ts",
     "./voice": "./src/voice.ts",
     "./workspace": "./src/workspace.ts"

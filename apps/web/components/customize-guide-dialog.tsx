@@ -16,6 +16,7 @@ import { toast } from "sonner"
 import {
   DEFAULT_CUSTOMIZATION,
   type GuideCustomization,
+  type FormEmbed,
 } from "@workspace/contracts/guide"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -40,6 +41,7 @@ import {
 } from "@workspace/ui/components/tabs"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { FormEmbedEditor } from "@/components/form-embed-editor"
 import { resolveCustomization, uploadStepMedia } from "@/lib/guides"
 
 /* ── small controls ──────────────────────────────────────────────────────── */
@@ -175,6 +177,9 @@ export function CustomizeGuideDialog({
   guideId,
   value,
   onApply,
+  embeds,
+  steps,
+  onEmbedsApply,
   open,
   onOpenChange,
 }: {
@@ -183,17 +188,26 @@ export function CustomizeGuideDialog({
   value: GuideCustomization | null
   /** Stage the edited customization into the editor (persisted on Update). */
   onApply: (next: GuideCustomization) => void
+  /** Current form embeds + the guide's steps (for the "after step" trigger). */
+  embeds: FormEmbed[]
+  steps: { key: string; label: string }[]
+  /** Stage the edited embeds into the editor (persisted on Update). */
+  onEmbedsApply: (embeds: FormEmbed[]) => void
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
   const [draft, setDraft] = React.useState<GuideCustomization>(() =>
     resolveCustomization(value)
   )
+  const [embedsDraft, setEmbedsDraft] = React.useState<FormEmbed[]>(embeds)
   // Reseed from the working copy each time the dialog opens (discards an
   // abandoned edit). `value` is stable editor state, so this only fires on open.
   React.useEffect(() => {
-    if (open) setDraft(resolveCustomization(value))
-  }, [open, value])
+    if (open) {
+      setDraft(resolveCustomization(value))
+      setEmbedsDraft(embeds)
+    }
+  }, [open, value, embeds])
 
   const [logoUploading, setLogoUploading] = React.useState(false)
   const logoInputRef = React.useRef<HTMLInputElement>(null)
@@ -300,6 +314,7 @@ export function CustomizeGuideDialog({
   // it persists to the published guide only when the editor clicks Save.
   function onApplyDraft() {
     onApply(draft)
+    onEmbedsApply(embedsDraft)
     onOpenChange(false)
   }
 
@@ -326,6 +341,7 @@ export function CustomizeGuideDialog({
             <TabsTrigger value="scroll">List View</TabsTrigger>
             <TabsTrigger value="walkthrough">Interactive View</TabsTrigger>
             <TabsTrigger value="feedback">Feedback</TabsTrigger>
+            <TabsTrigger value="forms">Forms</TabsTrigger>
           </TabsList>
 
           <div className="min-h-0 flex-1 overflow-y-auto px-6 pb-4">
@@ -731,6 +747,14 @@ export function CustomizeGuideDialog({
                   onCheckedChange={(v) => setFeedback({ allowComments: v })}
                 />
               </Field>
+            </TabsContent>
+
+            <TabsContent value="forms" className="px-6 py-4">
+              <FormEmbedEditor
+                embeds={embedsDraft}
+                steps={steps}
+                onChange={setEmbedsDraft}
+              />
             </TabsContent>
           </div>
         </Tabs>

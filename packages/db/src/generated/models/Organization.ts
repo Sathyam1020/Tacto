@@ -195,6 +195,7 @@ export type OrganizationWhereInput = {
   captures?: Prisma.CaptureListRelationFilter
   guides?: Prisma.GuideListRelationFilter
   folders?: Prisma.FolderListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -209,6 +210,7 @@ export type OrganizationOrderByWithRelationInput = {
   captures?: Prisma.CaptureOrderByRelationAggregateInput
   guides?: Prisma.GuideOrderByRelationAggregateInput
   folders?: Prisma.FolderOrderByRelationAggregateInput
+  forms?: Prisma.FormOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -226,6 +228,7 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   captures?: Prisma.CaptureListRelationFilter
   guides?: Prisma.GuideListRelationFilter
   folders?: Prisma.FolderListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }, "id" | "slug">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -264,6 +267,7 @@ export type OrganizationCreateInput = {
   captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -278,6 +282,7 @@ export type OrganizationUncheckedCreateInput = {
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -292,6 +297,7 @@ export type OrganizationUpdateInput = {
   captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -306,6 +312,7 @@ export type OrganizationUncheckedUpdateInput = {
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -409,6 +416,20 @@ export type OrganizationUpdateOneRequiredWithoutInvitationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutInvitationsInput, Prisma.OrganizationUpdateWithoutInvitationsInput>, Prisma.OrganizationUncheckedUpdateWithoutInvitationsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutFormsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutFormsInput, Prisma.OrganizationUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutFormsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutFormsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutFormsInput, Prisma.OrganizationUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutFormsInput
+  upsert?: Prisma.OrganizationUpsertWithoutFormsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutFormsInput, Prisma.OrganizationUpdateWithoutFormsInput>, Prisma.OrganizationUncheckedUpdateWithoutFormsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutCapturesInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCapturesInput, Prisma.OrganizationUncheckedCreateWithoutCapturesInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCapturesInput
@@ -448,6 +469,7 @@ export type OrganizationCreateWithoutFoldersInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
   captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutFoldersInput = {
@@ -461,6 +483,7 @@ export type OrganizationUncheckedCreateWithoutFoldersInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutFoldersInput = {
@@ -490,6 +513,7 @@ export type OrganizationUpdateWithoutFoldersInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutFoldersInput = {
@@ -503,6 +527,7 @@ export type OrganizationUncheckedUpdateWithoutFoldersInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMembersInput = {
@@ -516,6 +541,7 @@ export type OrganizationCreateWithoutMembersInput = {
   captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -529,6 +555,7 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -558,6 +585,7 @@ export type OrganizationUpdateWithoutMembersInput = {
   captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -571,6 +599,7 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutInvitationsInput = {
@@ -584,6 +613,7 @@ export type OrganizationCreateWithoutInvitationsInput = {
   captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -597,6 +627,7 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -626,6 +657,7 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -636,6 +668,79 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
+  guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
+  folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutFormsInput = {
+  id?: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt?: Date | string
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
+  guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
+  folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutFormsInput = {
+  id?: string
+  name: string
+  slug: string
+  logo?: string | null
+  metadata?: string | null
+  createdAt?: Date | string
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
+  guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
+  folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutFormsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutFormsInput, Prisma.OrganizationUncheckedCreateWithoutFormsInput>
+}
+
+export type OrganizationUpsertWithoutFormsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutFormsInput, Prisma.OrganizationUncheckedUpdateWithoutFormsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutFormsInput, Prisma.OrganizationUncheckedCreateWithoutFormsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutFormsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutFormsInput, Prisma.OrganizationUncheckedUpdateWithoutFormsInput>
+}
+
+export type OrganizationUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
+  guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
+  folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
@@ -652,6 +757,7 @@ export type OrganizationCreateWithoutCapturesInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCapturesInput = {
@@ -665,6 +771,7 @@ export type OrganizationUncheckedCreateWithoutCapturesInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCapturesInput = {
@@ -694,6 +801,7 @@ export type OrganizationUpdateWithoutCapturesInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCapturesInput = {
@@ -707,6 +815,7 @@ export type OrganizationUncheckedUpdateWithoutCapturesInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutGuidesInput = {
@@ -720,6 +829,7 @@ export type OrganizationCreateWithoutGuidesInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
   captures?: Prisma.CaptureCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutGuidesInput = {
@@ -733,6 +843,7 @@ export type OrganizationUncheckedCreateWithoutGuidesInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutOrganizationInput
   folders?: Prisma.FolderUncheckedCreateNestedManyWithoutOrganizationInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutGuidesInput = {
@@ -762,6 +873,7 @@ export type OrganizationUpdateWithoutGuidesInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutGuidesInput = {
@@ -775,6 +887,7 @@ export type OrganizationUncheckedUpdateWithoutGuidesInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutOrganizationNestedInput
   folders?: Prisma.FolderUncheckedUpdateManyWithoutOrganizationNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -788,6 +901,7 @@ export type OrganizationCountOutputType = {
   captures: number
   guides: number
   folders: number
+  forms: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -796,6 +910,7 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   captures?: boolean | OrganizationCountOutputTypeCountCapturesArgs
   guides?: boolean | OrganizationCountOutputTypeCountGuidesArgs
   folders?: boolean | OrganizationCountOutputTypeCountFoldersArgs
+  forms?: boolean | OrganizationCountOutputTypeCountFormsArgs
 }
 
 /**
@@ -843,6 +958,13 @@ export type OrganizationCountOutputTypeCountFoldersArgs<ExtArgs extends runtime.
   where?: Prisma.FolderWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountFormsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FormWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -856,6 +978,7 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   captures?: boolean | Prisma.Organization$capturesArgs<ExtArgs>
   guides?: boolean | Prisma.Organization$guidesArgs<ExtArgs>
   folders?: boolean | Prisma.Organization$foldersArgs<ExtArgs>
+  forms?: boolean | Prisma.Organization$formsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -893,6 +1016,7 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   captures?: boolean | Prisma.Organization$capturesArgs<ExtArgs>
   guides?: boolean | Prisma.Organization$guidesArgs<ExtArgs>
   folders?: boolean | Prisma.Organization$foldersArgs<ExtArgs>
+  forms?: boolean | Prisma.Organization$formsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -906,6 +1030,7 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     captures: Prisma.$CapturePayload<ExtArgs>[]
     guides: Prisma.$GuidePayload<ExtArgs>[]
     folders: Prisma.$FolderPayload<ExtArgs>[]
+    forms: Prisma.$FormPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1313,6 +1438,7 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   captures<T extends Prisma.Organization$capturesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$capturesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CapturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   guides<T extends Prisma.Organization$guidesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$guidesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuidePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   folders<T extends Prisma.Organization$foldersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$foldersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FolderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  forms<T extends Prisma.Organization$formsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$formsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1858,6 +1984,30 @@ export type Organization$foldersArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.FolderScalarFieldEnum | Prisma.FolderScalarFieldEnum[]
+}
+
+/**
+ * Organization.forms
+ */
+export type Organization$formsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Form
+   */
+  select?: Prisma.FormSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Form
+   */
+  omit?: Prisma.FormOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FormInclude<ExtArgs> | null
+  where?: Prisma.FormWhereInput
+  orderBy?: Prisma.FormOrderByWithRelationInput | Prisma.FormOrderByWithRelationInput[]
+  cursor?: Prisma.FormWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FormScalarFieldEnum | Prisma.FormScalarFieldEnum[]
 }
 
 /**

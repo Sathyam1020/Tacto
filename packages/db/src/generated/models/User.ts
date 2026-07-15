@@ -204,6 +204,7 @@ export type UserWhereInput = {
   invitations?: Prisma.InvitationListRelationFilter
   captures?: Prisma.CaptureListRelationFilter
   guides?: Prisma.GuideListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -220,6 +221,7 @@ export type UserOrderByWithRelationInput = {
   invitations?: Prisma.InvitationOrderByRelationAggregateInput
   captures?: Prisma.CaptureOrderByRelationAggregateInput
   guides?: Prisma.GuideOrderByRelationAggregateInput
+  forms?: Prisma.FormOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -239,6 +241,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   invitations?: Prisma.InvitationListRelationFilter
   captures?: Prisma.CaptureListRelationFilter
   guides?: Prisma.GuideListRelationFilter
+  forms?: Prisma.FormListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -281,6 +284,7 @@ export type UserCreateInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -297,6 +301,7 @@ export type UserUncheckedCreateInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUpdateInput = {
@@ -313,6 +318,7 @@ export type UserUpdateInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -329,6 +335,7 @@ export type UserUncheckedUpdateInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -468,6 +475,20 @@ export type UserUpdateOneRequiredWithoutInvitationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitationsInput, Prisma.UserUpdateWithoutInvitationsInput>, Prisma.UserUncheckedUpdateWithoutInvitationsInput>
 }
 
+export type UserCreateNestedOneWithoutFormsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFormsInput, Prisma.UserUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFormsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutFormsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutFormsInput, Prisma.UserUncheckedCreateWithoutFormsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutFormsInput
+  upsert?: Prisma.UserUpsertWithoutFormsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutFormsInput, Prisma.UserUpdateWithoutFormsInput>, Prisma.UserUncheckedUpdateWithoutFormsInput>
+}
+
 export type UserCreateNestedOneWithoutCapturesInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutCapturesInput, Prisma.UserUncheckedCreateWithoutCapturesInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutCapturesInput
@@ -509,6 +530,7 @@ export type UserCreateWithoutSessionsInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -524,6 +546,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -555,6 +578,7 @@ export type UserUpdateWithoutSessionsInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -570,6 +594,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -585,6 +610,7 @@ export type UserCreateWithoutAccountsInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -600,6 +626,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -631,6 +658,7 @@ export type UserUpdateWithoutAccountsInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -646,6 +674,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
@@ -661,6 +690,7 @@ export type UserCreateWithoutMembersInput = {
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
@@ -676,6 +706,7 @@ export type UserUncheckedCreateWithoutMembersInput = {
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -707,6 +738,7 @@ export type UserUpdateWithoutMembersInput = {
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
@@ -722,6 +754,7 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
@@ -737,6 +770,7 @@ export type UserCreateWithoutInvitationsInput = {
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
@@ -752,6 +786,7 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -783,6 +818,7 @@ export type UserUpdateWithoutInvitationsInput = {
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
@@ -796,6 +832,87 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
+  guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserCreateWithoutFormsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
+  guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserUncheckedCreateWithoutFormsInput = {
+  id?: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
+  guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+}
+
+export type UserCreateOrConnectWithoutFormsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutFormsInput, Prisma.UserUncheckedCreateWithoutFormsInput>
+}
+
+export type UserUpsertWithoutFormsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutFormsInput, Prisma.UserUncheckedUpdateWithoutFormsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutFormsInput, Prisma.UserUncheckedCreateWithoutFormsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutFormsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutFormsInput, Prisma.UserUncheckedUpdateWithoutFormsInput>
+}
+
+export type UserUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
+  guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutFormsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
 }
@@ -813,6 +930,7 @@ export type UserCreateWithoutCapturesInput = {
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   guides?: Prisma.GuideCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutCapturesInput = {
@@ -828,6 +946,7 @@ export type UserUncheckedCreateWithoutCapturesInput = {
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   guides?: Prisma.GuideUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutCapturesInput = {
@@ -859,6 +978,7 @@ export type UserUpdateWithoutCapturesInput = {
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   guides?: Prisma.GuideUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCapturesInput = {
@@ -874,6 +994,7 @@ export type UserUncheckedUpdateWithoutCapturesInput = {
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   guides?: Prisma.GuideUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserCreateWithoutGuidesInput = {
@@ -889,6 +1010,7 @@ export type UserCreateWithoutGuidesInput = {
   members?: Prisma.MemberCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserUncheckedCreateWithoutGuidesInput = {
@@ -904,6 +1026,7 @@ export type UserUncheckedCreateWithoutGuidesInput = {
   members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
   invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
   captures?: Prisma.CaptureUncheckedCreateNestedManyWithoutCreatedByInput
+  forms?: Prisma.FormUncheckedCreateNestedManyWithoutCreatedByInput
 }
 
 export type UserCreateOrConnectWithoutGuidesInput = {
@@ -935,6 +1058,7 @@ export type UserUpdateWithoutGuidesInput = {
   members?: Prisma.MemberUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUpdateManyWithoutCreatedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutGuidesInput = {
@@ -950,6 +1074,7 @@ export type UserUncheckedUpdateWithoutGuidesInput = {
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
   invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   captures?: Prisma.CaptureUncheckedUpdateManyWithoutCreatedByNestedInput
+  forms?: Prisma.FormUncheckedUpdateManyWithoutCreatedByNestedInput
 }
 
 
@@ -964,6 +1089,7 @@ export type UserCountOutputType = {
   invitations: number
   captures: number
   guides: number
+  forms: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -973,6 +1099,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   invitations?: boolean | UserCountOutputTypeCountInvitationsArgs
   captures?: boolean | UserCountOutputTypeCountCapturesArgs
   guides?: boolean | UserCountOutputTypeCountGuidesArgs
+  forms?: boolean | UserCountOutputTypeCountFormsArgs
 }
 
 /**
@@ -1027,6 +1154,13 @@ export type UserCountOutputTypeCountGuidesArgs<ExtArgs extends runtime.Types.Ext
   where?: Prisma.GuideWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountFormsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.FormWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1042,6 +1176,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   invitations?: boolean | Prisma.User$invitationsArgs<ExtArgs>
   captures?: boolean | Prisma.User$capturesArgs<ExtArgs>
   guides?: boolean | Prisma.User$guidesArgs<ExtArgs>
+  forms?: boolean | Prisma.User$formsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1083,6 +1218,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   invitations?: boolean | Prisma.User$invitationsArgs<ExtArgs>
   captures?: boolean | Prisma.User$capturesArgs<ExtArgs>
   guides?: boolean | Prisma.User$guidesArgs<ExtArgs>
+  forms?: boolean | Prisma.User$formsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1097,6 +1233,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     invitations: Prisma.$InvitationPayload<ExtArgs>[]
     captures: Prisma.$CapturePayload<ExtArgs>[]
     guides: Prisma.$GuidePayload<ExtArgs>[]
+    forms: Prisma.$FormPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1506,6 +1643,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   invitations<T extends Prisma.User$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$InvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   captures<T extends Prisma.User$capturesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$capturesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CapturePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   guides<T extends Prisma.User$guidesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$guidesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$GuidePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  forms<T extends Prisma.User$formsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$formsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$FormPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2076,6 +2214,30 @@ export type User$guidesArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
   take?: number
   skip?: number
   distinct?: Prisma.GuideScalarFieldEnum | Prisma.GuideScalarFieldEnum[]
+}
+
+/**
+ * User.forms
+ */
+export type User$formsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Form
+   */
+  select?: Prisma.FormSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Form
+   */
+  omit?: Prisma.FormOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.FormInclude<ExtArgs> | null
+  where?: Prisma.FormWhereInput
+  orderBy?: Prisma.FormOrderByWithRelationInput | Prisma.FormOrderByWithRelationInput[]
+  cursor?: Prisma.FormWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.FormScalarFieldEnum | Prisma.FormScalarFieldEnum[]
 }
 
 /**

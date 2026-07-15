@@ -1,6 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
-import { Prisma, PrismaClient } from "./generated/client.js";
+import { type FolderKind, Prisma, PrismaClient } from "./generated/client.js";
 
 /**
  * Prisma client singleton.
@@ -36,21 +36,23 @@ if (process.env.NODE_ENV !== "production") {
 export * from "./generated/client.js";
 
 /**
- * Every guide belongs to a folder. Each workspace has exactly one default
- * folder ("General") that new/uncategorized guides land in and that can't be
- * deleted. These helpers accept a tx client too (prisma is assignable).
+ * Every guide/form belongs to a folder. Each workspace has exactly one default
+ * folder ("General") per kind that new/uncategorized items land in and that
+ * can't be deleted. Guide and Form folders are independent namespaces (`kind`).
+ * These helpers accept a tx client too (prisma is assignable).
  */
 export async function ensureDefaultFolder(
   client: Prisma.TransactionClient,
-  organizationId: string
+  organizationId: string,
+  kind: FolderKind = "GUIDE"
 ): Promise<string> {
   const existing = await client.folder.findFirst({
-    where: { organizationId, isDefault: true },
+    where: { organizationId, kind, isDefault: true },
     select: { id: true },
   });
   if (existing) return existing.id;
   const created = await client.folder.create({
-    data: { name: "General", organizationId, isDefault: true, position: 0 },
+    data: { name: "General", organizationId, kind, isDefault: true, position: 0 },
     select: { id: true },
   });
   return created.id;
@@ -58,10 +60,11 @@ export async function ensureDefaultFolder(
 
 export async function getDefaultFolderId(
   client: Prisma.TransactionClient,
-  organizationId: string
+  organizationId: string,
+  kind: FolderKind = "GUIDE"
 ): Promise<string | null> {
   const folder = await client.folder.findFirst({
-    where: { organizationId, isDefault: true },
+    where: { organizationId, kind, isDefault: true },
     select: { id: true },
   });
   return folder?.id ?? null;

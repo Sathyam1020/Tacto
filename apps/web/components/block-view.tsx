@@ -10,6 +10,8 @@ import type { ClickRect } from "@/lib/guides"
 
 /** The fields BlockView needs — satisfied by both GuideBlock and EditBlock. */
 type ViewableBlock = {
+  /** Stable Step key — anchors form embeds ("after step") in the reader. */
+  key?: string
   type: BlockType
   content: string
   screenshotUrl: string | null
@@ -93,7 +95,7 @@ export function BlockView({
     case "STEP":
     default:
       return (
-        <div className="flex gap-5">
+        <div className="flex gap-5" data-step-key={block.key}>
           <div className="relative flex flex-col items-center">
             <StepMarker step={stepNumber ?? 1} size="lg" className="mt-0.5" />
             {connect && (

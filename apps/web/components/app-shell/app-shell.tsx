@@ -1,12 +1,14 @@
 "use client"
 
 import * as React from "react"
+import { usePathname } from "next/navigation"
 import { Menu } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
 import { CaptureButton } from "@/components/capture-button"
 import { FoldersPanel } from "@/components/app-shell/folders-panel"
+import { FormsPanel } from "@/components/app-shell/forms-panel"
 import { Rail } from "@/components/app-shell/rail"
 import { useLibraryViewState } from "@/components/app-shell/view-context"
 import { useNavbar } from "@/components/navbar-context"
@@ -21,6 +23,10 @@ import { useNavbar } from "@/components/navbar-context"
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { view, mobileOpen, setMobileOpen } = useLibraryViewState()
   const { title, leftActions, actions } = useNavbar()
+  const pathname = usePathname()
+  // The Forms section (its library + detail/builder) shows the Forms sidebar;
+  // everything else shows the Guides folders panel.
+  const inForms = pathname?.startsWith("/forms") ?? false
   // A capture started while viewing a folder lands in that folder.
   const captureFolderId = view.type === "folder" ? view.id : null
 
@@ -44,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <Rail />
-        <FoldersPanel />
+        {inForms ? <FormsPanel /> : <FoldersPanel />}
       </div>
 
       {/* Content card */}

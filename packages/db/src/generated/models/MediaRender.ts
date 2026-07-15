@@ -715,14 +715,6 @@ export type MediaRenderUncheckedUpdateManyWithoutGuideNestedInput = {
   deleteMany?: Prisma.MediaRenderScalarWhereInput | Prisma.MediaRenderScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type MediaRenderCreateNestedOneWithoutRefsInput = {
   create?: Prisma.XOR<Prisma.MediaRenderCreateWithoutRefsInput, Prisma.MediaRenderUncheckedCreateWithoutRefsInput>
   connectOrCreate?: Prisma.MediaRenderCreateOrConnectWithoutRefsInput
