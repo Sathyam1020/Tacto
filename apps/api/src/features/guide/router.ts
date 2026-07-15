@@ -11,6 +11,10 @@ import {
   retranslateTargetSchema,
   setGuideFolderSchema,
 } from "@workspace/contracts/guide";
+import {
+  ANALYTICS_RANGE_DAYS,
+  analyticsRangeSchema,
+} from "@workspace/contracts/guide-analytics";
 import { ensureDefaultFolder, Prisma, prisma } from "@workspace/db";
 import {
   deleteTranslation,
@@ -30,6 +34,7 @@ import { translationQueue } from "../../lib/queue.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
+import { computeGuideAnalytics } from "./analytics.js";
 import { publishDraft } from "./publish-draft.js";
 import {
   blockSelect,
@@ -687,29 +692,65 @@ guideRouter.delete(
 );
 
 // ── Analytics ────────────────────────────────────────────────────────────
+const analyticsQuerySchema = z.object({ range: analyticsRangeSchema.optional() });
+
 guideRouter.get(
   "/api/guides/:id/analytics",
   requireAuth,
   requireWorkspace,
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
+    const { range = "30d" } = analyticsQuerySchema.parse(req.query);
+    const days = ANALYTICS_RANGE_DAYS[range];
+    const since = new Date(Date.now() - days * 86_400_000);
+
     const guide = await prisma.guide.findFirst({
       where: { id, organizationId: req.workspace!.id, deletedAt: null },
-      select: {
-        viewCount: true,
-        publishedAt: true,
-        status: true,
-        _count: { select: { blocks: true } },
-      },
+      select: { id: true, viewCount: true, publishedAt: true },
     });
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
-    res.json({
-      analytics: {
-        viewCount: guide.viewCount,
-        status: guide.status,
-        publishedAt: guide.publishedAt,
-        blockCount: guide._count.blocks,
-      },
-    });
+
+    // Range-filtered rows: events feed the trend/funnel; reactions/comments the
+    // engagement breakdown. All indexed by (guideId, createdAt).
+    const [events, reactions, comments] = await Promise.all([
+      prisma.guideEvent.findMany({
+        where: { guideId: id, createdAt: { gte: since } },
+        select: {
+          type: true,
+          anonId: true,
+          sessionId: true,
+          context: true,
+          createdAt: true,
+        },
+      }),
+      prisma.guideReaction.findMany({
+        where: { guideId: id, createdAt: { gte: since } },
+        select: { emoji: true, createdAt: true },
+      }),
+      prisma.guideComment.findMany({
+        where: { guideId: id, createdAt: { gte: since } },
+        select: { createdAt: true },
+      }),
+    ]);
+
+    const analytics = computeGuideAnalytics(
+      events.map((e) => ({
+        type: e.type,
+        anonId: e.anonId,
+        sessionId: e.sessionId,
+        context: e.context as never,
+        createdAt: e.createdAt,
+      })),
+      reactions,
+      comments,
+      days,
+      new Date(),
+      {
+        range,
+        lifetimeViews: guide.viewCount,
+        publishedAt: guide.publishedAt ? guide.publishedAt.toISOString() : null,
+      }
+    );
+    res.json({ analytics });
   }
 );
