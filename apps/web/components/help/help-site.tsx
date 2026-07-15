@@ -73,26 +73,26 @@ export function HelpChrome({
       } as React.CSSProperties}
     >
       <header className="sticky top-0 z-30 bg-primary text-primary-foreground">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
-          <Link href={`/help/${chrome.slug}`} className="flex items-center gap-3">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <Link href={`/help/${chrome.slug}`} className="flex min-w-0 items-center gap-2.5">
             {chrome.logoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={chrome.logoUrl} alt={chrome.name} className="h-7 w-auto max-w-[160px] object-contain" />
+              <img src={chrome.logoUrl} alt={chrome.name} className="h-7 w-auto max-w-[140px] object-contain" />
             ) : (
-              <span className="flex size-8 items-center justify-center rounded-lg bg-white/15">
+              <span className="flex size-8 flex-none items-center justify-center rounded-lg bg-white/15">
                 <LogoMark className="size-5" />
               </span>
             )}
-            <span className="text-[15px] font-semibold">{chrome.name}</span>
+            <span className="truncate text-[15px] font-semibold">{chrome.name}</span>
           </Link>
-          <nav className="hidden items-center gap-7 text-[13.5px] font-medium text-primary-foreground/80 md:flex">
+          <nav className="hidden items-center gap-7 text-[13.5px] font-medium text-primary-foreground/80 lg:flex">
             {chrome.navLinks.map((l) => (
               <a key={l.href} href={l.href} target={l.external ? "_blank" : undefined} rel={l.external ? "noreferrer" : undefined} className="transition-colors hover:text-primary-foreground">
                 {l.label}
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-none items-center gap-2">
             {actions}
             {onSearch && (
               <button onClick={onSearch} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
@@ -180,20 +180,20 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
     <HelpChrome chrome={data} onSearch={() => setSearchOpen(true)}>
       {/* brand hero band (continuous with the colored header) */}
       <section className="bg-primary text-primary-foreground">
-        <div className="mx-auto max-w-3xl px-6 pb-10 pt-16 text-center">
-          <h1 className="text-[34px] font-bold leading-tight tracking-tight text-balance sm:text-[40px]">{data.heroTitle}</h1>
-          {data.heroSubtitle && <p className="mx-auto mt-3 max-w-md text-[15px] leading-relaxed text-primary-foreground/80">{data.heroSubtitle}</p>}
-          <button onClick={() => setSearchOpen(true)} className="group mx-auto mt-8 flex w-full items-center gap-3 rounded-2xl bg-[var(--l-card)] px-5 py-4 text-left shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)] transition-all hover:shadow-[0_20px_48px_-16px_rgba(0,0,0,0.45)]">
+        <div className="mx-auto max-w-3xl px-4 pb-8 pt-12 text-center sm:px-6 sm:pt-16">
+          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-balance sm:text-[40px]">{data.heroTitle}</h1>
+          {data.heroSubtitle && <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-primary-foreground/80 sm:text-[15px]">{data.heroSubtitle}</p>}
+          <button onClick={() => setSearchOpen(true)} className="group mx-auto mt-6 flex w-full items-center gap-3 rounded-2xl bg-[var(--l-card)] px-4 py-3.5 text-left shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)] transition-all hover:shadow-[0_20px_48px_-16px_rgba(0,0,0,0.45)] sm:mt-8 sm:px-5 sm:py-4">
             <Search className="size-5 text-[var(--l-ink-tertiary)]" />
-            <span className="flex-1 text-[15px] text-[var(--l-ink-tertiary)]">Search for articles, guides, or keywords…</span>
+            <span className="flex-1 truncate text-[14px] text-[var(--l-ink-tertiary)] sm:text-[15px]">Search for articles, guides, or keywords…</span>
           </button>
         </div>
-        <div className="mx-auto max-w-6xl px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <p className="pb-16 text-[13px] font-semibold tracking-wide text-primary-foreground/90">All Categories</p>
         </div>
       </section>
 
-      <main className="mx-auto max-w-6xl px-6 pb-16">
+      <main className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6">
         {data.collections.length === 0 ? (
           <p className="-mt-10 rounded-2xl border border-dashed border-[var(--l-hairline-strong)] bg-[var(--l-card)] px-6 py-16 text-center text-sm text-[var(--l-ink-subtle)]">No articles published yet.</p>
         ) : (
@@ -202,15 +202,15 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
               const Icon = publicCollectionIcon(c.icon)
               return (
                 <m.div key={c.slug} whileHover={{ y: -4 }} transition={{ type: "spring", stiffness: 320, damping: 26 }}>
-                  <Link href={`/help/${data.slug}/${c.slug}`} className="group relative flex h-full flex-col rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-6 shadow-[0_2px_8px_-4px_rgba(20,22,40,0.10)] transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-[var(--l-card-shadow)]">
-                    <span className="absolute top-5 right-5 text-xs font-medium text-[var(--l-ink-tertiary)] tabular-nums">
+                  <Link href={`/help/${data.slug}/${c.slug}`} className="group relative flex h-full flex-col rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-5 shadow-[0_2px_8px_-4px_rgba(20,22,40,0.10)] transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-[var(--l-card-shadow)] sm:p-6">
+                    <span className="absolute top-5 right-5 text-[11px] font-medium text-[var(--l-ink-tertiary)] tabular-nums sm:text-xs">
                       {c.count} {c.count === 1 ? "article" : "articles"}
                     </span>
                     <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-transform group-hover:scale-105">
                       <Icon className="size-5" />
                     </span>
-                    <h3 className="mt-4 text-[17px] font-bold tracking-tight">{c.name}</h3>
-                    {c.description && <p className="mt-1.5 text-[13.5px] leading-relaxed text-[var(--l-ink-subtle)]">{c.description}</p>}
+                    <h3 className="mt-4 pr-16 text-[16px] font-bold tracking-tight sm:text-[17px]">{c.name}</h3>
+                    {c.description && <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-[var(--l-ink-subtle)] sm:text-[13.5px]">{c.description}</p>}
                   </Link>
                 </m.div>
               )
@@ -219,8 +219,8 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
         )}
 
         {data.featured.length > 0 && (
-          <div className="mt-12 grid gap-6 lg:grid-cols-[1fr_320px]">
-            <section>
+          <div className="mt-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <section className="min-w-0">
               <h2 className="mb-4 text-lg font-semibold tracking-tight">Popular articles</h2>
               <div className="overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)]">
                 {data.featured.map((a, i) => (
@@ -228,13 +228,13 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
                 ))}
               </div>
             </section>
-            <aside className="flex flex-col gap-4">
+            <aside className="flex min-w-0 flex-col gap-4">
               <div className="rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-5">
                 <h3 className="text-sm font-semibold">Still need help?</h3>
                 <button className="mt-3 flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-[var(--l-hover)]">
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary"><Headphones className="size-4" /></span>
-                  <span className="min-w-0 flex-1"><span className="block text-[13.5px] font-semibold">Contact Support</span><span className="block text-xs text-[var(--l-ink-subtle)]">Get help from our team</span></span>
-                  <ChevronRight className="size-4 text-[var(--l-ink-tertiary)]" />
+                  <span className="flex size-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary"><Headphones className="size-4" /></span>
+                  <span className="min-w-0 flex-1"><span className="block text-[13.5px] font-semibold">Contact Support</span><span className="block truncate text-xs text-[var(--l-ink-subtle)]">Get help from our team</span></span>
+                  <ChevronRight className="size-4 flex-none text-[var(--l-ink-tertiary)]" />
                 </button>
               </div>
               {data.statusUrl && (
@@ -264,7 +264,7 @@ export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
   return (
     <HelpChrome chrome={chrome} onSearch={() => setSearchOpen(true)}>
       {searchOpen && <SearchOverlay slug={chrome.slug} articles={collection.articles} onClose={() => setSearchOpen(false)} />}
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <Breadcrumb slug={chrome.slug} trail={[{ label: collection.name }]} />
         <div className="mt-6 flex items-center gap-3">
           <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="size-6" /></span>
@@ -313,8 +313,79 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
     [guide.blocks]
   )
 
-  const controls = (
-    <div className="flex items-center gap-1.5 rounded-xl bg-[var(--l-card)] p-1 shadow-sm">
+  const readerControls = (
+    <ReaderControls
+      guide={guide}
+      translations={translations}
+      lang={lang}
+      setLang={setLang}
+      lockedMode={lockedMode}
+      mode={mode}
+      setMode={setMode}
+    />
+  )
+  const showSidebar = effectiveMode === "list" && steps.length > 0
+
+  return (
+    <HelpChrome
+      chrome={chrome}
+      onSearch={() => setSearchOpen(true)}
+      actions={<div className="hidden rounded-xl bg-[var(--l-card)] p-1 shadow-sm md:flex">{readerControls}</div>}
+    >
+      {searchOpen && <SearchOverlay slug={chrome.slug} articles={related} onClose={() => setSearchOpen(false)} />}
+      {/* Full-bleed: sidebar hugs the viewport left, content fills the rest. */}
+      <div className="flex">
+        {showSidebar && <StepsSidebar steps={steps} />}
+        <div className="min-w-0 flex-1">
+          <div className="mx-auto max-w-3xl px-4 pt-5 sm:px-6 sm:pt-6">
+            <Breadcrumb
+              slug={chrome.slug}
+              trail={[
+                { label: collection.name, href: `/help/${chrome.slug}/${collection.slug}` },
+                { label: article.title },
+              ]}
+            />
+            {/* Reader controls move into a scrollable bar on mobile. */}
+            <div className="mt-4 flex overflow-x-auto rounded-xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-1 md:hidden">
+              {readerControls}
+            </div>
+          </div>
+          <PublicGuideView guide={guide} chromeless mode={mode} lang={lang} stepVariant="cards" />
+          {related.length > 0 && (
+            <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6">
+              <h2 className="mb-3 text-sm font-semibold">Related articles</h2>
+              <div className="overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)]">
+                {related.map((a, i) => (
+                  <ArticleRow key={a.slug} slug={chrome.slug} article={a} divide={i > 0} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </HelpChrome>
+  )
+}
+
+function ReaderControls({
+  guide,
+  translations,
+  lang,
+  setLang,
+  lockedMode,
+  mode,
+  setMode,
+}: {
+  guide: PublicGuide
+  translations: { language: string }[]
+  lang: string | null
+  setLang: (l: string | null) => void
+  lockedMode: ViewMode | null
+  mode: ViewMode
+  setMode: (m: ViewMode) => void
+}) {
+  return (
+    <div className="flex items-center gap-1.5">
       {translations.length > 0 && (
         <LanguageSwitcher translations={translations} value={lang} onChange={setLang} />
       )}
@@ -335,40 +406,6 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
         PDF
       </Button>
     </div>
-  )
-
-  const showSidebar = effectiveMode === "list" && steps.length > 0
-
-  return (
-    <HelpChrome chrome={chrome} actions={controls} onSearch={() => setSearchOpen(true)}>
-      {searchOpen && <SearchOverlay slug={chrome.slug} articles={related} onClose={() => setSearchOpen(false)} />}
-      {/* Full-bleed: sidebar hugs the viewport left, content fills the rest. */}
-      <div className="flex">
-        {showSidebar && <StepsSidebar steps={steps} />}
-        <div className="min-w-0 flex-1">
-          <div className="mx-auto max-w-3xl px-6 pt-6">
-            <Breadcrumb
-              slug={chrome.slug}
-              trail={[
-                { label: collection.name, href: `/help/${chrome.slug}/${collection.slug}` },
-                { label: article.title },
-              ]}
-            />
-          </div>
-          <PublicGuideView guide={guide} chromeless mode={mode} lang={lang} stepVariant="cards" />
-          {related.length > 0 && (
-            <div className="mx-auto max-w-3xl px-6 pb-16">
-              <h2 className="mb-3 text-sm font-semibold">Related articles</h2>
-              <div className="overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)]">
-                {related.map((a, i) => (
-                  <ArticleRow key={a.slug} slug={chrome.slug} article={a} divide={i > 0} />
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </HelpChrome>
   )
 }
 
