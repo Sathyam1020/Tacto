@@ -3,23 +3,17 @@
 import * as React from "react"
 import { useSearchParams } from "next/navigation"
 import {
-  BarChart3,
   BookOpen,
   Check,
-  ChevronRight,
-  Code2,
   Eye,
   FileText,
   GripVertical,
-  LifeBuoy,
   Plus,
-  Rocket,
   Search,
   Settings2,
   Sparkles,
   Star,
   Trash2,
-  Users,
   X,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -34,6 +28,7 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { CollectionIconPicker } from "@/components/help-center/collection-icon"
 import { useSetNavbar } from "@/components/navbar-context"
 import {
   useAddArticles,
@@ -43,18 +38,9 @@ import {
   usePublishHelpCenter,
   useRemoveArticle,
   useReorderArticles,
+  useUpdateCollection,
   useUpdateHelpCenter,
 } from "@/lib/help-center"
-
-const ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  Rocket,
-  BookOpen,
-  Users,
-  BarChart3,
-  Code2,
-  LifeBuoy,
-  Settings2,
-}
 
 export default function HelpCenterBuilderPage() {
   const params = useSearchParams()
@@ -163,18 +149,18 @@ function ContentSurface({
   return (
     <div className="flex flex-col gap-8 py-1">
       {collections.map((col) => (
-        <CollectionSection key={col.id} col={col} showHeader={!onlyCollection} />
+        <CollectionSection key={col.id} col={col} />
       ))}
     </div>
   )
 }
 
-function CollectionSection({ col, showHeader }: { col: HelpCollectionDetail; showHeader: boolean }) {
-  const Icon = ICON[col.icon ?? ""] ?? BookOpen
+function CollectionSection({ col }: { col: HelpCollectionDetail }) {
   const [pickerOpen, setPickerOpen] = React.useState(false)
   const reorder = useReorderArticles()
   const remove = useRemoveArticle()
   const feature = useFeatureArticle()
+  const updateCollection = useUpdateCollection()
 
   // Local order for snappy drag; re-synced whenever the server order changes.
   const [order, setOrder] = React.useState<HelpArticleCard[]>(col.articles)
@@ -196,10 +182,13 @@ function CollectionSection({ col, showHeader }: { col: HelpCollectionDetail; sho
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <Icon className="size-5 text-primary" />
+        <div className="flex items-center gap-1.5">
+          <CollectionIconPicker
+            value={col.icon}
+            onSelect={(icon) => updateCollection.mutate({ id: col.id, icon })}
+          />
           <h2 className="text-[17px] font-semibold tracking-tight">{col.name}</h2>
-          <span className="text-[13px] text-muted-foreground">
+          <span className="ml-1 text-[13px] text-muted-foreground">
             {col.articles.length} {col.articles.length === 1 ? "article" : "articles"}
           </span>
         </div>

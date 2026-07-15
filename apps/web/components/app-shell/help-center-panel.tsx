@@ -3,21 +3,15 @@
 import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
-  BarChart3,
-  BookOpen,
-  Code2,
   Copy,
   Eye,
   EyeOff,
   FileText,
-  LifeBuoy,
   MoreHorizontal,
   Palette,
   Plus,
-  Rocket,
   Settings2,
   Trash2,
-  Users,
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -32,6 +26,7 @@ import { SquarePenIcon } from "@workspace/ui/components/square-pen"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { ViewRow } from "@/components/app-shell/shell-bits"
+import { collectionIcon } from "@/components/help-center/collection-icon"
 import {
   useCreateCollection,
   useDeleteCollection,
@@ -39,17 +34,6 @@ import {
   useHelpCenter,
   useUpdateCollection,
 } from "@/lib/help-center"
-
-/** Curated collection icons (mirrors the contract's COLLECTION_ICONS). */
-const ICON: Record<string, React.ComponentType<{ className?: string }>> = {
-  Rocket,
-  BookOpen,
-  Users,
-  BarChart3,
-  Code2,
-  LifeBuoy,
-  Settings2,
-}
 
 /** The Help Center's second sidebar column: All articles + collections +
  *  Design/Settings. URL-driven selection (?tab / ?c) shared with the page. */
@@ -137,7 +121,7 @@ export function HelpCenterPanel() {
         </div>
 
         {(hc?.collections ?? []).map((c) => {
-          const Icon = ICON[c.icon ?? ""] ?? BookOpen
+          const Icon = collectionIcon(c.icon)
           const active = onContent && activeC === c.id
           if (renaming === c.id) {
             return (
