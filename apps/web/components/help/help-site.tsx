@@ -22,13 +22,17 @@ import type {
   PublicHelpChrome,
   PublicHelpCollectionPage,
 } from "@workspace/contracts/help-center"
+import { Button } from "@workspace/ui/components/button"
+import { DownloadIcon } from "@workspace/ui/components/download"
 import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
-import { PublicGuideView } from "@/components/public-guide-view"
+import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
+import { LanguageSwitcher, PublicGuideView } from "@/components/public-guide-view"
 import { publicCollectionIcon } from "@/components/help/public-icon"
-import type { GuideBlock } from "@/lib/guides"
+import { resolveCustomization } from "@/lib/guides"
 import type { PublicGuide } from "@/lib/public-guide"
+import { downloadGuidePdf } from "@/lib/pdf"
 
 /** Force light mode on the public help center (the app defaults to a `.dark`
  *  class; the public reader is intentionally light-only). Restored on leave. */
@@ -50,17 +54,23 @@ function useForceLight() {
 export function HelpChrome({
   chrome,
   onSearch,
+  actions,
   children,
 }: {
   chrome: PublicHelpChrome
   onSearch?: () => void
+  /** Extra controls on the right of the navbar (e.g. the article reader controls). */
+  actions?: React.ReactNode
   children: React.ReactNode
 }) {
   useForceLight()
   return (
     <div
-      className="flex min-h-svh flex-col bg-[var(--l-canvas)] text-[var(--l-ink)]"
-      style={chrome.brandColor ? ({ ["--primary" as string]: chrome.brandColor } as React.CSSProperties) : undefined}
+      className="flex min-h-svh flex-col text-[var(--l-ink)]"
+      style={{
+        backgroundColor: "#FEFFFF",
+        ...(chrome.brandColor ? { ["--primary" as string]: chrome.brandColor } : {}),
+      } as React.CSSProperties}
     >
       <header className="sticky top-0 z-30 bg-primary text-primary-foreground">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
@@ -82,15 +92,12 @@ export function HelpChrome({
               </a>
             ))}
           </nav>
-          <div className="flex items-center gap-1">
-            {onSearch ? (
+          <div className="flex items-center gap-2">
+            {actions}
+            {onSearch && (
               <button onClick={onSearch} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
                 <Search className="size-4" />
               </button>
-            ) : (
-              <Link href={`/help/${chrome.slug}`} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
-                <Search className="size-4" />
-              </Link>
             )}
           </div>
         </div>
@@ -253,8 +260,10 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
 export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
   const { chrome, collection } = page
   const Icon = publicCollectionIcon(collection.icon)
+  const [searchOpen, setSearchOpen] = React.useState(false)
   return (
-    <HelpChrome chrome={chrome}>
+    <HelpChrome chrome={chrome} onSearch={() => setSearchOpen(true)}>
+      {searchOpen && <SearchOverlay slug={chrome.slug} articles={collection.articles} onClose={() => setSearchOpen(false)} />}
       <main className="mx-auto max-w-3xl px-6 py-10">
         <Breadcrumb slug={chrome.slug} trail={[{ label: collection.name }]} />
         <div className="mt-6 flex items-center gap-3">
@@ -278,9 +287,24 @@ export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
   )
 }
 
-/* ── article (steps sidebar + Guide Reader) ──────────────────────────────── */
+/* ── article (steps sidebar + Guide Reader, controls in the navbar) ──────── */
 export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guide: PublicGuide }) {
   const { chrome, collection, article, related } = page
+  const [searchOpen, setSearchOpen] = React.useState(false)
+
+  // Reader controls are lifted into the navbar; the reader is rendered
+  // chromeless + controlled so the sidebar can react to the mode.
+  const cust = React.useMemo(() => resolveCustomization(guide.customization), [guide.customization])
+  const dv = cust.general.defaultView
+  const lockedMode: ViewMode | null =
+    dv === "only-scroll" ? "list" : dv === "only-walkthrough" ? "interactive" : null
+  const [mode, setMode] = React.useState<ViewMode>(
+    dv === "walkthrough-default" || dv === "only-walkthrough" ? "interactive" : "list"
+  )
+  const effectiveMode = lockedMode ?? mode
+  const [lang, setLang] = React.useState<string | null>(null)
+  const translations = guide.translations ?? []
+
   const steps = React.useMemo(
     () =>
       guide.blocks
@@ -288,11 +312,39 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
         .map((b, i) => ({ key: b.key, n: i + 1, label: stripHtml(b.content) })),
     [guide.blocks]
   )
+
+  const controls = (
+    <div className="flex items-center gap-1.5 rounded-xl bg-[var(--l-card)] p-1 shadow-sm">
+      {translations.length > 0 && (
+        <LanguageSwitcher translations={translations} value={lang} onChange={setLang} />
+      )}
+      {!lockedMode && <ViewModeToggle mode={mode} onChange={setMode} />}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() =>
+          void downloadGuidePdf({
+            title: guide.title,
+            summary: guide.summary,
+            blocks: guide.blocks,
+            customization: guide.customization,
+          })
+        }
+      >
+        <DownloadIcon size={15} />
+        PDF
+      </Button>
+    </div>
+  )
+
+  const showSidebar = effectiveMode === "list" && steps.length > 0
+
   return (
-    <HelpChrome chrome={chrome}>
+    <HelpChrome chrome={chrome} actions={controls} onSearch={() => setSearchOpen(true)}>
+      {searchOpen && <SearchOverlay slug={chrome.slug} articles={related} onClose={() => setSearchOpen(false)} />}
       {/* Full-bleed: sidebar hugs the viewport left, content fills the rest. */}
       <div className="flex">
-        {steps.length > 0 && <StepsSidebar steps={steps} />}
+        {showSidebar && <StepsSidebar steps={steps} />}
         <div className="min-w-0 flex-1">
           <div className="mx-auto max-w-3xl px-6 pt-6">
             <Breadcrumb
@@ -303,7 +355,7 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
               ]}
             />
           </div>
-          <PublicGuideView guide={guide} embedded />
+          <PublicGuideView guide={guide} chromeless mode={mode} lang={lang} stepVariant="cards" />
           {related.length > 0 && (
             <div className="mx-auto max-w-3xl px-6 pb-16">
               <h2 className="mb-3 text-sm font-semibold">Related articles</h2>
