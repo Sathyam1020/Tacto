@@ -1,6 +1,6 @@
 # Phase 12 — Guide Analytics — Implementation Plan
 
-**Status:** In progress · **Source of truth for build** · Companion to `phase-12-guide-analytics-rfc.md`
+**Status:** Shipped (all 5 phases) · **Source of truth for build** · Companion to `phase-12-guide-analytics-rfc.md`
 **Branch:** `feat/guide-analytics` · **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui}` — **Guides only**
 
 > Convention note: this lives in `docs/plans/` next to the RFC and `phase-11-forms-implementation-plan.md` (the established location for phase plans).

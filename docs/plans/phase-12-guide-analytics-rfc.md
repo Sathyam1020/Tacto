@@ -1,6 +1,12 @@
 # Phase 12 — Guide Analytics — RFC
 
-**Status:** Proposed · **Author:** Principal Eng · **Date:** 2026-07-15
+**Status:** Shipped (2026-07-15) · **Author:** Principal Eng · **Date:** 2026-07-15
+
+> **Changelog note:** view-counting moved from a blind server GET increment to
+> the deduped client `view` beacon (§11). `Guide.viewCount` is now accurate
+> (per-session, human) but reads **lower** than the old inflated counter — a
+> one-time discontinuity for existing guides.
+
 **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui}` · **Guides only** (Forms already ship analytics)
 
 ---

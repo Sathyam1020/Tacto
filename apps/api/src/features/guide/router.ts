@@ -14,6 +14,7 @@ import {
 import {
   ANALYTICS_RANGE_DAYS,
   analyticsRangeSchema,
+  type AnalyticsRange,
 } from "@workspace/contracts/guide-analytics";
 import { ensureDefaultFolder, Prisma, prisma } from "@workspace/db";
 import {
@@ -694,6 +695,65 @@ guideRouter.delete(
 // ── Analytics ────────────────────────────────────────────────────────────
 const analyticsQuerySchema = z.object({ range: analyticsRangeSchema.optional() });
 
+/** Load + aggregate a guide's analytics for a range (shared by JSON + CSV). */
+async function loadGuideAnalytics(
+  id: string,
+  organizationId: string,
+  range: AnalyticsRange
+) {
+  const days = ANALYTICS_RANGE_DAYS[range];
+  const since = new Date(Date.now() - days * 86_400_000);
+
+  const guide = await prisma.guide.findFirst({
+    where: { id, organizationId, deletedAt: null },
+    select: { id: true, title: true, viewCount: true, publishedAt: true },
+  });
+  if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
+
+  // Range-filtered rows: events feed the trend/funnel; reactions/comments the
+  // engagement breakdown. All indexed by (guideId, createdAt).
+  const [events, reactions, comments] = await Promise.all([
+    prisma.guideEvent.findMany({
+      where: { guideId: id, createdAt: { gte: since } },
+      select: {
+        type: true,
+        anonId: true,
+        sessionId: true,
+        context: true,
+        createdAt: true,
+      },
+    }),
+    prisma.guideReaction.findMany({
+      where: { guideId: id, createdAt: { gte: since } },
+      select: { emoji: true, createdAt: true },
+    }),
+    prisma.guideComment.findMany({
+      where: { guideId: id, createdAt: { gte: since } },
+      select: { createdAt: true },
+    }),
+  ]);
+
+  const analytics = computeGuideAnalytics(
+    events.map((e) => ({
+      type: e.type,
+      anonId: e.anonId,
+      sessionId: e.sessionId,
+      context: e.context as never,
+      createdAt: e.createdAt,
+    })),
+    reactions,
+    comments,
+    days,
+    new Date(),
+    {
+      range,
+      lifetimeViews: guide.viewCount,
+      publishedAt: guide.publishedAt ? guide.publishedAt.toISOString() : null,
+    }
+  );
+  return { guide, analytics };
+}
+
 guideRouter.get(
   "/api/guides/:id/analytics",
   requireAuth,
@@ -701,56 +761,41 @@ guideRouter.get(
   async (req, res) => {
     const { id } = idParamSchema.parse(req.params);
     const { range = "30d" } = analyticsQuerySchema.parse(req.query);
-    const days = ANALYTICS_RANGE_DAYS[range];
-    const since = new Date(Date.now() - days * 86_400_000);
-
-    const guide = await prisma.guide.findFirst({
-      where: { id, organizationId: req.workspace!.id, deletedAt: null },
-      select: { id: true, viewCount: true, publishedAt: true },
-    });
-    if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
-
-    // Range-filtered rows: events feed the trend/funnel; reactions/comments the
-    // engagement breakdown. All indexed by (guideId, createdAt).
-    const [events, reactions, comments] = await Promise.all([
-      prisma.guideEvent.findMany({
-        where: { guideId: id, createdAt: { gte: since } },
-        select: {
-          type: true,
-          anonId: true,
-          sessionId: true,
-          context: true,
-          createdAt: true,
-        },
-      }),
-      prisma.guideReaction.findMany({
-        where: { guideId: id, createdAt: { gte: since } },
-        select: { emoji: true, createdAt: true },
-      }),
-      prisma.guideComment.findMany({
-        where: { guideId: id, createdAt: { gte: since } },
-        select: { createdAt: true },
-      }),
-    ]);
-
-    const analytics = computeGuideAnalytics(
-      events.map((e) => ({
-        type: e.type,
-        anonId: e.anonId,
-        sessionId: e.sessionId,
-        context: e.context as never,
-        createdAt: e.createdAt,
-      })),
-      reactions,
-      comments,
-      days,
-      new Date(),
-      {
-        range,
-        lifetimeViews: guide.viewCount,
-        publishedAt: guide.publishedAt ? guide.publishedAt.toISOString() : null,
-      }
-    );
+    const { analytics } = await loadGuideAnalytics(id, req.workspace!.id, range);
     res.json({ analytics });
+  }
+);
+
+// CSV export of the daily trend (views + completions) for the selected range.
+guideRouter.get(
+  "/api/guides/:id/analytics/export",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const { id } = idParamSchema.parse(req.params);
+    const { range = "30d" } = analyticsQuerySchema.parse(req.query);
+    const { guide, analytics } = await loadGuideAnalytics(
+      id,
+      req.workspace!.id,
+      range
+    );
+
+    const rows = [
+      ["Date", "Views", "Completions"],
+      ...analytics.trend.map((t) => [t.date, String(t.views), String(t.completions)]),
+    ];
+    const csv = rows.map((r) => r.join(",")).join("\r\n");
+    const slug =
+      guide.title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60) || "guide";
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${slug}-analytics-${range}.csv"`
+    );
+    res.send(csv);
   }
 );

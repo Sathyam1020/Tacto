@@ -76,7 +76,23 @@ export default function GuideAnalyticsPage() {
             Reader engagement · last {range === "7d" ? "7 days" : range === "30d" ? "30 days" : "90 days"}
           </p>
         </div>
-        <RangeToggle value={range} options={RANGES} onChange={setRange} />
+        <div className="flex items-center gap-2">
+          {!unpublished && (
+            <Button
+              variant="outline"
+              size="sm"
+              render={
+                <a
+                  href={`/api/guides/${params.id}/analytics/export?range=${range}`}
+                />
+              }
+            >
+              <Download className="size-4" />
+              Export
+            </Button>
+          )}
+          <RangeToggle value={range} options={RANGES} onChange={setRange} />
+        </div>
       </div>
 
       {unpublished ? (
