@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
 import { Menu } from "lucide-react"
 
@@ -9,8 +10,22 @@ import { cn } from "@workspace/ui/lib/utils"
 import { CaptureButton } from "@/components/capture-button"
 import { FoldersPanel } from "@/components/app-shell/folders-panel"
 import { FormsPanel } from "@/components/app-shell/forms-panel"
-import { HelpCenterPanel } from "@/components/app-shell/help-center-panel"
 import { Rail } from "@/components/app-shell/rail"
+
+// Code-split: the Help Center panel pulls in the full lucide icon library (for
+// the collection icon picker), so it only loads on /help-center — never in the
+// shared shell chunk on every authed page.
+const HelpCenterPanel = dynamic(
+  () =>
+    import("@/components/app-shell/help-center-panel").then(
+      (m) => m.HelpCenterPanel
+    ),
+  {
+    loading: () => (
+      <div className="mt-1.5 mb-1.5 w-64 flex-none rounded-l-3xl border-t border-r border-b border-l border-[var(--l-hairline)] bg-gradient-to-b from-[var(--l-panel-a)] to-[var(--l-panel-b)]" />
+    ),
+  }
+)
 import { useLibraryViewState } from "@/components/app-shell/view-context"
 import { useNavbar } from "@/components/navbar-context"
 

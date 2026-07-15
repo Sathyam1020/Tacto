@@ -10,8 +10,8 @@ import { z } from "zod";
 export const helpCenterStatusSchema = z.enum(["DRAFT", "PUBLISHED"]);
 export type HelpCenterStatus = z.infer<typeof helpCenterStatusSchema>;
 
-/** Curated lucide icon names offered for collections. */
-export const COLLECTION_ICONS = [
+/** A popular default set shown before the user searches the full icon library. */
+export const SUGGESTED_COLLECTION_ICONS = [
   "Rocket",
   "BookOpen",
   "Users",
@@ -24,8 +24,27 @@ export const COLLECTION_ICONS = [
   "CreditCard",
   "Puzzle",
   "MessageSquare",
+  "Lock",
+  "Wrench",
+  "Bell",
+  "Star",
+  "Heart",
+  "Globe",
+  "Mail",
+  "Package",
+  "Play",
+  "Sparkles",
+  "Gauge",
+  "Building2",
 ] as const;
-export const collectionIconSchema = z.enum(COLLECTION_ICONS);
+
+/** Any lucide icon name (PascalCase). The renderer falls back if unknown. */
+export const collectionIconSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(48)
+  .regex(/^[A-Za-z][A-Za-z0-9]*$/, "Invalid icon name");
 export type CollectionIcon = z.infer<typeof collectionIconSchema>;
 
 export const slugSchema = z

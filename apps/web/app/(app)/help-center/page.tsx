@@ -38,7 +38,6 @@ import {
   usePublishHelpCenter,
   useRemoveArticle,
   useReorderArticles,
-  useUpdateCollection,
   useUpdateHelpCenter,
 } from "@/lib/help-center"
 
@@ -160,7 +159,6 @@ function CollectionSection({ col }: { col: HelpCollectionDetail }) {
   const reorder = useReorderArticles()
   const remove = useRemoveArticle()
   const feature = useFeatureArticle()
-  const updateCollection = useUpdateCollection()
 
   // Local order for snappy drag; re-synced whenever the server order changes.
   const [order, setOrder] = React.useState<HelpArticleCard[]>(col.articles)
@@ -183,10 +181,7 @@ function CollectionSection({ col }: { col: HelpCollectionDetail }) {
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-1.5">
-          <CollectionIconPicker
-            value={col.icon}
-            onSelect={(icon) => updateCollection.mutate({ id: col.id, icon })}
-          />
+          <CollectionIconPicker collectionId={col.id} value={col.icon} />
           <h2 className="text-[17px] font-semibold tracking-tight">{col.name}</h2>
           <span className="ml-1 text-[13px] text-muted-foreground">
             {col.articles.length} {col.articles.length === 1 ? "article" : "articles"}

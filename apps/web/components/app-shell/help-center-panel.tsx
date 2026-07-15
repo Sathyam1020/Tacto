@@ -7,6 +7,7 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Loader2,
   MoreHorizontal,
   Palette,
   Plus,
@@ -215,6 +216,13 @@ export function HelpCenterPanel() {
             </div>
           )
         })}
+
+        {create.isPending && (
+          <div className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[13px] text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Creating…
+          </div>
+        )}
 
         {creating && (
           <div className="mt-0.5 px-0.5">
