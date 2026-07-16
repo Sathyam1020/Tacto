@@ -13,6 +13,7 @@
     "./guide-analytics": "./src/guide-analytics.ts",
     "./help-center": "./src/help-center.ts",
     "./settings": "./src/settings.ts",
+    "./showcase": "./src/showcase.ts",
     "./voice": "./src/voice.ts",
     "./workspace": "./src/workspace.ts"
   },

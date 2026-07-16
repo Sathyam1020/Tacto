@@ -105,6 +105,7 @@ model Organization {
   folders     Folder[]
   forms       Form[]
   helpCenter  HelpCenter?
+  showcases   Showcase[]
 
   @@map("organization")
 }
@@ -222,6 +223,36 @@ enum HelpCenterEventType {
   VIEW
   SEARCH
   COLLECTION_OPEN
+  CONTACT_CLICK
+}
+
+// ── Showcase enums ───────────────────────────────────────────────────────────
+enum ShowcaseLayout {
+  SECTION
+  CHECKLIST
+  GALLERY
+}
+
+enum ShowcaseStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// What a showcase item points at.
+enum ShowcaseItemType {
+  GUIDE
+  VIDEO
+  PDF
+  LINK
+  FORM
+}
+
+/// Showcase-level engagement events (guide reads keep using GuideEventType).
+enum ShowcaseEventType {
+  VIEW
+  ITEM_OPEN
+  ITEM_COMPLETE
+  COMPLETE
   CONTACT_CLICK
 }
 
@@ -402,6 +433,7 @@ model Guide {
   mediaRenders MediaRender[]
   events       GuideEvent[]
   helpArticles HelpArticle[]
+  showcaseItems ShowcaseItem[]
 
   @@index([organizationId, status])
   @@index([organizationId, folderId])
@@ -524,6 +556,105 @@ model HelpArticle {
   @@index([collectionId, position])
   @@index([guideId])
   @@map("help_article")
+}
+
+// ── Showcases (embeddable, branded collections of guides + resources) ─────────
+// A Showcase is a Supademo-style curated collection at a public URL — MANY per
+// workspace (unlike the one-per-workspace Help Center). Items reference
+// published guides (rendered by the Guide Reader) or resources (video/pdf/link/
+// form). Draft → Publish mirrors guides/forms. See the Phase-15 RFC + Phase-16 plan.
+
+model Showcase {
+  id             String         @id @default(uuid())
+  organizationId String
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Public address: tacto.so/showcase/{slug}. Unique across workspaces.
+  slug           String         @unique
+  status         ShowcaseStatus @default(DRAFT)
+  /// True = crawlable/indexed; false = unlisted (noindex).
+  listed         Boolean        @default(true)
+
+  title       String
+  description String?
+  layout      ShowcaseLayout @default(CHECKLIST)
+  /// Auto-advance to the next incomplete item on completion.
+  autoplay    Boolean        @default(true)
+
+  // Branding + SEO (mirror the help center)
+  brandColor String?
+  logoUrl    String?
+  theme      String  @default("system")
+  seo        Json?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  sections ShowcaseSection[]
+  events   ShowcaseEvent[]
+
+  @@index([organizationId])
+  @@map("showcase")
+}
+
+/// A named group of items within a showcase (ordered, flat).
+model ShowcaseSection {
+  id         String   @id @default(uuid())
+  showcaseId String
+  showcase   Showcase @relation(fields: [showcaseId], references: [id], onDelete: Cascade)
+  title      String
+  position   Int      @default(0)
+  hidden     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  items ShowcaseItem[]
+
+  @@index([showcaseId, position])
+  @@map("showcase_section")
+}
+
+/// One item in a section — a published guide OR a resource (video/pdf/link/form).
+model ShowcaseItem {
+  id        String           @id @default(uuid())
+  sectionId String
+  section   ShowcaseSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  position  Int              @default(0)
+  type      ShowcaseItemType @default(GUIDE)
+
+  /// GUIDE → published guide (deleting the guide removes the item).
+  guideId String?
+  guide   Guide?  @relation(fields: [guideId], references: [id], onDelete: Cascade)
+
+  /// Display label (falls back to the guide title / filename).
+  title String?
+  /// VIDEO/PDF/LINK → external URL or an /api/img proxy URL (R2 upload).
+  url   String?
+  /// FORM → an existing published form's shareId.
+  formShareId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([sectionId, position])
+  @@index([guideId])
+  @@map("showcase_item")
+}
+
+/// Showcase-level engagement (view/item_open/item_complete/complete). Guide reads
+/// use GuideEvent; this only covers the showcase shell. Anonymous, append-only.
+model ShowcaseEvent {
+  id         String            @id @default(uuid())
+  showcaseId String
+  showcase   Showcase          @relation(fields: [showcaseId], references: [id], onDelete: Cascade)
+  type       ShowcaseEventType
+  anonId     String?
+  sessionId  String?
+  /// ITEM_OPEN/ITEM_COMPLETE → the item id; else null.
+  target     String?
+  createdAt  DateTime          @default(now())
+
+  @@index([showcaseId, type, createdAt])
+  @@map("showcase_event")
 }
 
 /// Anonymous, append-only reader-engagement event for a published guide — the

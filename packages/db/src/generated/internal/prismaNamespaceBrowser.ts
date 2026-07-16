@@ -68,6 +68,10 @@ export const ModelName = {
   HelpCenterEvent: 'HelpCenterEvent',
   HelpCollection: 'HelpCollection',
   HelpArticle: 'HelpArticle',
+  Showcase: 'Showcase',
+  ShowcaseSection: 'ShowcaseSection',
+  ShowcaseItem: 'ShowcaseItem',
+  ShowcaseEvent: 'ShowcaseEvent',
   GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
@@ -371,6 +375,69 @@ export const HelpArticleScalarFieldEnum = {
 } as const
 
 export type HelpArticleScalarFieldEnum = (typeof HelpArticleScalarFieldEnum)[keyof typeof HelpArticleScalarFieldEnum]
+
+
+export const ShowcaseScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  slug: 'slug',
+  status: 'status',
+  listed: 'listed',
+  title: 'title',
+  description: 'description',
+  layout: 'layout',
+  autoplay: 'autoplay',
+  brandColor: 'brandColor',
+  logoUrl: 'logoUrl',
+  theme: 'theme',
+  seo: 'seo',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShowcaseScalarFieldEnum = (typeof ShowcaseScalarFieldEnum)[keyof typeof ShowcaseScalarFieldEnum]
+
+
+export const ShowcaseSectionScalarFieldEnum = {
+  id: 'id',
+  showcaseId: 'showcaseId',
+  title: 'title',
+  position: 'position',
+  hidden: 'hidden',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShowcaseSectionScalarFieldEnum = (typeof ShowcaseSectionScalarFieldEnum)[keyof typeof ShowcaseSectionScalarFieldEnum]
+
+
+export const ShowcaseItemScalarFieldEnum = {
+  id: 'id',
+  sectionId: 'sectionId',
+  position: 'position',
+  type: 'type',
+  guideId: 'guideId',
+  title: 'title',
+  url: 'url',
+  formShareId: 'formShareId',
+  createdAt: 'createdAt'
+} as const
+
+export type ShowcaseItemScalarFieldEnum = (typeof ShowcaseItemScalarFieldEnum)[keyof typeof ShowcaseItemScalarFieldEnum]
+
+
+export const ShowcaseEventScalarFieldEnum = {
+  id: 'id',
+  showcaseId: 'showcaseId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  target: 'target',
+  createdAt: 'createdAt'
+} as const
+
+export type ShowcaseEventScalarFieldEnum = (typeof ShowcaseEventScalarFieldEnum)[keyof typeof ShowcaseEventScalarFieldEnum]
 
 
 export const GuideEventScalarFieldEnum = {

@@ -78,6 +78,45 @@ export const HelpCenterEventType = {
 export type HelpCenterEventType = (typeof HelpCenterEventType)[keyof typeof HelpCenterEventType]
 
 
+export const ShowcaseLayout = {
+  SECTION: 'SECTION',
+  CHECKLIST: 'CHECKLIST',
+  GALLERY: 'GALLERY'
+} as const
+
+export type ShowcaseLayout = (typeof ShowcaseLayout)[keyof typeof ShowcaseLayout]
+
+
+export const ShowcaseStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type ShowcaseStatus = (typeof ShowcaseStatus)[keyof typeof ShowcaseStatus]
+
+
+export const ShowcaseItemType = {
+  GUIDE: 'GUIDE',
+  VIDEO: 'VIDEO',
+  PDF: 'PDF',
+  LINK: 'LINK',
+  FORM: 'FORM'
+} as const
+
+export type ShowcaseItemType = (typeof ShowcaseItemType)[keyof typeof ShowcaseItemType]
+
+
+export const ShowcaseEventType = {
+  VIEW: 'VIEW',
+  ITEM_OPEN: 'ITEM_OPEN',
+  ITEM_COMPLETE: 'ITEM_COMPLETE',
+  COMPLETE: 'COMPLETE',
+  CONTACT_CLICK: 'CONTACT_CLICK'
+} as const
+
+export type ShowcaseEventType = (typeof ShowcaseEventType)[keyof typeof ShowcaseEventType]
+
+
 export const FormStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED'

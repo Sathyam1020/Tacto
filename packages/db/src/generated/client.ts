@@ -145,6 +145,27 @@ export type HelpCollection = Prisma.HelpCollectionModel
  */
 export type HelpArticle = Prisma.HelpArticleModel
 /**
+ * Model Showcase
+ * 
+ */
+export type Showcase = Prisma.ShowcaseModel
+/**
+ * Model ShowcaseSection
+ * A named group of items within a showcase (ordered, flat).
+ */
+export type ShowcaseSection = Prisma.ShowcaseSectionModel
+/**
+ * Model ShowcaseItem
+ * One item in a section — a published guide OR a resource (video/pdf/link/form).
+ */
+export type ShowcaseItem = Prisma.ShowcaseItemModel
+/**
+ * Model ShowcaseEvent
+ * Showcase-level engagement (view/item_open/item_complete/complete). Guide reads
+ * use GuideEvent; this only covers the showcase shell. Anonymous, append-only.
+ */
+export type ShowcaseEvent = Prisma.ShowcaseEventModel
+/**
  * Model GuideEvent
  * Anonymous, append-only reader-engagement event for a published guide — the
  * source of truth for analytics time-series + funnels. No PII: `anonId` is a
