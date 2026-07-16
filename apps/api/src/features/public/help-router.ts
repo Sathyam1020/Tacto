@@ -1,6 +1,7 @@
 import {
   estimateReadMinutes,
   type HelpNavLink,
+  type HelpSearchHit,
   type PublicHelpArticle,
   type PublicHelpArticlePage,
   type PublicHelpCenter,
@@ -146,6 +147,97 @@ helpPublicRouter.get("/api/public/help/:slug", async (req, res) => {
     featured,
   };
   res.json({ helpCenter: payload });
+});
+
+// ── Search (Postgres full-text over the center's published articles) ────────
+// Registered BEFORE `:slug/:cslug` so "search" isn't matched as a collection
+// slug. Ranks title (A) > summary (B) > step content (C); featured articles get
+// a small boost; `ts_headline` yields a plain-text snippet the client highlights.
+const searchParam = z.object({ slug: z.string().min(1) });
+const searchQuery = z.object({ q: z.string().trim().max(200).optional() });
+
+type SearchRow = {
+  title: string;
+  excerpt: string | null;
+  slug: string;
+  collectionSlug: string;
+  collectionName: string;
+};
+
+helpPublicRouter.get("/api/public/help/:slug/search", async (req, res) => {
+  const { slug } = searchParam.parse(req.params);
+  const { q } = searchQuery.parse(req.query);
+  await findCenter(slug); // 404 if the center doesn't exist (preview parity)
+
+  const term = (q ?? "").trim();
+  if (!term) {
+    res.json({ hits: [] as HelpSearchHit[] });
+    return;
+  }
+
+  // Scope: articles of visible collections in this center whose guide is
+  // published + not deleted. Step HTML is stripped to plain text for indexing.
+  const rows = await prisma.$queryRaw<SearchRow[]>`
+    WITH arts AS (
+      SELECT
+        a.slug                          AS article_slug,
+        col.slug                        AS collection_slug,
+        col.name                        AS collection_name,
+        coalesce(a."titleOverride", g.title) AS title,
+        g.summary                       AS summary,
+        a.featured                      AS featured,
+        coalesce(
+          (SELECT string_agg(regexp_replace(s.content, '<[^>]+>', ' ', 'g'), ' ')
+             FROM step s
+            WHERE s."guideId" = g.id AND s.type = 'STEP'),
+          ''
+        )                               AS body
+      FROM help_article a
+      JOIN help_collection col ON col.id = a."collectionId"
+      JOIN help_center hc      ON hc.id = col."helpCenterId"
+      JOIN guide g             ON g.id = a."guideId"
+      WHERE hc.slug = ${slug}
+        AND col.hidden = false
+        AND g.status = 'PUBLISHED'
+        AND g."deletedAt" IS NULL
+    ),
+    ranked AS (
+      SELECT
+        article_slug, collection_slug, collection_name, title, summary, featured, body,
+        setweight(to_tsvector('english', coalesce(title, '')),   'A')
+          || setweight(to_tsvector('english', coalesce(summary, '')), 'B')
+          || setweight(to_tsvector('english', coalesce(body, '')),    'C') AS doc,
+        websearch_to_tsquery('english', ${term}) AS query
+      FROM arts
+    )
+    SELECT
+      title                           AS "title",
+      article_slug                    AS "slug",
+      collection_slug                 AS "collectionSlug",
+      collection_name                 AS "collectionName",
+      nullif(
+        ts_headline(
+          'english',
+          coalesce(title, '') || '. ' || coalesce(summary, '') || ' ' || coalesce(body, ''),
+          query,
+          'StartSel="",StopSel="",MaxWords=28,MinWords=12,MaxFragments=1,ShortWord=2'
+        ),
+        ''
+      )                               AS "excerpt"
+    FROM ranked
+    WHERE doc @@ query
+    ORDER BY ts_rank(doc, query) + (CASE WHEN featured THEN 0.3 ELSE 0 END) DESC
+    LIMIT 20
+  `;
+
+  const hits: HelpSearchHit[] = rows.map((r) => ({
+    title: r.title,
+    excerpt: r.excerpt ?? "",
+    slug: r.slug,
+    collectionSlug: r.collectionSlug,
+    collectionName: r.collectionName,
+  }));
+  res.json({ hits });
 });
 
 // ── Collection ──────────────────────────────────────────────────────────────

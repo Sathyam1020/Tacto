@@ -1,10 +1,12 @@
 import type {
+  HelpSearchHit,
   PublicHelpArticlePage,
   PublicHelpCenter,
   PublicHelpCollectionPage,
 } from "@workspace/contracts/help-center"
 
 export type {
+  HelpSearchHit,
   PublicHelpArticle,
   PublicHelpArticlePage,
   PublicHelpCenter,
@@ -51,4 +53,28 @@ export async function fetchHelpArticle(
     `/api/public/help/${encodeURIComponent(slug)}/${encodeURIComponent(cslug)}/${encodeURIComponent(aslug)}`
   )
   return d?.page ?? null
+}
+
+/**
+ * Full-text article search. Works on the server (absolute API base, for the
+ * SSR results page) and in the browser (relative `/api` proxy, for the live
+ * ⌘K/`/` overlay). Empty/failed queries resolve to `[]`.
+ */
+export async function fetchHelpSearch(
+  slug: string,
+  q: string,
+  init?: RequestInit
+): Promise<HelpSearchHit[]> {
+  const term = q.trim()
+  if (!term) return []
+  const prefix = typeof window === "undefined" ? base : ""
+  const path = `/api/public/help/${encodeURIComponent(slug)}/search?q=${encodeURIComponent(term)}`
+  try {
+    const res = await fetch(`${prefix}${path}`, { cache: "no-store", ...init })
+    if (!res.ok) return []
+    const d = (await res.json()) as { hits: HelpSearchHit[] }
+    return d.hits ?? []
+  } catch {
+    return []
+  }
 }

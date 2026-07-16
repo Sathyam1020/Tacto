@@ -8,14 +8,17 @@ import {
   ArrowLeft,
   Check,
   ChevronRight,
+  CornerDownLeft,
   FileText,
   Globe,
   Headphones,
+  Loader2,
   Search,
   X,
 } from "lucide-react"
 
 import type {
+  HelpSearchHit,
   PublicHelpArticle,
   PublicHelpArticlePage,
   PublicHelpCenter,
@@ -31,6 +34,7 @@ import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
 import { LanguageSwitcher, PublicGuideView } from "@/components/public-guide-view"
 import { publicCollectionIcon } from "@/components/help/public-icon"
 import { resolveCustomization } from "@/lib/guides"
+import { fetchHelpSearch } from "@/lib/public-help"
 import type { PublicGuide } from "@/lib/public-guide"
 import { downloadGuidePdf } from "@/lib/pdf"
 
@@ -48,23 +52,55 @@ function useForceLight() {
 }
 
 /**
+ * Opens the search overlay. Provided by `HelpChrome` so any nested element (the
+ * hero search bar, the navbar button) can trigger it, and so the `/` + `⌘K`
+ * keyboard shortcuts have a single owner.
+ */
+const HelpSearchContext = React.createContext<() => void>(() => {})
+export function useHelpSearch(): () => void {
+  return React.useContext(HelpSearchContext)
+}
+
+/**
  * Brand-colored header + footer shell for the whole help center. Flex column so
  * the footer is always pinned to the bottom, even on short pages. Light-only.
+ * Owns the global article search (overlay + `/` and `⌘K` shortcuts) so every
+ * page gets it for free.
  */
 export function HelpChrome({
   chrome,
-  onSearch,
   actions,
   children,
 }: {
   chrome: PublicHelpChrome
-  onSearch?: () => void
   /** Extra controls on the right of the navbar (e.g. the article reader controls). */
   actions?: React.ReactNode
   children: React.ReactNode
 }) {
   useForceLight()
+  const [searchOpen, setSearchOpen] = React.useState(false)
+  const open = React.useCallback(() => setSearchOpen(true), [])
+
+  // `/` focuses search, `⌘K` / `Ctrl+K` opens command search (unless typing).
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      const typing =
+        !!t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setSearchOpen(true)
+      } else if (e.key === "/" && !typing && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [])
+
   return (
+    <HelpSearchContext.Provider value={open}>
     <div
       className="flex min-h-svh flex-col text-[var(--l-ink)]"
       style={{
@@ -94,11 +130,9 @@ export function HelpChrome({
           </nav>
           <div className="flex flex-none items-center gap-2">
             {actions}
-            {onSearch && (
-              <button onClick={onSearch} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
-                <Search className="size-4" />
-              </button>
-            )}
+            <button onClick={open} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
+              <Search className="size-4" />
+            </button>
           </div>
         </div>
       </header>
@@ -125,7 +159,10 @@ export function HelpChrome({
           </div>
         </div>
       </footer>
+
+      {searchOpen && <SearchOverlay slug={chrome.slug} onClose={() => setSearchOpen(false)} />}
     </div>
+    </HelpSearchContext.Provider>
   )
 }
 
@@ -174,19 +211,14 @@ function Breadcrumb({ slug, trail }: { slug: string; trail: { label: string; hre
 
 /* ── home ────────────────────────────────────────────────────────────────── */
 export function HelpHome({ data }: { data: PublicHelpCenter }) {
-  const [searchOpen, setSearchOpen] = React.useState(false)
-  const allArticles = React.useMemo(() => data.collections.flatMap((c) => c.articles), [data.collections])
   return (
-    <HelpChrome chrome={data} onSearch={() => setSearchOpen(true)}>
+    <HelpChrome chrome={data}>
       {/* brand hero band (continuous with the colored header) */}
       <section className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-12 text-center sm:px-6 sm:pt-16">
           <h1 className="text-[28px] font-bold leading-tight tracking-tight text-balance sm:text-[40px]">{data.heroTitle}</h1>
           {data.heroSubtitle && <p className="mx-auto mt-3 max-w-md text-[14px] leading-relaxed text-primary-foreground/80 sm:text-[15px]">{data.heroSubtitle}</p>}
-          <button onClick={() => setSearchOpen(true)} className="group mx-auto mt-6 flex w-full items-center gap-3 rounded-2xl bg-[var(--l-card)] px-4 py-3.5 text-left shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)] transition-all hover:shadow-[0_20px_48px_-16px_rgba(0,0,0,0.45)] sm:mt-8 sm:px-5 sm:py-4">
-            <Search className="size-5 text-[var(--l-ink-tertiary)]" />
-            <span className="flex-1 truncate text-[14px] text-[var(--l-ink-tertiary)] sm:text-[15px]">Search for articles, guides, or keywords…</span>
-          </button>
+          <HeroSearchButton />
         </div>
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <p className="pb-16 text-[13px] font-semibold tracking-wide text-primary-foreground/90">All Categories</p>
@@ -250,9 +282,19 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
           </div>
         )}
       </main>
-
-      {searchOpen && <SearchOverlay slug={data.slug} articles={allArticles} onClose={() => setSearchOpen(false)} />}
     </HelpChrome>
+  )
+}
+
+/** The big hero search field — opens the shared overlay. */
+function HeroSearchButton() {
+  const open = useHelpSearch()
+  return (
+    <button onClick={open} className="group mx-auto mt-6 flex w-full items-center gap-3 rounded-2xl bg-[var(--l-card)] px-4 py-3.5 text-left shadow-[0_16px_40px_-16px_rgba(0,0,0,0.35)] transition-all hover:shadow-[0_20px_48px_-16px_rgba(0,0,0,0.45)] sm:mt-8 sm:px-5 sm:py-4">
+      <Search className="size-5 text-[var(--l-ink-tertiary)]" />
+      <span className="flex-1 truncate text-[14px] text-[var(--l-ink-tertiary)] sm:text-[15px]">Search for articles, guides, or keywords…</span>
+      <kbd className="hidden flex-none rounded-md border border-[var(--l-hairline)] bg-[var(--l-chrome)] px-1.5 py-0.5 font-mono text-[11px] text-[var(--l-ink-tertiary)] sm:inline">/</kbd>
+    </button>
   )
 }
 
@@ -260,10 +302,8 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
 export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
   const { chrome, collection } = page
   const Icon = publicCollectionIcon(collection.icon)
-  const [searchOpen, setSearchOpen] = React.useState(false)
   return (
-    <HelpChrome chrome={chrome} onSearch={() => setSearchOpen(true)}>
-      {searchOpen && <SearchOverlay slug={chrome.slug} articles={collection.articles} onClose={() => setSearchOpen(false)} />}
+    <HelpChrome chrome={chrome}>
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <Breadcrumb slug={chrome.slug} trail={[{ label: collection.name }]} />
         <div className="mt-6 flex items-center gap-3">
@@ -290,7 +330,6 @@ export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
 /* ── article (steps sidebar + Guide Reader, controls in the navbar) ──────── */
 export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guide: PublicGuide }) {
   const { chrome, collection, article, related } = page
-  const [searchOpen, setSearchOpen] = React.useState(false)
 
   // Reader controls are lifted into the navbar; the reader is rendered
   // chromeless + controlled so the sidebar can react to the mode.
@@ -329,10 +368,8 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
   return (
     <HelpChrome
       chrome={chrome}
-      onSearch={() => setSearchOpen(true)}
       actions={<div className="hidden rounded-xl bg-[var(--l-card)] p-1 shadow-sm md:flex">{readerControls}</div>}
     >
-      {searchOpen && <SearchOverlay slug={chrome.slug} articles={related} onClose={() => setSearchOpen(false)} />}
       {/* Full-bleed: sidebar hugs the viewport left, content fills the rest. */}
       <div className="flex">
         {showSidebar && <StepsSidebar steps={steps} />}
@@ -439,68 +476,267 @@ function stripHtml(html: string): string {
   return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
 }
 
-/* ── search overlay ──────────────────────────────────────────────────────── */
-function SearchOverlay({ slug, articles, onClose }: { slug: string; articles: PublicHelpArticle[]; onClose: () => void }) {
-  const [q, setQ] = React.useState("")
+/* ── search results page (deep-linkable /help/[slug]/search?q=) ───────────── */
+export function HelpSearchResults({
+  chrome,
+  query,
+  initialHits,
+}: {
+  chrome: PublicHelpChrome
+  query: string
+  initialHits: HelpSearchHit[]
+}) {
+  const [q, setQ] = React.useState(query)
+  const [hits, setHits] = React.useState<HelpSearchHit[]>(initialHits)
+  const [loading, setLoading] = React.useState(false)
   const router = useRouter()
-  const results = React.useMemo(() => {
-    const t = q.trim().toLowerCase()
-    if (!t) return articles.slice(0, 6)
-    return articles.filter((a) => (a.title + (a.excerpt ?? "")).toLowerCase().includes(t)).slice(0, 20)
-  }, [q, articles])
+  const term = q.trim()
+  const first = React.useRef(true)
 
+  // Re-query as the user edits (skipping the first run — the server already
+  // rendered `initialHits` for the incoming `?q=`), and keep the URL in sync.
   React.useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose()
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [onClose])
+    if (first.current) {
+      first.current = false
+      return
+    }
+    if (!term) {
+      router.replace(`/help/${chrome.slug}/search`)
+      return
+    }
+    setLoading(true)
+    const controller = new AbortController()
+    const t = setTimeout(async () => {
+      const res = await fetchHelpSearch(chrome.slug, term, { signal: controller.signal })
+      if (controller.signal.aborted) return
+      setHits(res)
+      setLoading(false)
+      router.replace(`/help/${chrome.slug}/search?q=${encodeURIComponent(term)}`)
+    }, 220)
+    return () => {
+      clearTimeout(t)
+      controller.abort()
+    }
+  }, [chrome.slug, term, router])
+
+  return (
+    <HelpChrome chrome={chrome}>
+      <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+        <Breadcrumb slug={chrome.slug} trail={[{ label: "Search" }]} />
+        <h1 className="mt-6 text-2xl font-bold tracking-tight">Search</h1>
+        <div className="mt-4 flex items-center gap-3 rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] px-4 shadow-sm focus-within:border-primary/40">
+          {loading && term ? (
+            <Loader2 className="size-5 animate-spin text-[var(--l-ink-tertiary)]" />
+          ) : (
+            <Search className="size-5 text-[var(--l-ink-tertiary)]" />
+          )}
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search articles…"
+            className="flex-1 bg-transparent py-3.5 text-[15px] outline-none placeholder:text-[var(--l-ink-tertiary)]"
+          />
+        </div>
+
+        <div className="mt-6">
+          {!term ? (
+            <p className="rounded-2xl border border-dashed border-[var(--l-hairline-strong)] px-6 py-12 text-center text-sm text-[var(--l-ink-subtle)]">
+              Type above to search every article.
+            </p>
+          ) : hits.length === 0 && !loading ? (
+            <p className="rounded-2xl border border-dashed border-[var(--l-hairline-strong)] px-6 py-12 text-center text-sm text-[var(--l-ink-subtle)]">
+              No results for “{term}”.
+            </p>
+          ) : (
+            <>
+              <p className="mb-3 text-[13px] text-[var(--l-ink-subtle)]">
+                {hits.length} {hits.length === 1 ? "result" : "results"} for “{term}”
+              </p>
+              <div className="overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)]">
+                {hits.map((h, i) => (
+                  <Link
+                    key={`${h.collectionSlug}/${h.slug}`}
+                    href={`/help/${chrome.slug}/${h.collectionSlug}/${h.slug}`}
+                    className={cn(
+                      "group flex items-start gap-4 px-5 py-4 transition-colors hover:bg-[var(--l-hover)]",
+                      i > 0 && "border-t border-[var(--l-hairline)]"
+                    )}
+                  >
+                    <span className="mt-0.5 flex size-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary">
+                      <FileText className="size-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[14px] font-semibold">{highlight(h.title, term)}</span>
+                      {h.excerpt && (
+                        <span className="mt-0.5 block line-clamp-2 text-[13px] leading-relaxed text-[var(--l-ink-subtle)]">
+                          {highlight(h.excerpt, term)}
+                        </span>
+                      )}
+                      <span className="mt-1 block text-[11px] font-medium text-[var(--l-ink-tertiary)]">{h.collectionName}</span>
+                    </span>
+                    <ChevronRight className="mt-0.5 size-4 flex-none text-[var(--l-ink-tertiary)] transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </main>
+    </HelpChrome>
+  )
+}
+
+/* ── search overlay (server full-text) ────────────────────────────────────── */
+function SearchOverlay({ slug, onClose }: { slug: string; onClose: () => void }) {
+  const [q, setQ] = React.useState("")
+  const [hits, setHits] = React.useState<HelpSearchHit[]>([])
+  const [loading, setLoading] = React.useState(false)
+  const [active, setActive] = React.useState(0)
+  const router = useRouter()
+
+  const term = q.trim()
+
+  // Debounced full-text query; an AbortController guards against stale
+  // responses clobbering a newer query (typed-through races). Empty term shows
+  // the hint — hits are simply not rendered, so no state reset is needed.
+  React.useEffect(() => {
+    if (!term) return
+    setLoading(true)
+    const controller = new AbortController()
+    const t = setTimeout(async () => {
+      const res = await fetchHelpSearch(slug, term, { signal: controller.signal })
+      if (controller.signal.aborted) return
+      setHits(res)
+      setActive(0)
+      setLoading(false)
+    }, 180)
+    return () => {
+      clearTimeout(t)
+      controller.abort()
+    }
+  }, [slug, term])
+
+  const goTo = React.useCallback(
+    (h: HelpSearchHit) => {
+      onClose()
+      router.push(`/help/${slug}/${h.collectionSlug}/${h.slug}`)
+    },
+    [onClose, router, slug]
+  )
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      onClose()
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setActive((i) => Math.min(hits.length - 1, i + 1))
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setActive((i) => Math.max(0, i - 1))
+    } else if (e.key === "Enter") {
+      if (hits[active]) {
+        e.preventDefault()
+        goTo(hits[active])
+      } else if (term) {
+        e.preventDefault()
+        onClose()
+        router.push(`/help/${slug}/search?q=${encodeURIComponent(term)}`)
+      }
+    }
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[12vh]" role="dialog" aria-modal>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
-      <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95">
+      <div
+        className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95"
+        onKeyDown={onKeyDown}
+      >
         <div className="flex items-center gap-3 border-b border-[var(--l-hairline)] px-4">
-          <Search className="size-5 text-[var(--l-ink-tertiary)]" />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search articles…" className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--l-ink-tertiary)]" />
+          {loading && term ? (
+            <Loader2 className="size-5 animate-spin text-[var(--l-ink-tertiary)]" />
+          ) : (
+            <Search className="size-5 text-[var(--l-ink-tertiary)]" />
+          )}
+          <input
+            autoFocus
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search articles…"
+            className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--l-ink-tertiary)]"
+          />
           <button onClick={onClose} className="flex size-7 items-center justify-center rounded-md text-[var(--l-ink-tertiary)] hover:bg-[var(--l-hover)]"><X className="size-4" /></button>
         </div>
         <div className="max-h-[52vh] overflow-y-auto p-2">
-          {results.length === 0 ? (
-            <div className="px-3 py-10 text-center text-sm text-[var(--l-ink-subtle)]">No results for “{q}”.</div>
+          {!term ? (
+            <div className="px-3 py-10 text-center text-sm text-[var(--l-ink-subtle)]">
+              Type to search every article.
+            </div>
+          ) : hits.length === 0 && !loading ? (
+            <div className="px-3 py-10 text-center text-sm text-[var(--l-ink-subtle)]">No results for “{term}”.</div>
           ) : (
-            results.map((a) => (
+            hits.map((h, i) => (
               <button
-                key={`${a.collectionSlug}/${a.slug}`}
-                onClick={() => {
-                  onClose()
-                  router.push(`/help/${slug}/${a.collectionSlug}/${a.slug}`)
-                }}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--l-hover)]"
+                key={`${h.collectionSlug}/${h.slug}`}
+                onMouseEnter={() => setActive(i)}
+                onClick={() => goTo(h)}
+                className={cn(
+                  "flex w-full items-start gap-3 rounded-lg px-3 py-2.5 text-left transition-colors",
+                  i === active ? "bg-[var(--l-hover)]" : "hover:bg-[var(--l-hover)]"
+                )}
               >
-                <FileText className="size-4 flex-none text-[var(--l-ink-tertiary)]" />
+                <FileText className="mt-0.5 size-4 flex-none text-[var(--l-ink-tertiary)]" />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[14px] font-medium">{highlight(a.title, q)}</span>
-                  {a.excerpt && <span className="block truncate text-[12.5px] text-[var(--l-ink-subtle)]">{a.excerpt}</span>}
+                  <span className="block truncate text-[14px] font-medium">{highlight(h.title, term)}</span>
+                  {h.excerpt && (
+                    <span className="mt-0.5 block line-clamp-2 text-[12.5px] leading-relaxed text-[var(--l-ink-subtle)]">
+                      {highlight(h.excerpt, term)}
+                    </span>
+                  )}
+                  <span className="mt-1 block text-[11px] font-medium text-[var(--l-ink-tertiary)]">{h.collectionName}</span>
                 </span>
               </button>
             ))
           )}
         </div>
+        {term && hits.length > 0 && (
+          <button
+            onClick={() => {
+              onClose()
+              router.push(`/help/${slug}/search?q=${encodeURIComponent(term)}`)
+            }}
+            className="flex w-full items-center justify-between border-t border-[var(--l-hairline)] px-4 py-3 text-[13px] font-medium text-[var(--l-ink-subtle)] transition-colors hover:bg-[var(--l-hover)] hover:text-[var(--l-ink)]"
+          >
+            See all results for “{term}”
+            <CornerDownLeft className="size-3.5" />
+          </button>
+        )}
       </div>
     </div>
   )
 }
 
+/**
+ * Highlights each occurrence of the query terms in `text`. Splits the query on
+ * whitespace so a multi-word search still marks individual matches (the server
+ * ranks; the client just paints).
+ */
 function highlight(text: string, q: string): React.ReactNode {
-  const t = q.trim()
-  if (!t) return text
-  const i = text.toLowerCase().indexOf(t.toLowerCase())
-  if (i < 0) return text
-  return (
-    <>
-      {text.slice(0, i)}
-      <mark className="rounded bg-primary/20 text-inherit">{text.slice(i, i + t.length)}</mark>
-      {text.slice(i + t.length)}
-    </>
+  const terms = q.trim().split(/\s+/).filter((t) => t.length > 1)
+  if (terms.length === 0) return text
+  // Capturing-group split → odd indices are the matched terms.
+  const re = new RegExp(`(${terms.map(escapeRegExp).join("|")})`, "gi")
+  const parts = text.split(re)
+  return parts.map((part, i) =>
+    i % 2 === 1 ? (
+      <mark key={i} className="rounded bg-primary/20 text-inherit">{part}</mark>
+    ) : (
+      <React.Fragment key={i}>{part}</React.Fragment>
+    )
   )
+}
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
