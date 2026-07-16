@@ -11,6 +11,7 @@ import { CaptureButton } from "@/components/capture-button"
 import { FoldersPanel } from "@/components/app-shell/folders-panel"
 import { FormsPanel } from "@/components/app-shell/forms-panel"
 import { Rail } from "@/components/app-shell/rail"
+import { SettingsPanel } from "@/components/app-shell/settings-panel"
 
 // Code-split: the Help Center panel pulls in the full lucide icon library (for
 // the collection icon picker), so it only loads on /help-center — never in the
@@ -44,6 +45,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // everything else shows the Guides folders panel.
   const inForms = pathname?.startsWith("/forms") ?? false
   const inHelp = pathname?.startsWith("/help-center") ?? false
+  const inSettings = pathname?.startsWith("/settings") ?? false
   // A capture started while viewing a folder lands in that folder.
   const captureFolderId = view.type === "folder" ? view.id : null
 
@@ -67,7 +69,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <Rail />
-        {inHelp ? <HelpCenterPanel /> : inForms ? <FormsPanel /> : <FoldersPanel />}
+        {inSettings ? (
+          <SettingsPanel />
+        ) : inHelp ? (
+          <HelpCenterPanel />
+        ) : inForms ? (
+          <FormsPanel />
+        ) : (
+          <FoldersPanel />
+        )}
       </div>
 
       {/* Content card */}
