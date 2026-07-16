@@ -11,7 +11,6 @@ import {
   Moon,
   Plus,
   Sun,
-  Users,
 } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -250,6 +249,7 @@ export function Rail() {
   const { setView } = useLibraryViewState()
 
   const onForms = pathname?.startsWith("/forms") ?? false
+  const onHelp = pathname?.startsWith("/help-center") ?? false
   const onLibrary = pathname === "/home"
 
   return (
@@ -285,25 +285,13 @@ export function Rail() {
       >
         <ClipboardList className="size-[19px]" />
       </RailButton>
-      <RailButton label="Analytics">
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-        >
-          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
-        </svg>
-      </RailButton>
-      <RailButton label="Teams">
-        <Users className="size-[19px]" />
-      </RailButton>
-
-      <div className="flex-1" />
-
-      <RailButton label="Help center">
+      <RailButton
+        label="Help center"
+        active={onHelp}
+        onClick={() => {
+          if (!onHelp) router.push("/help-center")
+        }}
+      >
         <LifeBuoy className="size-[19px]" />
       </RailButton>
       <RailButton
@@ -313,6 +301,9 @@ export function Rail() {
       >
         <SettingsIcon size={19} />
       </RailButton>
+
+      <div className="flex-1" />
+
       <RailAccount />
     </nav>
   )

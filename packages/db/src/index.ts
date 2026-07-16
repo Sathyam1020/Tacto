@@ -69,3 +69,29 @@ export async function getDefaultFolderId(
   });
   return folder?.id ?? null;
 }
+
+/**
+ * One Help Center per workspace. Get-or-create (self-heal), mirroring
+ * ensureDefaultFolder. The caller supplies a unique `slug` + display `name`
+ * (slug generation + collision handling lives in the API layer).
+ */
+export async function ensureHelpCenter(
+  client: Prisma.TransactionClient,
+  organizationId: string,
+  defaults: { name: string; slug: string }
+): Promise<string> {
+  const existing = await client.helpCenter.findUnique({
+    where: { organizationId },
+    select: { id: true },
+  });
+  if (existing) return existing.id;
+  const created = await client.helpCenter.create({
+    data: {
+      organizationId,
+      name: defaults.name,
+      slug: defaults.slug,
+    },
+    select: { id: true },
+  });
+  return created.id;
+}

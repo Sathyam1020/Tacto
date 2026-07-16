@@ -416,6 +416,53 @@ export type EnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
 }
 
+export type EnumHelpCenterStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel> | $Enums.HelpCenterStatus
+}
+
+export type EnumHelpCenterStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+}
+
+export type EnumHelpCenterEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterEventType | Prisma.EnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel> | $Enums.HelpCenterEventType
+}
+
+export type BoolNullableFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
+}
+
+export type EnumHelpCenterEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterEventType | Prisma.EnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel>
+}
+
+export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+}
+
 export type EnumGuideEventTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
   in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
@@ -798,6 +845,53 @@ export type NestedEnumGuideStatusWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
   _max?: Prisma.NestedEnumGuideStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumHelpCenterStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel> | $Enums.HelpCenterStatus
+}
+
+export type NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterStatus | Prisma.EnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterStatus[] | Prisma.ListEnumHelpCenterStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterStatusWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumHelpCenterEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterEventType | Prisma.EnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel> | $Enums.HelpCenterEventType
+}
+
+export type NestedBoolNullableFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableFilter<$PrismaModel> | boolean | null
+}
+
+export type NestedEnumHelpCenterEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.HelpCenterEventType | Prisma.EnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.HelpCenterEventType[] | Prisma.ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumHelpCenterEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.HelpCenterEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumHelpCenterEventTypeFilter<$PrismaModel>
+}
+
+export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: boolean | Prisma.BooleanFieldRefInput<$PrismaModel> | null
+  not?: Prisma.NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+  _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
+  _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+  _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
 }
 
 export type NestedEnumGuideEventTypeFilter<$PrismaModel = never> = {

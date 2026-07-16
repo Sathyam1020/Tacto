@@ -44,6 +44,14 @@ export const GuideStatus = {
 export type GuideStatus = (typeof GuideStatus)[keyof typeof GuideStatus]
 
 
+export const HelpCenterStatus = {
+  DRAFT: 'DRAFT',
+  PUBLISHED: 'PUBLISHED'
+} as const
+
+export type HelpCenterStatus = (typeof HelpCenterStatus)[keyof typeof HelpCenterStatus]
+
+
 export const GuideEventType = {
   VIEW: 'VIEW',
   WALKTHROUGH_START: 'WALKTHROUGH_START',
@@ -58,6 +66,16 @@ export const GuideEventType = {
 } as const
 
 export type GuideEventType = (typeof GuideEventType)[keyof typeof GuideEventType]
+
+
+export const HelpCenterEventType = {
+  VIEW: 'VIEW',
+  SEARCH: 'SEARCH',
+  COLLECTION_OPEN: 'COLLECTION_OPEN',
+  CONTACT_CLICK: 'CONTACT_CLICK'
+} as const
+
+export type HelpCenterEventType = (typeof HelpCenterEventType)[keyof typeof HelpCenterEventType]
 
 
 export const FormStatus = {

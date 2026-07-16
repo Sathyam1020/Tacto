@@ -40,7 +40,33 @@ import type { PublicGuide } from "@/lib/public-guide"
  * Public guide reader — a standalone editorial page (no app chrome). This is
  * also marketing: every shared guide shows the Tacto mark.
  */
-export function PublicGuideView({ guide }: { guide: PublicGuide }) {
+export function PublicGuideView({
+  guide,
+  embedded = false,
+  chromeless = false,
+  mode: modeProp,
+  onModeChange,
+  lang: langProp,
+  onLangChange,
+  stepVariant,
+  sourceHost,
+}: {
+  guide: PublicGuide
+  /** Rendered inside another page's chrome (e.g. a Help Center) — hides the
+   *  guide's standalone header/footer and floats the reader controls instead. */
+  embedded?: boolean
+  /** Like `embedded`, but renders NO controls — the parent provides them and
+   *  drives mode/lang (controlled). Used by the Help Center navbar. */
+  chromeless?: boolean
+  mode?: ViewMode
+  onModeChange?: (mode: ViewMode) => void
+  lang?: string | null
+  onLangChange?: (lang: string | null) => void
+  /** "cards" wraps each list step in a bordered card (Help Center look). */
+  stepVariant?: "cards"
+  /** Attributes reads to a host surface (e.g. "help-center") in analytics. */
+  sourceHost?: string
+}) {
   const cust = React.useMemo(
     () => resolveCustomization(guide.customization),
     [guide.customization]
@@ -48,18 +74,22 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
   const dv = cust.general.defaultView
   const lockedMode: ViewMode | null =
     dv === "only-scroll" ? "list" : dv === "only-walkthrough" ? "interactive" : null
-  const [mode, setMode] = React.useState<ViewMode>(
+  const modeControlled = modeProp !== undefined
+  const [internalMode, setInternalMode] = React.useState<ViewMode>(
     dv === "walkthrough-default" || dv === "only-walkthrough"
       ? "interactive"
       : "list"
   )
-  const effectiveMode = lockedMode ?? mode
+  const selectedMode = modeControlled ? modeProp! : internalMode
+  const effectiveMode = lockedMode ?? selectedMode
   const width = layoutMaxWidthClass(cust.general.pageLayout)
   const stepCount = guide.blocks.filter((b) => b.type === "STEP").length
 
   // Language switcher — overlay a translation's text onto the base blocks
   // (screenshots/layout are language-independent). null = original.
-  const [lang, setLang] = React.useState<string | null>(null)
+  const langControlled = langProp !== undefined
+  const [internalLang, setInternalLang] = React.useState<string | null>(null)
+  const lang = langControlled ? (langProp ?? null) : internalLang
   const translations = guide.translations ?? []
   const activeT = lang
     ? (translations.find((t) => t.language === lang) ?? null)
@@ -90,31 +120,38 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     (lang ? (RTL_LANGUAGE_CODES as readonly string[]).includes(lang) : false)
 
   // ── Analytics ──────────────────────────────────────────────────────────────
-  const tracker = useGuideTracker(guide.shareId)
+  const tracker = useGuideTracker(guide.shareId, sourceHost)
   const { track } = tracker
   const started = React.useRef(false)
 
-  // Count one view per session + record the initial reading mode.
+  // Count one view per session.
   React.useEffect(() => {
     if (started.current) return
     started.current = true
     track("view")
+  }, [track])
+  // Track reading mode + language whenever they change (deduped by the tracker,
+  // so this works whether mode/lang are controlled by a parent or internal).
+  React.useEffect(() => {
     track("mode_switch", { mode: effectiveMode })
-  }, [track, effectiveMode])
+  }, [effectiveMode, track])
+  React.useEffect(() => {
+    if (lang) track("language_switch", { language: lang })
+  }, [lang, track])
 
   const changeMode = React.useCallback(
     (next: ViewMode) => {
-      setMode(next)
-      track("mode_switch", { mode: next })
+      if (modeControlled) onModeChange?.(next)
+      else setInternalMode(next)
     },
-    [track]
+    [modeControlled, onModeChange]
   )
   const changeLang = React.useCallback(
     (next: string | null) => {
-      setLang(next)
-      if (next) track("language_switch", { language: next })
+      if (langControlled) onLangChange?.(next)
+      else setInternalLang(next)
     },
-    [track]
+    [langControlled, onLangChange]
   )
 
   // Scroll-mode completion: require reading ≥80% of steps AND the final step, so
@@ -158,10 +195,39 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
     }
   }, [effectiveMode, displayBlocks, track])
 
+  const controls = (
+    <div className="flex items-center gap-2">
+      {translations.length > 0 && (
+        <LanguageSwitcher
+          translations={translations}
+          value={lang}
+          onChange={changeLang}
+        />
+      )}
+      {!lockedMode && <ViewModeToggle mode={selectedMode} onChange={changeMode} />}
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          track("pdf_download")
+          void downloadGuidePdf({
+            title: displayTitle,
+            summary: displaySummary,
+            blocks: displayBlocks,
+            customization: guide.customization,
+          })
+        }}
+      >
+        <DownloadIcon size={15} />
+        PDF
+      </Button>
+    </div>
+  )
+
   return (
     <GuideAnalyticsProvider tracker={tracker}>
     <div
-      className="min-h-svh"
+      className={embedded || chromeless ? undefined : "min-h-svh"}
       dir={isRtl ? "rtl" : undefined}
       style={
         {
@@ -170,53 +236,31 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
         } as React.CSSProperties
       }
     >
-      <header className="border-b">
-        <div className={cn("mx-auto flex h-14 items-center justify-between px-6", width)}>
-          {cust.brand.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cust.brand.logoUrl}
-              alt={guide.workspaceName}
-              className="h-6 w-auto max-w-[180px] object-contain"
-            />
-          ) : (
-            <div className="flex items-center gap-2">
-              <LogoMark className="size-5" />
-              <span className="text-muted-foreground font-mono text-xs">
-                {guide.workspaceName}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-2">
-            {translations.length > 0 && (
-              <LanguageSwitcher
-                translations={translations}
-                value={lang}
-                onChange={changeLang}
+      {!embedded && !chromeless && (
+        <header className="border-b">
+          <div className={cn("mx-auto flex h-14 items-center justify-between px-6", width)}>
+            {cust.brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cust.brand.logoUrl}
+                alt={guide.workspaceName}
+                className="h-6 w-auto max-w-[180px] object-contain"
               />
+            ) : (
+              <div className="flex items-center gap-2">
+                <LogoMark className="size-5" />
+                <span className="text-muted-foreground font-mono text-xs">
+                  {guide.workspaceName}
+                </span>
+              </div>
             )}
-            {!lockedMode && <ViewModeToggle mode={mode} onChange={changeMode} />}
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                track("pdf_download")
-                void downloadGuidePdf({
-                  title: displayTitle,
-                  summary: displaySummary,
-                  blocks: displayBlocks,
-                  customization: guide.customization,
-                })
-              }}
-            >
-              <DownloadIcon size={15} />
-              PDF
-            </Button>
+            {controls}
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <main className={cn("mx-auto px-6 py-14", width)}>
+      <main className={cn("mx-auto px-6", embedded || chromeless ? "pt-6 pb-14" : "py-14", width)}>
+        {embedded && !chromeless && <div className="mb-6 flex justify-end">{controls}</div>}
         <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
           {displayTitle}
         </h1>
@@ -236,6 +280,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             narration={guide.narration[lang ?? BASE_LANGUAGE] ?? {}}
             mode={effectiveMode}
             customization={cust}
+            variant={stepVariant}
           />
         </div>
 
@@ -253,6 +298,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
           initialComments={guide.comments}
         />
 
+        {!embedded && !chromeless && (
         <footer className="mt-20 border-t pt-8 text-center">
           <a
             href="/"
@@ -262,6 +308,7 @@ export function PublicGuideView({ guide }: { guide: PublicGuide }) {
             Made with Tacto
           </a>
         </footer>
+        )}
       </main>
     </div>
     </GuideAnalyticsProvider>
@@ -273,7 +320,7 @@ const LANG_NAME = new Map<string, string>(
 )
 
 /** Original + available translated languages. */
-function LanguageSwitcher({
+export function LanguageSwitcher({
   translations,
   value,
   onChange,

@@ -397,6 +397,10 @@ export const ModelName = {
   FormSubmission: 'FormSubmission',
   Capture: 'Capture',
   Guide: 'Guide',
+  HelpCenter: 'HelpCenter',
+  HelpCenterEvent: 'HelpCenterEvent',
+  HelpCollection: 'HelpCollection',
+  HelpArticle: 'HelpArticle',
   GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
@@ -423,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "helpCenter" | "helpCenterEvent" | "helpCollection" | "helpArticle" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1386,6 +1390,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.GuideCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.GuideCountAggregateOutputType> | number
+        }
+      }
+    }
+    HelpCenter: {
+      payload: Prisma.$HelpCenterPayload<ExtArgs>
+      fields: Prisma.HelpCenterFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HelpCenterFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HelpCenterFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        findFirst: {
+          args: Prisma.HelpCenterFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HelpCenterFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        findMany: {
+          args: Prisma.HelpCenterFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>[]
+        }
+        create: {
+          args: Prisma.HelpCenterCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        createMany: {
+          args: Prisma.HelpCenterCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HelpCenterCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>[]
+        }
+        delete: {
+          args: Prisma.HelpCenterDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        update: {
+          args: Prisma.HelpCenterUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        deleteMany: {
+          args: Prisma.HelpCenterDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HelpCenterUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HelpCenterUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>[]
+        }
+        upsert: {
+          args: Prisma.HelpCenterUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterPayload>
+        }
+        aggregate: {
+          args: Prisma.HelpCenterAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHelpCenter>
+        }
+        groupBy: {
+          args: Prisma.HelpCenterGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HelpCenterCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterCountAggregateOutputType> | number
+        }
+      }
+    }
+    HelpCenterEvent: {
+      payload: Prisma.$HelpCenterEventPayload<ExtArgs>
+      fields: Prisma.HelpCenterEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HelpCenterEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HelpCenterEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        findFirst: {
+          args: Prisma.HelpCenterEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HelpCenterEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        findMany: {
+          args: Prisma.HelpCenterEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        create: {
+          args: Prisma.HelpCenterEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        createMany: {
+          args: Prisma.HelpCenterEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HelpCenterEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        delete: {
+          args: Prisma.HelpCenterEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        update: {
+          args: Prisma.HelpCenterEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.HelpCenterEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HelpCenterEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HelpCenterEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.HelpCenterEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        aggregate: {
+          args: Prisma.HelpCenterEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHelpCenterEvent>
+        }
+        groupBy: {
+          args: Prisma.HelpCenterEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HelpCenterEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterEventCountAggregateOutputType> | number
+        }
+      }
+    }
+    HelpCollection: {
+      payload: Prisma.$HelpCollectionPayload<ExtArgs>
+      fields: Prisma.HelpCollectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HelpCollectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HelpCollectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        findFirst: {
+          args: Prisma.HelpCollectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HelpCollectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        findMany: {
+          args: Prisma.HelpCollectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>[]
+        }
+        create: {
+          args: Prisma.HelpCollectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        createMany: {
+          args: Prisma.HelpCollectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HelpCollectionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>[]
+        }
+        delete: {
+          args: Prisma.HelpCollectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        update: {
+          args: Prisma.HelpCollectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.HelpCollectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HelpCollectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HelpCollectionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>[]
+        }
+        upsert: {
+          args: Prisma.HelpCollectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCollectionPayload>
+        }
+        aggregate: {
+          args: Prisma.HelpCollectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHelpCollection>
+        }
+        groupBy: {
+          args: Prisma.HelpCollectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCollectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HelpCollectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCollectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    HelpArticle: {
+      payload: Prisma.$HelpArticlePayload<ExtArgs>
+      fields: Prisma.HelpArticleFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HelpArticleFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HelpArticleFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        findFirst: {
+          args: Prisma.HelpArticleFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HelpArticleFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        findMany: {
+          args: Prisma.HelpArticleFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>[]
+        }
+        create: {
+          args: Prisma.HelpArticleCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        createMany: {
+          args: Prisma.HelpArticleCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HelpArticleCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>[]
+        }
+        delete: {
+          args: Prisma.HelpArticleDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        update: {
+          args: Prisma.HelpArticleUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        deleteMany: {
+          args: Prisma.HelpArticleDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HelpArticleUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HelpArticleUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>[]
+        }
+        upsert: {
+          args: Prisma.HelpArticleUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpArticlePayload>
+        }
+        aggregate: {
+          args: Prisma.HelpArticleAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHelpArticle>
+        }
+        groupBy: {
+          args: Prisma.HelpArticleGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpArticleGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HelpArticleCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpArticleCountAggregateOutputType> | number
         }
       }
     }
@@ -2448,6 +2748,76 @@ export const GuideScalarFieldEnum = {
 export type GuideScalarFieldEnum = (typeof GuideScalarFieldEnum)[keyof typeof GuideScalarFieldEnum]
 
 
+export const HelpCenterScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  slug: 'slug',
+  status: 'status',
+  listed: 'listed',
+  name: 'name',
+  logoUrl: 'logoUrl',
+  brandColor: 'brandColor',
+  theme: 'theme',
+  faviconUrl: 'faviconUrl',
+  heroTitle: 'heroTitle',
+  heroSubtitle: 'heroSubtitle',
+  navLinks: 'navLinks',
+  footerLinks: 'footerLinks',
+  contactFormId: 'contactFormId',
+  statusUrl: 'statusUrl',
+  seo: 'seo',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HelpCenterScalarFieldEnum = (typeof HelpCenterScalarFieldEnum)[keyof typeof HelpCenterScalarFieldEnum]
+
+
+export const HelpCenterEventScalarFieldEnum = {
+  id: 'id',
+  helpCenterId: 'helpCenterId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  target: 'target',
+  zeroResults: 'zeroResults',
+  createdAt: 'createdAt'
+} as const
+
+export type HelpCenterEventScalarFieldEnum = (typeof HelpCenterEventScalarFieldEnum)[keyof typeof HelpCenterEventScalarFieldEnum]
+
+
+export const HelpCollectionScalarFieldEnum = {
+  id: 'id',
+  helpCenterId: 'helpCenterId',
+  name: 'name',
+  description: 'description',
+  icon: 'icon',
+  slug: 'slug',
+  position: 'position',
+  hidden: 'hidden',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HelpCollectionScalarFieldEnum = (typeof HelpCollectionScalarFieldEnum)[keyof typeof HelpCollectionScalarFieldEnum]
+
+
+export const HelpArticleScalarFieldEnum = {
+  id: 'id',
+  collectionId: 'collectionId',
+  guideId: 'guideId',
+  slug: 'slug',
+  position: 'position',
+  featured: 'featured',
+  titleOverride: 'titleOverride',
+  createdAt: 'createdAt'
+} as const
+
+export type HelpArticleScalarFieldEnum = (typeof HelpArticleScalarFieldEnum)[keyof typeof HelpArticleScalarFieldEnum]
+
+
 export const GuideEventScalarFieldEnum = {
   id: 'id',
   guideId: 'guideId',
@@ -2816,6 +3186,34 @@ export type ListEnumGuideStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
+ * Reference to a field of type 'HelpCenterStatus'
+ */
+export type EnumHelpCenterStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'HelpCenterStatus[]'
+ */
+export type ListEnumHelpCenterStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'HelpCenterEventType'
+ */
+export type EnumHelpCenterEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'HelpCenterEventType[]'
+ */
+export type ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterEventType[]'>
+    
+
+
+/**
  * Reference to a field of type 'GuideEventType'
  */
 export type EnumGuideEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideEventType'>
@@ -2965,6 +3363,10 @@ export type GlobalOmitConfig = {
   formSubmission?: Prisma.FormSubmissionOmit
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
+  helpCenter?: Prisma.HelpCenterOmit
+  helpCenterEvent?: Prisma.HelpCenterEventOmit
+  helpCollection?: Prisma.HelpCollectionOmit
+  helpArticle?: Prisma.HelpArticleOmit
   guideEvent?: Prisma.GuideEventOmit
   guideDraft?: Prisma.GuideDraftOmit
   guideTranslation?: Prisma.GuideTranslationOmit

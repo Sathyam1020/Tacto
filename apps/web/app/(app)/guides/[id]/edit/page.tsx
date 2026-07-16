@@ -54,6 +54,7 @@ import {
   layoutMaxWidthClass,
 } from "@/components/guide-customization-context"
 import { GuideToolbar } from "@/components/guide-toolbar"
+import { PublishedIn } from "@/components/help-center/published-in"
 import { ImageEditor } from "@/components/image-editor"
 import type { ImportedBlock } from "@/components/import-steps-dialog"
 import { useSetNavbar } from "@/components/navbar-context"
@@ -1061,6 +1062,7 @@ export default function GuideEditPage() {
           onEmbedsApply={(embeds) => applyEdit((d) => ({ ...d, embeds }))}
         />
       )}
+      <PublishedIn guideId={params.id} />
       <div
         className={cn(
           "mx-auto pb-24",

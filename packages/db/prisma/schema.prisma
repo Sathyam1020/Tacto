@@ -104,6 +104,7 @@ model Organization {
   guides      Guide[]
   folders     Folder[]
   forms       Form[]
+  helpCenter  HelpCenter?
 
   @@map("organization")
 }
@@ -197,6 +198,11 @@ enum GuideStatus {
   PUBLISHED
 }
 
+enum HelpCenterStatus {
+  DRAFT
+  PUBLISHED
+}
+
 /// Reader-engagement event types for a published guide (see GuideEvent).
 enum GuideEventType {
   VIEW
@@ -209,6 +215,14 @@ enum GuideEventType {
   EMBED_OPEN
   EMBED_SUBMIT
   SESSION_END
+}
+
+/// Help-center-level (site-wide) event types. Guide reads keep using GuideEventType.
+enum HelpCenterEventType {
+  VIEW
+  SEARCH
+  COLLECTION_OPEN
+  CONTACT_CLICK
 }
 
 enum FormStatus {
@@ -387,10 +401,129 @@ model Guide {
   narrations   Narration[]
   mediaRenders MediaRender[]
   events       GuideEvent[]
+  helpArticles HelpArticle[]
 
   @@index([organizationId, status])
   @@index([organizationId, folderId])
   @@map("guide")
+}
+
+// ── Help Center (public knowledge base over published guides) ────────────────
+// A Help Center collects a workspace's PUBLISHED guides into branded, ordered
+// collections at a public URL. An article is ALWAYS a published guide (the
+// HelpArticle row is a placement — ordering + featured — never content). The
+// public site is rendered by the existing Guide Reader. See the Phase-13 RFC.
+
+/// One per workspace. Draft → Publish mirrors Guide/Form. Branding fields
+/// mirror the guide brand block; JSON blobs (navLinks/footerLinks/seo) are
+/// small, owner-authored, and validated by @workspace/contracts/help-center.
+model HelpCenter {
+  id             String           @id @default(uuid())
+  organizationId String           @unique
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Public address: tacto.so/help/{slug}. Unique across workspaces.
+  slug           String           @unique
+  status         HelpCenterStatus @default(DRAFT)
+  /// True = crawlable/indexed; false = unlisted (noindex, no sitemap).
+  listed         Boolean          @default(true)
+
+  // Branding
+  name         String
+  logoUrl      String?
+  brandColor   String?
+  theme        String  @default("system")
+  faviconUrl   String?
+  // Homepage
+  heroTitle    String  @default("How can we help you?")
+  heroSubtitle String?
+  // Chrome + SEO (small owner-authored JSON, contract-validated)
+  navLinks      Json?
+  footerLinks   Json?
+  contactFormId String?
+  statusUrl     String?
+  seo           Json?
+
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  collections HelpCollection[]
+  events      HelpCenterEvent[]
+
+  @@map("help_center")
+}
+
+/// Help-center-level engagement events (site-wide, not tied to one guide — guide
+/// reads use GuideEvent). Anonymous + append-only, mirroring GuideEvent. Powers
+/// the help-center analytics tab (visits, searches, zero-result searches,
+/// collection opens). `target` holds the search query / collection slug; rows
+/// cascade with the center.
+model HelpCenterEvent {
+  id           String              @id @default(uuid())
+  helpCenterId String
+  helpCenter   HelpCenter          @relation(fields: [helpCenterId], references: [id], onDelete: Cascade)
+  type         HelpCenterEventType
+  /// localStorage tacto_anon_id — groups a visitor. Null if blocked.
+  anonId       String?
+  /// Per page-load id — groups events into one visit (client-minted).
+  sessionId    String?
+  /// SEARCH → the normalized query; COLLECTION_OPEN → the collection slug; else null.
+  target       String?
+  /// SEARCH only → whether the query returned zero results.
+  zeroResults  Boolean?
+  createdAt    DateTime            @default(now())
+
+  @@index([helpCenterId, type, createdAt])
+  @@map("help_center_event")
+}
+
+/// A category grouping published guides within a help center. Flat (no nesting).
+model HelpCollection {
+  id           String     @id @default(uuid())
+  helpCenterId String
+  helpCenter   HelpCenter @relation(fields: [helpCenterId], references: [id], onDelete: Cascade)
+  name         String
+  description  String?
+  /// Curated lucide icon name (see collectionIconSchema in contracts).
+  icon         String?
+  slug         String
+  position     Int        @default(0)
+  /// Hidden collections stay in the builder but are omitted from the public site.
+  hidden       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  articles HelpArticle[]
+
+  @@unique([helpCenterId, slug])
+  @@index([helpCenterId, position])
+  @@map("help_collection")
+}
+
+/// A published guide placed in a collection. Content is the guide; only
+/// ordering + featured + an optional display label live here. Deleting the
+/// guide removes the placement (never the reverse).
+model HelpArticle {
+  id            String         @id @default(uuid())
+  collectionId  String
+  collection    HelpCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  guideId       String
+  guide         Guide          @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  /// Stable, human public slug (from the guide title on add) — the article URL.
+  /// Kept stable across title edits so links never break. Unique per collection.
+  slug          String
+  position      Int            @default(0)
+  /// Surfaces on the homepage's "Popular articles" shelf.
+  featured      Boolean        @default(false)
+  /// Optional shelf label; falls back to the guide's title.
+  titleOverride String?
+  createdAt     DateTime       @default(now())
+
+  @@unique([collectionId, guideId])
+  @@unique([collectionId, slug])
+  @@index([collectionId, position])
+  @@index([guideId])
+  @@map("help_article")
 }
 
 /// Anonymous, append-only reader-engagement event for a published guide — the
