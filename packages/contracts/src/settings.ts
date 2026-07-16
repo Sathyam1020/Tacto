@@ -28,6 +28,21 @@ export const imageUploadSchema = z.object({
 });
 export type ImageUploadInput = z.infer<typeof imageUploadSchema>;
 
+// ── Workspace (Phase 3) ─────────────────────────────────────────────────────
+export const workspaceNameSchema = z
+  .string()
+  .trim()
+  .min(1, "Give your workspace a name")
+  .max(50, "Workspace names are 50 characters max");
+
+/** URL-safe workspace identifier. Uniqueness is enforced by better-auth. */
+export const workspaceSlugSchema = z
+  .string()
+  .trim()
+  .min(2, "Too short")
+  .max(48)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Lowercase letters, numbers, and dashes");
+
 // ── Password (Phase 2) ──────────────────────────────────────────────────────
 export const passwordChangeSchema = z
   .object({

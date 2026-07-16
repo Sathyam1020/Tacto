@@ -2,7 +2,15 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, type LucideIcon, MonitorSmartphone, Palette, Shield, User } from "lucide-react"
+import {
+  Building2,
+  LogOut,
+  type LucideIcon,
+  MonitorSmartphone,
+  Palette,
+  Shield,
+  User,
+} from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -24,6 +32,10 @@ const GROUPS: NavGroup[] = [
       { href: "/settings/security", label: "Security", icon: Shield },
       { href: "/settings/sessions", label: "Sessions", icon: MonitorSmartphone },
     ],
+  },
+  {
+    label: "Workspace",
+    items: [{ href: "/settings/workspace", label: "General", icon: Building2 }],
   },
   {
     label: "Preferences",
