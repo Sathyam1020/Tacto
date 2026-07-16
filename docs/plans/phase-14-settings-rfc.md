@@ -1,6 +1,6 @@
 # Phase 14 — Settings — RFC
 
-**Status:** Proposed · **Author:** Principal Eng · **Date:** 2026-07-16
+**Status:** ✅ Shipped (2026-07-16) · **Author:** Principal Eng · **Date:** 2026-07-16
 **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui,storage}` · builds on better-auth (identity + organizations), R2 storage, and the app shell
 
 ---

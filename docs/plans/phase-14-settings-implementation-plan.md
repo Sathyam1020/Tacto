@@ -1,6 +1,6 @@
 # Phase 14 — Settings — Implementation Plan
 
-**Status:** In progress · **Source of truth for build** · Companion to `phase-14-settings-rfc.md`
+**Status:** ✅ Shipped (Phases 1–6 complete) · **Source of truth for build** · Companion to `phase-14-settings-rfc.md`
 **Branch:** `feat/settings` · **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui,storage}`
 
 > Lives in `docs/plans/` beside the RFC + the phase-11/12/13 plans (the established location).
@@ -149,14 +149,14 @@ Roles: **owner > admin > member** (better-auth built-ins; no custom roles).
 
 ---
 
-## 9. Rollout order (commit after each; each independently green)
+## 9. Rollout order (commit after each; each independently green) — ✅ all shipped
 
-1. **Phase 1 — Shell + Profile + Appearance.** `SettingsPanel`, `/settings` sub-route layout + redirect, app-shell `inSettings`, the shared primitives (`SettingSection`/`SettingRow`/`DangerZone`/`ImageUpload`), Profile (name + avatar + `/api/uploads/image`), Appearance (theme). Replaces the old page.
-2. **Phase 2 — Security + Sessions.** Change password, connected accounts (link/unlink Google), active sessions + revoke / revoke-others.
-3. **Phase 3 — Workspace General.** Name + slug (collision-checked) + logo, role-gated (`can`).
-4. **Phase 4 — Members + Invitations.** List/roles/remove/leave + link-based invite + `/invite/[id]` acceptance.
-5. **Phase 5 — Danger Zones.** Delete account, delete/leave workspace; typed confirms; permission guards; auth-config `deleteUser`.
-6. **Phase 6 — Extension + Polish.** Extension section; loading/empty states; a11y; responsive; docs; mark Shipped.
+1. ✅ **Phase 1 — Shell + Profile + Appearance.** `SettingsPanel`, sub-route layout + redirect, app-shell `inSettings`, shared primitives, Profile (name + avatar + `/api/uploads/image` + `/api/img/*` proxy), Appearance.
+2. ✅ **Phase 2 — Security + Sessions.** Change password, connected accounts, active sessions + revoke / revoke-others.
+3. ✅ **Phase 3 — Workspace General.** Name + slug + logo, role-gated (`can`).
+4. ✅ **Phase 4 — Members + Invitations.** List/roles/remove/leave + link-based invite + `/invite/[id]` acceptance (outside `(app)` so the extension gate doesn't block new invitees).
+5. ✅ **Phase 5 — Danger Zones.** Delete account (typed email confirm, `beforeDelete` drops solely-owned workspaces), delete workspace (owner-only, typed name confirm).
+6. ✅ **Phase 6 — Extension + Polish.** Extension section (status/browser/reconnect via existing `useExtension`); loading skeletons; role/permission guards; docs marked Shipped.
 
 ---
 

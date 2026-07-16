@@ -8,6 +8,7 @@ import {
   type LucideIcon,
   MonitorSmartphone,
   Palette,
+  Puzzle,
   Shield,
   User,
   Users,
@@ -44,6 +45,10 @@ const GROUPS: NavGroup[] = [
   {
     label: "Preferences",
     items: [{ href: "/settings/appearance", label: "Appearance", icon: Palette }],
+  },
+  {
+    label: "Connected",
+    items: [{ href: "/settings/extension", label: "Extension", icon: Puzzle }],
   },
 ]
 
