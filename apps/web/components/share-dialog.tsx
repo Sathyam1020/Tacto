@@ -51,7 +51,7 @@ export function ShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="truncate font-serif text-xl font-medium tracking-tight">
             Share &amp; distribute
@@ -138,7 +138,7 @@ function DeveloperTab({ origin, shareId, title }: { origin: string; shareId: str
     popup: `<script src="${origin}/embed.js" async></script>\n<button data-tacto-guide-popup="${shareId}" data-tacto-mode="${mode}">Show me how</button>`,
   }
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <div className="flex items-center justify-between">
         <p className="text-[13px] font-medium">Mode</p>
         <div className="inline-flex rounded-lg bg-muted p-0.5">
@@ -249,13 +249,13 @@ function Field({ label, icon, children }: { label: string; icon?: React.ReactNod
 
 function Snippet({ label, hint, code }: { label: string; hint?: string; code: string }) {
   return (
-    <div>
-      <div className="mb-1.5 flex items-center justify-between">
-        <p className="text-[13px] font-medium">{label}</p>
+    <div className="min-w-0">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <p className="min-w-0 truncate text-[13px] font-medium">{label}</p>
         <CopyButton value={code} label={label} compact />
       </div>
       {hint && <p className="mb-1.5 text-[12px] text-muted-foreground">{hint}</p>}
-      <pre className="overflow-x-auto rounded-lg border border-[var(--l-hairline)] bg-[var(--l-chrome)] p-3 font-mono text-[11px] leading-relaxed text-foreground">
+      <pre className="w-full min-w-0 rounded-lg border border-[var(--l-hairline)] bg-[var(--l-chrome)] p-3 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-all text-foreground">
         {code}
       </pre>
     </div>
