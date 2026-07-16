@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { LogOut, type LucideIcon, Palette, User } from "lucide-react"
+import { LogOut, type LucideIcon, MonitorSmartphone, Palette, Shield, User } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -19,7 +19,11 @@ type NavGroup = { label: string; items: NavItem[] }
 const GROUPS: NavGroup[] = [
   {
     label: "Account",
-    items: [{ href: "/settings/profile", label: "Profile", icon: User }],
+    items: [
+      { href: "/settings/profile", label: "Profile", icon: User },
+      { href: "/settings/security", label: "Security", icon: Shield },
+      { href: "/settings/sessions", label: "Sessions", icon: MonitorSmartphone },
+    ],
   },
   {
     label: "Preferences",

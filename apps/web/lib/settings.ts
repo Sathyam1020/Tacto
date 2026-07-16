@@ -41,3 +41,45 @@ export function displayName(user: { name?: string | null; email?: string | null 
 export function initialOf(user: { name?: string | null; email?: string | null }): string {
   return (user.name || user.email || "?").charAt(0).toUpperCase()
 }
+
+/** Best-effort browser + OS from a user-agent string (for the sessions list). */
+export function parseUserAgent(ua?: string | null): { browser: string; os: string } {
+  if (!ua) return { browser: "Unknown browser", os: "Unknown device" }
+  const browser = /Edg\//.test(ua)
+    ? "Edge"
+    : /OPR\//.test(ua)
+      ? "Opera"
+      : /Firefox\//.test(ua)
+        ? "Firefox"
+        : /Chrome\//.test(ua)
+          ? "Chrome"
+          : /Safari\//.test(ua)
+            ? "Safari"
+            : "Browser"
+  const os = /Windows/.test(ua)
+    ? "Windows"
+    : /Mac OS X|Macintosh/.test(ua)
+      ? "macOS"
+      : /Android/.test(ua)
+        ? "Android"
+        : /iPhone|iPad|iOS/.test(ua)
+          ? "iOS"
+          : /Linux/.test(ua)
+            ? "Linux"
+            : "Unknown"
+  return { browser, os }
+}
+
+/** Compact relative time ("just now", "5m ago", "3d ago", or a date). */
+export function timeAgo(date: Date | string | number): string {
+  const d = date instanceof Date ? date : new Date(date)
+  const s = Math.floor((Date.now() - d.getTime()) / 1000)
+  if (s < 45) return "just now"
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  const days = Math.floor(h / 24)
+  if (days < 30) return `${days}d ago`
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })
+}
