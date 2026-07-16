@@ -84,6 +84,20 @@ export const updateItemSchema = z.object({
   url: z.string().url().optional(),
 });
 
+// ── Resource uploads (video / PDF → R2, served by the image proxy) ───────────
+export const SHOWCASE_ASSET_TYPES = ["video/mp4", "video/webm", "application/pdf"] as const;
+export const assetUploadSchema = z.object({
+  contentType: z.enum(SHOWCASE_ASSET_TYPES),
+});
+export type AssetUploadInput = z.infer<typeof assetUploadSchema>;
+
+/** 200 MB videos, 20 MB PDFs (enforced client-side before the presigned PUT). */
+export const MAX_ASSET_BYTES: Record<(typeof SHOWCASE_ASSET_TYPES)[number], number> = {
+  "video/mp4": 200 * 1024 * 1024,
+  "video/webm": 200 * 1024 * 1024,
+  "application/pdf": 20 * 1024 * 1024,
+};
+
 // ── Owner response shapes ────────────────────────────────────────────────────
 export type ShowcaseItemDetail = {
   id: string;
