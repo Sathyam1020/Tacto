@@ -10,7 +10,7 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "test": "tsx lib/editor-history.test.ts && tsx lib/draft-cache.test.ts && tsx lib/permissions.test.ts"
+    "test": "tsx lib/editor-history.test.ts && tsx lib/draft-cache.test.ts && tsx lib/permissions.test.ts && tsx lib/embed-sdk.test.ts"
   },
   "dependencies": {
     "@rive-app/react-canvas": "^4.29.5",
@@ -44,6 +44,7 @@
     "eslint": "^9",
     "puppeteer-core": "^25.3.0",
     "tsx": "^4.23.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "jsdom": "^20.0.3"
   }
 }

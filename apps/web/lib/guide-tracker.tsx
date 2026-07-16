@@ -153,6 +153,15 @@ export function useGuideTracker(shareId: string, sourceHost?: string): GuideTrac
       seen.current.add(key)
       const ctx = type === "view" ? { ...sessionCtx.current, ...context } : context
       queue.current.push(ctx && Object.keys(ctx).length ? { type, context: ctx } : { type })
+      // Surface each tracked event to the ambient DOM so the embed bridge (and
+      // any future in-page consumer) can relay it — no coupling to this module.
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(new CustomEvent("tacto:track", { detail: { type, context: ctx } }))
+        } catch {
+          /* ignore */
+        }
+      }
       if (timer.current) clearTimeout(timer.current)
       timer.current = setTimeout(flush, 1500)
     },

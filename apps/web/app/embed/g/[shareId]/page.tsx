@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
+import { EmbedBridge } from "@/components/embed/embed-bridge"
 import { EmbedTheme } from "@/components/embed/embed-theme"
 import type { ViewMode } from "@/components/guide-view"
 import { PublicGuideView } from "@/components/public-guide-view"
@@ -41,6 +42,7 @@ export default async function EmbedGuidePage({ params, searchParams }: Params) {
   return (
     <div className="min-h-svh bg-background">
       <EmbedTheme theme={theme} />
+      <EmbedBridge shareId={shareId} mode={asMode(mode)} />
       <PublicGuideView
         guide={guide}
         chromeless
