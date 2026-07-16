@@ -100,6 +100,15 @@ export type Guide = Prisma.GuideModel
  */
 export type HelpCenter = Prisma.HelpCenterModel
 /**
+ * Model HelpCenterEvent
+ * Help-center-level engagement events (site-wide, not tied to one guide — guide
+ * reads use GuideEvent). Anonymous + append-only, mirroring GuideEvent. Powers
+ * the help-center analytics tab (visits, searches, zero-result searches,
+ * collection opens). `target` holds the search query / collection slug; rows
+ * cascade with the center.
+ */
+export type HelpCenterEvent = Prisma.HelpCenterEventModel
+/**
  * Model HelpCollection
  * A category grouping published guides within a help center. Flat (no nesting).
  */

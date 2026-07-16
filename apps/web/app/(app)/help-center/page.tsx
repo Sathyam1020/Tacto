@@ -28,12 +28,24 @@ import {
 } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 
+import type { AnalyticsRange } from "@workspace/contracts/help-center"
+
+import {
+  BarRow,
+  formatCompact,
+  Panel as StatPanel,
+  RangeToggle,
+  StatCard,
+  StatGrid,
+} from "@/components/analytics/ui"
+import { TrendChart } from "@/components/analytics/trend-chart"
 import { CollectionIconPicker } from "@/components/help-center/collection-icon"
 import { useSetNavbar } from "@/components/navbar-context"
 import {
   useAddArticles,
   useAvailableGuides,
   useFeatureArticle,
+  useHelpAnalytics,
   useHelpCenter,
   usePublishHelpCenter,
   useRemoveArticle,
@@ -50,13 +62,15 @@ export default function HelpCenterBuilderPage() {
 
   const published = hc?.status === "PUBLISHED"
   const title =
-    tab === "design"
-      ? "Design"
-      : tab === "settings"
-        ? "Settings"
-        : c
-          ? (hc?.collections.find((x) => x.id === c)?.name ?? "Collection")
-          : "All articles"
+    tab === "analytics"
+      ? "Analytics"
+      : tab === "design"
+        ? "Design"
+        : tab === "settings"
+          ? "Settings"
+          : c
+            ? (hc?.collections.find((x) => x.id === c)?.name ?? "Collection")
+            : "All articles"
 
   useSetNavbar(
     {
@@ -112,7 +126,9 @@ export default function HelpCenterBuilderPage() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      {tab === "design" ? (
+      {tab === "analytics" ? (
+        <AnalyticsSurface />
+      ) : tab === "design" ? (
         <DesignSurface hc={hc} />
       ) : tab === "settings" ? (
         <SettingsSurface hc={hc} />
@@ -612,4 +628,140 @@ function BuilderSkeleton() {
       </div>
     </div>
   )
+}
+
+/* ── Analytics ───────────────────────────────────────────────────────────── */
+const RANGES: readonly AnalyticsRange[] = ["7d", "30d", "90d"]
+type TrendMetric = "Visits" | "Searches" | "Reads"
+
+function AnalyticsSurface() {
+  const [range, setRange] = React.useState<AnalyticsRange>("30d")
+  const [metric, setMetric] = React.useState<TrendMetric>("Visits")
+  const { data, isLoading } = useHelpAnalytics(range)
+
+  if (isLoading || !data) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-20 animate-pulse rounded-xl border bg-muted/40" />
+          ))}
+        </div>
+        <div className="h-56 animate-pulse rounded-xl border bg-muted/40" />
+      </div>
+    )
+  }
+
+  const t = data.totals
+  const series = data.trend.map((d) => ({
+    date: d.date,
+    count: metric === "Visits" ? d.visits : metric === "Searches" ? d.searches : d.articleViews,
+  }))
+  const maxArticle = Math.max(1, ...data.topArticles.map((a) => a.views))
+  const maxSearch = Math.max(1, ...data.topSearches.map((s) => s.count))
+  const maxCollection = Math.max(1, ...data.topCollections.map((c) => c.opens))
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-end">
+        <RangeToggle value={range} options={RANGES} onChange={setRange} />
+      </div>
+
+      <StatGrid>
+        <StatCard label="Visits" value={formatCompact(t.visits)} hint="Homepage sessions" />
+        <StatCard label="Unique visitors" value={formatCompact(t.uniqueVisitors)} />
+        <StatCard label="Article reads" value={formatCompact(t.articleViews)} />
+        <StatCard label="Searches" value={formatCompact(t.searches)} />
+        <StatCard
+          label="Zero-result rate"
+          value={`${t.zeroResultRate}%`}
+          hint="Searches with no hits"
+        />
+      </StatGrid>
+
+      <StatPanel
+        title="Traffic"
+        action={
+          <RangeToggle
+            value={metric}
+            options={["Visits", "Searches", "Reads"] as const}
+            onChange={setMetric}
+          />
+        }
+      >
+        <TrendChart data={series} ariaLabel={`${metric} over the last ${range}`} />
+      </StatPanel>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <StatPanel title="Top articles">
+          {data.topArticles.length === 0 ? (
+            <EmptyHint>No article reads yet.</EmptyHint>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {data.topArticles.map((a) => (
+                <BarRow key={`${a.collectionSlug}/${a.slug}`} label={a.title} value={a.views} max={maxArticle} />
+              ))}
+            </div>
+          )}
+        </StatPanel>
+
+        <StatPanel title="Top searches">
+          {data.topSearches.length === 0 ? (
+            <EmptyHint>No searches yet.</EmptyHint>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {data.topSearches.map((s) => (
+                <BarRow
+                  key={s.query}
+                  label={
+                    <span className="flex items-center gap-1.5">
+                      {s.query}
+                      {s.zeroRate > 0 && (
+                        <span className="rounded bg-amber-tint px-1 text-[10px] font-medium text-amber-ink">
+                          {s.zeroRate}% empty
+                        </span>
+                      )}
+                    </span>
+                  }
+                  value={s.count}
+                  max={maxSearch}
+                />
+              ))}
+            </div>
+          )}
+        </StatPanel>
+
+        <StatPanel title="Content gaps" className="lg:col-span-1">
+          {data.zeroResultSearches.length === 0 ? (
+            <EmptyHint>No zero-result searches — nice.</EmptyHint>
+          ) : (
+            <ul className="flex flex-col divide-y divide-[var(--l-hairline)]">
+              {data.zeroResultSearches.map((z) => (
+                <li key={z.query} className="flex items-center justify-between py-2 text-sm">
+                  <span className="truncate text-foreground">{z.query}</span>
+                  <span className="shrink-0 text-muted-foreground tabular-nums">{z.count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </StatPanel>
+
+        <StatPanel title="Top collections">
+          {data.topCollections.length === 0 ? (
+            <EmptyHint>No collection opens yet.</EmptyHint>
+          ) : (
+            <div className="flex flex-col gap-2.5">
+              {data.topCollections.map((c) => (
+                <BarRow key={c.slug} label={c.slug} value={c.opens} max={maxCollection} />
+              ))}
+            </div>
+          )}
+        </StatPanel>
+      </div>
+    </div>
+  )
+}
+
+function EmptyHint({ children }: { children: React.ReactNode }) {
+  return <p className="py-6 text-center text-[13px] text-muted-foreground">{children}</p>
 }

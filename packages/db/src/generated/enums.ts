@@ -68,6 +68,16 @@ export const GuideEventType = {
 export type GuideEventType = (typeof GuideEventType)[keyof typeof GuideEventType]
 
 
+export const HelpCenterEventType = {
+  VIEW: 'VIEW',
+  SEARCH: 'SEARCH',
+  COLLECTION_OPEN: 'COLLECTION_OPEN',
+  CONTACT_CLICK: 'CONTACT_CLICK'
+} as const
+
+export type HelpCenterEventType = (typeof HelpCenterEventType)[keyof typeof HelpCenterEventType]
+
+
 export const FormStatus = {
   DRAFT: 'DRAFT',
   PUBLISHED: 'PUBLISHED'

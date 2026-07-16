@@ -12,6 +12,7 @@ import {
   type HelpNavLink,
   type HelpSeo,
 } from "@workspace/contracts/help-center";
+import { ANALYTICS_RANGE_DAYS, analyticsRangeSchema } from "@workspace/contracts/guide-analytics";
 import { ensureHelpCenter, Prisma, prisma } from "@workspace/db";
 import { Router } from "express";
 import { z } from "zod";
@@ -20,6 +21,7 @@ import { generateSlug } from "../../lib/slug.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
+import { computeHelpAnalytics, type ArticleViewRow } from "./analytics.js";
 import { uniqueSlug } from "./slug.js";
 
 const idParamSchema = z.object({ id: z.string() });
@@ -140,6 +142,78 @@ helpCenterRouter.get("/api/help-center", requireAuth, requireWorkspace, async (r
   const hcId = await helpCenterId(ws.id, ws.name);
   res.json({ helpCenter: await loadDetail(hcId) });
 });
+
+// ── Analytics (help-center-level engagement) ────────────────────────────────
+const analyticsQuerySchema = z.object({ range: analyticsRangeSchema.optional() });
+
+helpCenterRouter.get(
+  "/api/help-center/analytics",
+  requireAuth,
+  requireWorkspace,
+  async (req, res) => {
+    const ws = req.workspace!;
+    const { range = "30d" } = analyticsQuerySchema.parse(req.query);
+    const hcId = await helpCenterId(ws.id, ws.name);
+    const days = ANALYTICS_RANGE_DAYS[range];
+    const now = new Date();
+    const since = new Date(now);
+    since.setUTCDate(since.getUTCDate() - (days - 1));
+    since.setUTCHours(0, 0, 0, 0);
+
+    const [events, guideViews] = await Promise.all([
+      prisma.helpCenterEvent.findMany({
+        where: { helpCenterId: hcId, createdAt: { gte: since } },
+        select: {
+          type: true,
+          anonId: true,
+          sessionId: true,
+          target: true,
+          zeroResults: true,
+          createdAt: true,
+        },
+      }),
+      // Article reads = guide VIEW events for guides placed in this center.
+      prisma.guideEvent.findMany({
+        where: {
+          type: "VIEW",
+          createdAt: { gte: since },
+          guide: { helpArticles: { some: { collection: { helpCenterId: hcId } } } },
+        },
+        select: {
+          anonId: true,
+          createdAt: true,
+          guide: {
+            select: {
+              title: true,
+              helpArticles: {
+                where: { collection: { helpCenterId: hcId } },
+                take: 1,
+                select: { slug: true, collection: { select: { slug: true } } },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const articleViews: ArticleViewRow[] = guideViews.flatMap((v) => {
+      const placement = v.guide.helpArticles[0];
+      if (!placement) return [];
+      return [
+        {
+          title: v.guide.title,
+          slug: placement.slug,
+          collectionSlug: placement.collection.slug,
+          anonId: v.anonId,
+          createdAt: v.createdAt,
+        },
+      ];
+    });
+
+    const analytics = computeHelpAnalytics(events, articleViews, days, now, { range });
+    res.json({ analytics });
+  }
+);
 
 // ── Settings / branding ────────────────────────────────────────────────────
 helpCenterRouter.patch("/api/help-center", requireAuth, requireWorkspace, async (req, res) => {

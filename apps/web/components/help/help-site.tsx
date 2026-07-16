@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 
 import type {
+  HelpCenterEventType,
   HelpSearchHit,
   PublicHelpArticle,
   PublicHelpArticlePage,
@@ -34,6 +35,7 @@ import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
 import { LanguageSwitcher, PublicGuideView } from "@/components/public-guide-view"
 import { publicCollectionIcon } from "@/components/help/public-icon"
 import { resolveCustomization } from "@/lib/guides"
+import { HelpTrackerProvider, useHelpTracker } from "@/lib/help-tracker"
 import { fetchHelpSearch } from "@/lib/public-help"
 import type { PublicGuide } from "@/lib/public-guide"
 import { downloadGuidePdf } from "@/lib/pdf"
@@ -100,6 +102,7 @@ export function HelpChrome({
   }, [])
 
   return (
+    <HelpTrackerProvider slug={chrome.slug}>
     <HelpSearchContext.Provider value={open}>
     <div
       className="flex min-h-svh flex-col text-[var(--l-ink)]"
@@ -163,7 +166,18 @@ export function HelpChrome({
       {searchOpen && <SearchOverlay slug={chrome.slug} onClose={() => setSearchOpen(false)} />}
     </div>
     </HelpSearchContext.Provider>
+    </HelpTrackerProvider>
   )
+}
+
+/** Fires a single help-center event when the page mounts (visit / collection
+ *  open). Rendered inside the tracker provider so it can consume the context. */
+function TrackOnMount({ type, target }: { type: HelpCenterEventType; target?: string }) {
+  const { track } = useHelpTracker()
+  React.useEffect(() => {
+    track(type, target ? { target } : undefined)
+  }, [track, type, target])
+  return null
 }
 
 /* ── shared rows ─────────────────────────────────────────────────────────── */
@@ -213,6 +227,7 @@ function Breadcrumb({ slug, trail }: { slug: string; trail: { label: string; hre
 export function HelpHome({ data }: { data: PublicHelpCenter }) {
   return (
     <HelpChrome chrome={data}>
+      <TrackOnMount type="view" />
       {/* brand hero band (continuous with the colored header) */}
       <section className="bg-primary text-primary-foreground">
         <div className="mx-auto max-w-3xl px-4 pb-8 pt-12 text-center sm:px-6 sm:pt-16">
@@ -263,11 +278,7 @@ export function HelpHome({ data }: { data: PublicHelpCenter }) {
             <aside className="flex min-w-0 flex-col gap-4">
               <div className="rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-5">
                 <h3 className="text-sm font-semibold">Still need help?</h3>
-                <button className="mt-3 flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-[var(--l-hover)]">
-                  <span className="flex size-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary"><Headphones className="size-4" /></span>
-                  <span className="min-w-0 flex-1"><span className="block text-[13.5px] font-semibold">Contact Support</span><span className="block truncate text-xs text-[var(--l-ink-subtle)]">Get help from our team</span></span>
-                  <ChevronRight className="size-4 flex-none text-[var(--l-ink-tertiary)]" />
-                </button>
+                <ContactSupportButton />
               </div>
               {data.statusUrl && (
                 <div className="rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-5">
@@ -298,12 +309,29 @@ function HeroSearchButton() {
   )
 }
 
+/** "Contact Support" — records a contact_click; the contact form target is
+ *  wired later (Forms integration), so today it just registers intent. */
+function ContactSupportButton() {
+  const { track } = useHelpTracker()
+  return (
+    <button
+      onClick={() => track("contact_click")}
+      className="mt-3 flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors hover:bg-[var(--l-hover)]"
+    >
+      <span className="flex size-9 flex-none items-center justify-center rounded-lg bg-primary/10 text-primary"><Headphones className="size-4" /></span>
+      <span className="min-w-0 flex-1"><span className="block text-[13.5px] font-semibold">Contact Support</span><span className="block truncate text-xs text-[var(--l-ink-subtle)]">Get help from our team</span></span>
+      <ChevronRight className="size-4 flex-none text-[var(--l-ink-tertiary)]" />
+    </button>
+  )
+}
+
 /* ── collection (no sidebar — just the article list) ─────────────────────── */
 export function HelpCollection({ page }: { page: PublicHelpCollectionPage }) {
   const { chrome, collection } = page
   const Icon = publicCollectionIcon(collection.icon)
   return (
     <HelpChrome chrome={chrome}>
+      <TrackOnMount type="collection_open" target={collection.slug} />
       <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
         <Breadcrumb slug={chrome.slug} trail={[{ label: collection.name }]} />
         <div className="mt-6 flex items-center gap-3">
@@ -387,7 +415,7 @@ export function HelpArticle({ page, guide }: { page: PublicHelpArticlePage; guid
               {readerControls}
             </div>
           </div>
-          <PublicGuideView guide={guide} chromeless mode={mode} lang={lang} stepVariant="cards" />
+          <PublicGuideView guide={guide} chromeless mode={mode} lang={lang} stepVariant="cards" sourceHost="help-center" />
           {related.length > 0 && (
             <div className="mx-auto max-w-3xl px-4 pb-16 sm:px-6">
               <h2 className="mb-3 text-sm font-semibold">Related articles</h2>
@@ -594,6 +622,7 @@ function SearchOverlay({ slug, onClose }: { slug: string; onClose: () => void })
   const [loading, setLoading] = React.useState(false)
   const [active, setActive] = React.useState(0)
   const router = useRouter()
+  const { track } = useHelpTracker()
 
   const term = q.trim()
 
@@ -610,12 +639,15 @@ function SearchOverlay({ slug, onClose }: { slug: string; onClose: () => void })
       setHits(res)
       setActive(0)
       setLoading(false)
+      // Record the settled query for the "top / zero-result searches" report
+      // (deduped per query by the tracker; skip trivial 1-char prefixes).
+      if (term.length >= 2) track("search", { target: term, zeroResults: res.length === 0 })
     }, 180)
     return () => {
       clearTimeout(t)
       controller.abort()
     }
-  }, [slug, term])
+  }, [slug, term, track])
 
   const goTo = React.useCallback(
     (h: HelpSearchHit) => {

@@ -294,6 +294,7 @@ export type HelpCenterWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"HelpCenter"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   collections?: Prisma.HelpCollectionListRelationFilter
+  events?: Prisma.HelpCenterEventListRelationFilter
 }
 
 export type HelpCenterOrderByWithRelationInput = {
@@ -319,6 +320,7 @@ export type HelpCenterOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
   collections?: Prisma.HelpCollectionOrderByRelationAggregateInput
+  events?: Prisma.HelpCenterEventOrderByRelationAggregateInput
 }
 
 export type HelpCenterWhereUniqueInput = Prisma.AtLeast<{
@@ -347,6 +349,7 @@ export type HelpCenterWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"HelpCenter"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
   collections?: Prisma.HelpCollectionListRelationFilter
+  events?: Prisma.HelpCenterEventListRelationFilter
 }, "id" | "organizationId" | "slug">
 
 export type HelpCenterOrderByWithAggregationInput = {
@@ -423,6 +426,7 @@ export type HelpCenterCreateInput = {
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutHelpCenterInput
   collections?: Prisma.HelpCollectionCreateNestedManyWithoutHelpCenterInput
+  events?: Prisma.HelpCenterEventCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterUncheckedCreateInput = {
@@ -447,6 +451,7 @@ export type HelpCenterUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   collections?: Prisma.HelpCollectionUncheckedCreateNestedManyWithoutHelpCenterInput
+  events?: Prisma.HelpCenterEventUncheckedCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterUpdateInput = {
@@ -471,6 +476,7 @@ export type HelpCenterUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutHelpCenterNestedInput
   collections?: Prisma.HelpCollectionUpdateManyWithoutHelpCenterNestedInput
+  events?: Prisma.HelpCenterEventUpdateManyWithoutHelpCenterNestedInput
 }
 
 export type HelpCenterUncheckedUpdateInput = {
@@ -495,6 +501,7 @@ export type HelpCenterUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   collections?: Prisma.HelpCollectionUncheckedUpdateManyWithoutHelpCenterNestedInput
+  events?: Prisma.HelpCenterEventUncheckedUpdateManyWithoutHelpCenterNestedInput
 }
 
 export type HelpCenterCreateManyInput = {
@@ -674,6 +681,20 @@ export type EnumHelpCenterStatusFieldUpdateOperationsInput = {
   set?: $Enums.HelpCenterStatus
 }
 
+export type HelpCenterCreateNestedOneWithoutEventsInput = {
+  create?: Prisma.XOR<Prisma.HelpCenterCreateWithoutEventsInput, Prisma.HelpCenterUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.HelpCenterCreateOrConnectWithoutEventsInput
+  connect?: Prisma.HelpCenterWhereUniqueInput
+}
+
+export type HelpCenterUpdateOneRequiredWithoutEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.HelpCenterCreateWithoutEventsInput, Prisma.HelpCenterUncheckedCreateWithoutEventsInput>
+  connectOrCreate?: Prisma.HelpCenterCreateOrConnectWithoutEventsInput
+  upsert?: Prisma.HelpCenterUpsertWithoutEventsInput
+  connect?: Prisma.HelpCenterWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.HelpCenterUpdateToOneWithWhereWithoutEventsInput, Prisma.HelpCenterUpdateWithoutEventsInput>, Prisma.HelpCenterUncheckedUpdateWithoutEventsInput>
+}
+
 export type HelpCenterCreateNestedOneWithoutCollectionsInput = {
   create?: Prisma.XOR<Prisma.HelpCenterCreateWithoutCollectionsInput, Prisma.HelpCenterUncheckedCreateWithoutCollectionsInput>
   connectOrCreate?: Prisma.HelpCenterCreateOrConnectWithoutCollectionsInput
@@ -709,6 +730,7 @@ export type HelpCenterCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   collections?: Prisma.HelpCollectionCreateNestedManyWithoutHelpCenterInput
+  events?: Prisma.HelpCenterEventCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterUncheckedCreateWithoutOrganizationInput = {
@@ -732,6 +754,7 @@ export type HelpCenterUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   collections?: Prisma.HelpCollectionUncheckedCreateNestedManyWithoutHelpCenterInput
+  events?: Prisma.HelpCenterEventUncheckedCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterCreateOrConnectWithoutOrganizationInput = {
@@ -771,10 +794,124 @@ export type HelpCenterUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   collections?: Prisma.HelpCollectionUpdateManyWithoutHelpCenterNestedInput
+  events?: Prisma.HelpCenterEventUpdateManyWithoutHelpCenterNestedInput
 }
 
 export type HelpCenterUncheckedUpdateWithoutOrganizationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumHelpCenterStatusFieldUpdateOperationsInput | $Enums.HelpCenterStatus
+  listed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  brandColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  faviconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  heroSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  navLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  footerLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  contactFormId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  collections?: Prisma.HelpCollectionUncheckedUpdateManyWithoutHelpCenterNestedInput
+  events?: Prisma.HelpCenterEventUncheckedUpdateManyWithoutHelpCenterNestedInput
+}
+
+export type HelpCenterCreateWithoutEventsInput = {
+  id?: string
+  slug: string
+  status?: $Enums.HelpCenterStatus
+  listed?: boolean
+  name: string
+  logoUrl?: string | null
+  brandColor?: string | null
+  theme?: string
+  faviconUrl?: string | null
+  heroTitle?: string
+  heroSubtitle?: string | null
+  navLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  footerLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  contactFormId?: string | null
+  statusUrl?: string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  organization: Prisma.OrganizationCreateNestedOneWithoutHelpCenterInput
+  collections?: Prisma.HelpCollectionCreateNestedManyWithoutHelpCenterInput
+}
+
+export type HelpCenterUncheckedCreateWithoutEventsInput = {
+  id?: string
+  organizationId: string
+  slug: string
+  status?: $Enums.HelpCenterStatus
+  listed?: boolean
+  name: string
+  logoUrl?: string | null
+  brandColor?: string | null
+  theme?: string
+  faviconUrl?: string | null
+  heroTitle?: string
+  heroSubtitle?: string | null
+  navLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  footerLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  contactFormId?: string | null
+  statusUrl?: string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  collections?: Prisma.HelpCollectionUncheckedCreateNestedManyWithoutHelpCenterInput
+}
+
+export type HelpCenterCreateOrConnectWithoutEventsInput = {
+  where: Prisma.HelpCenterWhereUniqueInput
+  create: Prisma.XOR<Prisma.HelpCenterCreateWithoutEventsInput, Prisma.HelpCenterUncheckedCreateWithoutEventsInput>
+}
+
+export type HelpCenterUpsertWithoutEventsInput = {
+  update: Prisma.XOR<Prisma.HelpCenterUpdateWithoutEventsInput, Prisma.HelpCenterUncheckedUpdateWithoutEventsInput>
+  create: Prisma.XOR<Prisma.HelpCenterCreateWithoutEventsInput, Prisma.HelpCenterUncheckedCreateWithoutEventsInput>
+  where?: Prisma.HelpCenterWhereInput
+}
+
+export type HelpCenterUpdateToOneWithWhereWithoutEventsInput = {
+  where?: Prisma.HelpCenterWhereInput
+  data: Prisma.XOR<Prisma.HelpCenterUpdateWithoutEventsInput, Prisma.HelpCenterUncheckedUpdateWithoutEventsInput>
+}
+
+export type HelpCenterUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumHelpCenterStatusFieldUpdateOperationsInput | $Enums.HelpCenterStatus
+  listed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  brandColor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  theme?: Prisma.StringFieldUpdateOperationsInput | string
+  faviconUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  heroTitle?: Prisma.StringFieldUpdateOperationsInput | string
+  heroSubtitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  navLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  footerLinks?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  contactFormId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  statusUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  seo?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  organization?: Prisma.OrganizationUpdateOneRequiredWithoutHelpCenterNestedInput
+  collections?: Prisma.HelpCollectionUpdateManyWithoutHelpCenterNestedInput
+}
+
+export type HelpCenterUncheckedUpdateWithoutEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
   slug?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumHelpCenterStatusFieldUpdateOperationsInput | $Enums.HelpCenterStatus
   listed?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -817,6 +954,7 @@ export type HelpCenterCreateWithoutCollectionsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutHelpCenterInput
+  events?: Prisma.HelpCenterEventCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterUncheckedCreateWithoutCollectionsInput = {
@@ -840,6 +978,7 @@ export type HelpCenterUncheckedCreateWithoutCollectionsInput = {
   publishedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  events?: Prisma.HelpCenterEventUncheckedCreateNestedManyWithoutHelpCenterInput
 }
 
 export type HelpCenterCreateOrConnectWithoutCollectionsInput = {
@@ -879,6 +1018,7 @@ export type HelpCenterUpdateWithoutCollectionsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutHelpCenterNestedInput
+  events?: Prisma.HelpCenterEventUpdateManyWithoutHelpCenterNestedInput
 }
 
 export type HelpCenterUncheckedUpdateWithoutCollectionsInput = {
@@ -902,6 +1042,7 @@ export type HelpCenterUncheckedUpdateWithoutCollectionsInput = {
   publishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.HelpCenterEventUncheckedUpdateManyWithoutHelpCenterNestedInput
 }
 
 
@@ -911,10 +1052,12 @@ export type HelpCenterUncheckedUpdateWithoutCollectionsInput = {
 
 export type HelpCenterCountOutputType = {
   collections: number
+  events: number
 }
 
 export type HelpCenterCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   collections?: boolean | HelpCenterCountOutputTypeCountCollectionsArgs
+  events?: boolean | HelpCenterCountOutputTypeCountEventsArgs
 }
 
 /**
@@ -932,6 +1075,13 @@ export type HelpCenterCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
  */
 export type HelpCenterCountOutputTypeCountCollectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.HelpCollectionWhereInput
+}
+
+/**
+ * HelpCenterCountOutputType without action
+ */
+export type HelpCenterCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HelpCenterEventWhereInput
 }
 
 
@@ -958,6 +1108,7 @@ export type HelpCenterSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   collections?: boolean | Prisma.HelpCenter$collectionsArgs<ExtArgs>
+  events?: boolean | Prisma.HelpCenter$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.HelpCenterCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["helpCenter"]>
 
@@ -1036,6 +1187,7 @@ export type HelpCenterOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs
 export type HelpCenterInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   collections?: boolean | Prisma.HelpCenter$collectionsArgs<ExtArgs>
+  events?: boolean | Prisma.HelpCenter$eventsArgs<ExtArgs>
   _count?: boolean | Prisma.HelpCenterCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type HelpCenterIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1050,6 +1202,7 @@ export type $HelpCenterPayload<ExtArgs extends runtime.Types.Extensions.Internal
   objects: {
     organization: Prisma.$OrganizationPayload<ExtArgs>
     collections: Prisma.$HelpCollectionPayload<ExtArgs>[]
+    events: Prisma.$HelpCenterEventPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1474,6 +1627,7 @@ export interface Prisma__HelpCenterClient<T, Null = never, ExtArgs extends runti
   readonly [Symbol.toStringTag]: "PrismaPromise"
   organization<T extends Prisma.OrganizationDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OrganizationDefaultArgs<ExtArgs>>): Prisma.Prisma__OrganizationClient<runtime.Types.Result.GetResult<Prisma.$OrganizationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   collections<T extends Prisma.HelpCenter$collectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HelpCenter$collectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HelpCollectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  events<T extends Prisma.HelpCenter$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.HelpCenter$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HelpCenterEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1945,6 +2099,30 @@ export type HelpCenter$collectionsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.HelpCollectionScalarFieldEnum | Prisma.HelpCollectionScalarFieldEnum[]
+}
+
+/**
+ * HelpCenter.events
+ */
+export type HelpCenter$eventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the HelpCenterEvent
+   */
+  select?: Prisma.HelpCenterEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the HelpCenterEvent
+   */
+  omit?: Prisma.HelpCenterEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HelpCenterEventInclude<ExtArgs> | null
+  where?: Prisma.HelpCenterEventWhereInput
+  orderBy?: Prisma.HelpCenterEventOrderByWithRelationInput | Prisma.HelpCenterEventOrderByWithRelationInput[]
+  cursor?: Prisma.HelpCenterEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HelpCenterEventScalarFieldEnum | Prisma.HelpCenterEventScalarFieldEnum[]
 }
 
 /**

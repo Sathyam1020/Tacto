@@ -49,6 +49,7 @@ export function PublicGuideView({
   lang: langProp,
   onLangChange,
   stepVariant,
+  sourceHost,
 }: {
   guide: PublicGuide
   /** Rendered inside another page's chrome (e.g. a Help Center) — hides the
@@ -63,6 +64,8 @@ export function PublicGuideView({
   onLangChange?: (lang: string | null) => void
   /** "cards" wraps each list step in a bordered card (Help Center look). */
   stepVariant?: "cards"
+  /** Attributes reads to a host surface (e.g. "help-center") in analytics. */
+  sourceHost?: string
 }) {
   const cust = React.useMemo(
     () => resolveCustomization(guide.customization),
@@ -117,7 +120,7 @@ export function PublicGuideView({
     (lang ? (RTL_LANGUAGE_CODES as readonly string[]).includes(lang) : false)
 
   // ── Analytics ──────────────────────────────────────────────────────────────
-  const tracker = useGuideTracker(guide.shareId)
+  const tracker = useGuideTracker(guide.shareId, sourceHost)
   const { track } = tracker
   const started = React.useRef(false)
 

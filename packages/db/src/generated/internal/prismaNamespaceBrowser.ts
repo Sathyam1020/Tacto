@@ -65,6 +65,7 @@ export const ModelName = {
   Capture: 'Capture',
   Guide: 'Guide',
   HelpCenter: 'HelpCenter',
+  HelpCenterEvent: 'HelpCenterEvent',
   HelpCollection: 'HelpCollection',
   HelpArticle: 'HelpArticle',
   GuideEvent: 'GuideEvent',
@@ -326,6 +327,20 @@ export const HelpCenterScalarFieldEnum = {
 } as const
 
 export type HelpCenterScalarFieldEnum = (typeof HelpCenterScalarFieldEnum)[keyof typeof HelpCenterScalarFieldEnum]
+
+
+export const HelpCenterEventScalarFieldEnum = {
+  id: 'id',
+  helpCenterId: 'helpCenterId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  target: 'target',
+  zeroResults: 'zeroResults',
+  createdAt: 'createdAt'
+} as const
+
+export type HelpCenterEventScalarFieldEnum = (typeof HelpCenterEventScalarFieldEnum)[keyof typeof HelpCenterEventScalarFieldEnum]
 
 
 export const HelpCollectionScalarFieldEnum = {

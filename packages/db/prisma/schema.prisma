@@ -217,6 +217,14 @@ enum GuideEventType {
   SESSION_END
 }
 
+/// Help-center-level (site-wide) event types. Guide reads keep using GuideEventType.
+enum HelpCenterEventType {
+  VIEW
+  SEARCH
+  COLLECTION_OPEN
+  CONTACT_CLICK
+}
+
 enum FormStatus {
   DRAFT
   PUBLISHED
@@ -440,8 +448,33 @@ model HelpCenter {
   updatedAt   DateTime  @updatedAt
 
   collections HelpCollection[]
+  events      HelpCenterEvent[]
 
   @@map("help_center")
+}
+
+/// Help-center-level engagement events (site-wide, not tied to one guide — guide
+/// reads use GuideEvent). Anonymous + append-only, mirroring GuideEvent. Powers
+/// the help-center analytics tab (visits, searches, zero-result searches,
+/// collection opens). `target` holds the search query / collection slug; rows
+/// cascade with the center.
+model HelpCenterEvent {
+  id           String              @id @default(uuid())
+  helpCenterId String
+  helpCenter   HelpCenter          @relation(fields: [helpCenterId], references: [id], onDelete: Cascade)
+  type         HelpCenterEventType
+  /// localStorage tacto_anon_id — groups a visitor. Null if blocked.
+  anonId       String?
+  /// Per page-load id — groups events into one visit (client-minted).
+  sessionId    String?
+  /// SEARCH → the normalized query; COLLECTION_OPEN → the collection slug; else null.
+  target       String?
+  /// SEARCH only → whether the query returned zero results.
+  zeroResults  Boolean?
+  createdAt    DateTime            @default(now())
+
+  @@index([helpCenterId, type, createdAt])
+  @@map("help_center_event")
 }
 
 /// A category grouping published guides within a help center. Flat (no nesting).

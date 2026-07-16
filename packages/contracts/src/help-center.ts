@@ -213,6 +213,73 @@ export type HelpSearchHit = {
   collectionName: string;
 };
 
+// ── Analytics (help-center-level engagement) ────────────────────────────────
+// Site-wide events (visits, searches, collection opens, contact clicks). Guide
+// reads stay in GuideEvent; this only covers the help-center shell. Mirrors the
+// GuideEventType lowercase convention (client sends lowercase, DB stores upper).
+
+export const helpCenterEventTypeSchema = z.enum([
+  "view",
+  "search",
+  "collection_open",
+  "contact_click",
+]);
+export type HelpCenterEventType = z.infer<typeof helpCenterEventTypeSchema>;
+
+/** Batched beacon body — one visit's help-center events. */
+export const ingestHelpEventsSchema = z.object({
+  anonId: z.string().max(64).nullable(),
+  sessionId: z.string().min(8).max(64),
+  events: z
+    .array(
+      z.object({
+        type: helpCenterEventTypeSchema,
+        /** SEARCH → query; COLLECTION_OPEN → collection slug; else omitted. */
+        target: z.string().max(200).optional(),
+        /** SEARCH only → whether the query returned zero results. */
+        zeroResults: z.boolean().optional(),
+      })
+    )
+    .min(1)
+    .max(50),
+});
+export type IngestHelpEventsInput = z.infer<typeof ingestHelpEventsSchema>;
+
+/**
+ * Analytics window. Mirrors `guide-analytics`'s range (kept local so this
+ * contract subpath has no sibling-source import — the bundler resolves package
+ * subpaths, not relative `.ts` files reached through them). The API validates
+ * incoming ranges with the canonical `analyticsRangeSchema` from guide-analytics.
+ */
+export const HELP_ANALYTICS_RANGES = ["7d", "30d", "90d"] as const;
+export type AnalyticsRange = (typeof HELP_ANALYTICS_RANGES)[number];
+
+/** Owner-facing help-center analytics (single source of truth for API + web). */
+export type HelpCenterAnalytics = {
+  range: AnalyticsRange;
+  totals: {
+    /** Distinct visit sessions that hit the homepage (`view`). */
+    visits: number;
+    /** Distinct anonIds across all events. */
+    uniqueVisitors: number;
+    /** Total searches performed. */
+    searches: number;
+    /** % of searches that returned nothing. */
+    zeroResultRate: number;
+    /** Distinct article-read sessions (from GuideEvent, help-center source). */
+    articleViews: number;
+  };
+  trend: { date: string; visits: number; searches: number; articleViews: number }[];
+  /** Most-read articles in this center (by distinct read session). */
+  topArticles: { title: string; slug: string; collectionSlug: string; views: number }[];
+  /** Most-searched queries (with each query's zero-result share). */
+  topSearches: { query: string; count: number; zeroRate: number }[];
+  /** Searches that returned nothing — the content-gap list. */
+  zeroResultSearches: { query: string; count: number }[];
+  /** Most-opened collections. */
+  topCollections: { slug: string; opens: number }[];
+};
+
 /** Brand + navigation shared by every public help-center page (header/footer). */
 export type PublicHelpChrome = {
   slug: string;

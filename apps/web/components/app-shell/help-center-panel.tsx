@@ -3,6 +3,7 @@
 import * as React from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
+  BarChart3,
   Copy,
   Eye,
   EyeOff,
@@ -245,8 +246,9 @@ export function HelpCenterPanel() {
         )}
       </div>
 
-      {/* Design + Settings */}
+      {/* Analytics + Design + Settings */}
       <div className="border-t border-[var(--l-hairline)] p-2">
+        <PanelNav icon={<BarChart3 className="size-4" />} label="Analytics" active={tab === "analytics"} onClick={() => go("?tab=analytics")} />
         <PanelNav icon={<Palette className="size-4" />} label="Design" active={tab === "design"} onClick={() => go("?tab=design")} />
         <PanelNav icon={<Settings2 className="size-4" />} label="Settings" active={tab === "settings"} onClick={() => go("?tab=settings")} />
       </div>

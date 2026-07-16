@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 
 import type {
+  AnalyticsRange,
   GuideHelpPlacement,
+  HelpCenterAnalytics,
   HelpCenterDetail,
   HelpCenterSettingsInput,
 } from "@workspace/contracts/help-center"
@@ -171,6 +173,21 @@ export function useAvailableGuides(q: string, enabled: boolean) {
       return data.guides
     },
     enabled,
+  })
+}
+
+/** Help-center-level engagement analytics for a range (visits, searches, …). */
+export function useHelpAnalytics(range: AnalyticsRange) {
+  const { data: ws } = authClient.useActiveOrganization()
+  return useQuery({
+    queryKey: [...KEY, "analytics", ws?.id, range],
+    queryFn: async () => {
+      const { data } = await api.get<{ analytics: HelpCenterAnalytics }>(
+        `/help-center/analytics?range=${range}`
+      )
+      return data.analytics
+    },
+    enabled: !!ws?.id,
   })
 }
 

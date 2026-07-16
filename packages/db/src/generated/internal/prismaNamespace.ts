@@ -398,6 +398,7 @@ export const ModelName = {
   Capture: 'Capture',
   Guide: 'Guide',
   HelpCenter: 'HelpCenter',
+  HelpCenterEvent: 'HelpCenterEvent',
   HelpCollection: 'HelpCollection',
   HelpArticle: 'HelpArticle',
   GuideEvent: 'GuideEvent',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "helpCenter" | "helpCollection" | "helpArticle" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "helpCenter" | "helpCenterEvent" | "helpCollection" | "helpArticle" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1463,6 +1464,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.HelpCenterCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.HelpCenterCountAggregateOutputType> | number
+        }
+      }
+    }
+    HelpCenterEvent: {
+      payload: Prisma.$HelpCenterEventPayload<ExtArgs>
+      fields: Prisma.HelpCenterEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.HelpCenterEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.HelpCenterEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        findFirst: {
+          args: Prisma.HelpCenterEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.HelpCenterEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        findMany: {
+          args: Prisma.HelpCenterEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        create: {
+          args: Prisma.HelpCenterEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        createMany: {
+          args: Prisma.HelpCenterEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.HelpCenterEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        delete: {
+          args: Prisma.HelpCenterEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        update: {
+          args: Prisma.HelpCenterEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.HelpCenterEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.HelpCenterEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.HelpCenterEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.HelpCenterEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$HelpCenterEventPayload>
+        }
+        aggregate: {
+          args: Prisma.HelpCenterEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateHelpCenterEvent>
+        }
+        groupBy: {
+          args: Prisma.HelpCenterEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.HelpCenterEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.HelpCenterEventCountAggregateOutputType> | number
         }
       }
     }
@@ -2699,6 +2774,20 @@ export const HelpCenterScalarFieldEnum = {
 export type HelpCenterScalarFieldEnum = (typeof HelpCenterScalarFieldEnum)[keyof typeof HelpCenterScalarFieldEnum]
 
 
+export const HelpCenterEventScalarFieldEnum = {
+  id: 'id',
+  helpCenterId: 'helpCenterId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  target: 'target',
+  zeroResults: 'zeroResults',
+  createdAt: 'createdAt'
+} as const
+
+export type HelpCenterEventScalarFieldEnum = (typeof HelpCenterEventScalarFieldEnum)[keyof typeof HelpCenterEventScalarFieldEnum]
+
+
 export const HelpCollectionScalarFieldEnum = {
   id: 'id',
   helpCenterId: 'helpCenterId',
@@ -3111,6 +3200,20 @@ export type ListEnumHelpCenterStatusFieldRefInput<$PrismaModel> = FieldRefInputT
 
 
 /**
+ * Reference to a field of type 'HelpCenterEventType'
+ */
+export type EnumHelpCenterEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'HelpCenterEventType[]'
+ */
+export type ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'HelpCenterEventType[]'>
+    
+
+
+/**
  * Reference to a field of type 'GuideEventType'
  */
 export type EnumGuideEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideEventType'>
@@ -3261,6 +3364,7 @@ export type GlobalOmitConfig = {
   capture?: Prisma.CaptureOmit
   guide?: Prisma.GuideOmit
   helpCenter?: Prisma.HelpCenterOmit
+  helpCenterEvent?: Prisma.HelpCenterEventOmit
   helpCollection?: Prisma.HelpCollectionOmit
   helpArticle?: Prisma.HelpArticleOmit
   guideEvent?: Prisma.GuideEventOmit

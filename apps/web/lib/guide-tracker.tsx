@@ -103,7 +103,7 @@ function dedupKey(type: GuideEventType, ctx?: GuideEventContext): string {
   return `${type}|${disc}`
 }
 
-export function useGuideTracker(shareId: string): GuideTracker {
+export function useGuideTracker(shareId: string, sourceHost?: string): GuideTracker {
   const queue = React.useRef<
     { type: GuideEventType; context?: GuideEventContext }[]
   >([])
@@ -164,6 +164,10 @@ export function useGuideTracker(shareId: string): GuideTracker {
     anon.current = readAnonId()
     mountedAt.current = Date.now()
     sessionCtx.current = collectSessionContext()
+    // When rendered inside another surface (e.g. the Help Center), attribute the
+    // read to that surface so the guide's "sources" report reflects it — a
+    // same-origin referrer would otherwise collapse to "direct".
+    if (sourceHost) sessionCtx.current.referrerHost = sourceHost.slice(0, 128)
 
     const end = () => {
       if (ended.current) return
@@ -185,7 +189,7 @@ export function useGuideTracker(shareId: string): GuideTracker {
       document.removeEventListener("visibilitychange", onVisibility)
       end()
     }
-  }, [flush])
+  }, [flush, sourceHost])
 
   return React.useMemo(() => ({ track }), [track])
 }

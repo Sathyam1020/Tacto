@@ -1,5 +1,6 @@
 import {
   estimateReadMinutes,
+  ingestHelpEventsSchema,
   type HelpNavLink,
   type HelpSearchHit,
   type PublicHelpArticle,
@@ -9,10 +10,11 @@ import {
   type PublicHelpCollection,
   type PublicHelpCollectionPage,
 } from "@workspace/contracts/help-center";
-import { prisma } from "@workspace/db";
+import { Prisma, prisma } from "@workspace/db";
 import { Router } from "express";
 import { z } from "zod";
 
+import { rateLimit } from "../../lib/rate-limit.js";
 import { AppError } from "../../middleware/error.js";
 
 /**
@@ -238,6 +240,39 @@ helpPublicRouter.get("/api/public/help/:slug/search", async (req, res) => {
     collectionName: r.collectionName,
   }));
   res.json({ hits });
+});
+
+// ── Analytics beacon (help-center-level events) ─────────────────────────────
+// Anonymous, batched, best-effort — like the guide `/events` beacon. Rate-
+// limited; malformed/oversized batches are silently dropped (204 always). Guide
+// reads use the guide beacon; this only records site-wide shell engagement.
+helpPublicRouter.post("/api/public/help/:slug/events", async (req, res) => {
+  const { slug } = searchParam.parse(req.params);
+  const ip = req.ip ?? "unknown";
+  if (!rateLimit(`hcevents:${ip}:${slug}`, 60, 60_000)) {
+    res.status(204).end();
+    return;
+  }
+  const parsed = ingestHelpEventsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(204).end();
+    return;
+  }
+  const { anonId, sessionId, events } = parsed.data;
+
+  const hc = await prisma.helpCenter.findFirst({ where: { slug }, select: { id: true } });
+  if (hc) {
+    const rows: Prisma.HelpCenterEventCreateManyInput[] = events.map((e) => ({
+      helpCenterId: hc.id,
+      type: e.type.toUpperCase() as Prisma.HelpCenterEventCreateManyInput["type"],
+      anonId,
+      sessionId,
+      target: e.target ?? null,
+      zeroResults: e.type === "search" ? (e.zeroResults ?? null) : null,
+    }));
+    void prisma.helpCenterEvent.createMany({ data: rows }).catch(() => {});
+  }
+  res.status(204).end();
 });
 
 // ── Collection ──────────────────────────────────────────────────────────────
