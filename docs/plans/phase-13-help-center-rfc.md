@@ -1,6 +1,6 @@
 # Phase 13 — Help Center — RFC
 
-**Status:** Proposed · **Author:** Principal Eng · **Date:** 2026-07-15
+**Status:** ✅ Shipped (2026-07-16) · **Author:** Principal Eng · **Date:** 2026-07-15
 **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui}` · builds on Guides, the public reader, Folders, Forms, and Guide Analytics
 
 ---

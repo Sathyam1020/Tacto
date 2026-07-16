@@ -41,7 +41,9 @@ import type { PublicGuide } from "@/lib/public-guide"
 import { downloadGuidePdf } from "@/lib/pdf"
 
 /** Force light mode on the public help center (the app defaults to a `.dark`
- *  class; the public reader is intentionally light-only). Restored on leave. */
+ *  class; the public reader is intentionally light-only). Restored on leave.
+ *  A pre-paint script in the help layout prevents the first-load flash; this
+ *  covers client-side navigation into (and back out of) the help center. */
 function useForceLight() {
   React.useEffect(() => {
     const el = document.documentElement
@@ -51,6 +53,26 @@ function useForceLight() {
       if (wasDark) el.classList.add("dark")
     }
   }, [])
+}
+
+/**
+ * Black or white, whichever reads better on the brand color — so the navbar/hero
+ * text stays legible whether the brand is dark navy or bright yellow. Uses the
+ * WCAG relative-luminance threshold; falls back to white for the default brand.
+ */
+function readableForeground(hex?: string | null): string {
+  const m = hex ? /^#?([0-9a-f]{6})$/i.exec(hex.trim()) : null
+  if (!m || !m[1]) return "#ffffff"
+  const n = parseInt(m[1], 16)
+  const chan = (c: number) => {
+    const s = c / 255
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+  }
+  const L =
+    0.2126 * chan((n >> 16) & 255) +
+    0.7152 * chan((n >> 8) & 255) +
+    0.0722 * chan(n & 255)
+  return L > 0.5 ? "#141416" : "#ffffff"
 }
 
 /**
@@ -108,7 +130,13 @@ export function HelpChrome({
       className="flex min-h-svh flex-col text-[var(--l-ink)]"
       style={{
         backgroundColor: "#FEFFFF",
-        ...(chrome.brandColor ? { ["--primary" as string]: chrome.brandColor } : {}),
+        ...(chrome.brandColor
+          ? {
+              ["--primary" as string]: chrome.brandColor,
+              // Keep navbar/hero text legible on any brand color.
+              ["--primary-foreground" as string]: readableForeground(chrome.brandColor),
+            }
+          : {}),
       } as React.CSSProperties}
     >
       <header className="sticky top-0 z-30 bg-primary text-primary-foreground">
@@ -679,26 +707,32 @@ function SearchOverlay({ slug, onClose }: { slug: string; onClose: () => void })
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[12vh]" role="dialog" aria-modal>
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} />
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[12vh]"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Search articles"
+    >
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-in fade-in" onClick={onClose} aria-hidden="true" />
       <div
         className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] shadow-[0_24px_60px_-20px_rgba(0,0,0,0.5)] animate-in fade-in zoom-in-95"
         onKeyDown={onKeyDown}
       >
         <div className="flex items-center gap-3 border-b border-[var(--l-hairline)] px-4">
           {loading && term ? (
-            <Loader2 className="size-5 animate-spin text-[var(--l-ink-tertiary)]" />
+            <Loader2 className="size-5 animate-spin text-[var(--l-ink-tertiary)]" aria-hidden="true" />
           ) : (
-            <Search className="size-5 text-[var(--l-ink-tertiary)]" />
+            <Search className="size-5 text-[var(--l-ink-tertiary)]" aria-hidden="true" />
           )}
           <input
             autoFocus
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search articles…"
+            aria-label="Search articles"
             className="h-14 flex-1 bg-transparent text-[15px] outline-none placeholder:text-[var(--l-ink-tertiary)]"
           />
-          <button onClick={onClose} className="flex size-7 items-center justify-center rounded-md text-[var(--l-ink-tertiary)] hover:bg-[var(--l-hover)]"><X className="size-4" /></button>
+          <button onClick={onClose} aria-label="Close search" className="flex size-7 items-center justify-center rounded-md text-[var(--l-ink-tertiary)] hover:bg-[var(--l-hover)]"><X className="size-4" /></button>
         </div>
         <div className="max-h-[52vh] overflow-y-auto p-2">
           {!term ? (

@@ -1,6 +1,6 @@
 # Phase 13 — Help Center — Implementation Plan
 
-**Status:** In progress · **Source of truth for build** · Companion to `phase-13-help-center-rfc.md`
+**Status:** ✅ Shipped (Phases 1–7 complete) · **Source of truth for build** · Companion to `phase-13-help-center-rfc.md`
 **Branch:** `feat/help-center` · **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui}`
 
 > Convention note: lives in `docs/plans/` beside the RFC + the phase-11/12 plans (the established location).
@@ -129,15 +129,15 @@ Additive; three models + two back-relations. (Full DDL in the RFC §2; deltas fr
 
 ---
 
-## 12. Rollout order (commit after each; each independently green)
+## 12. Rollout order (commit after each; each independently green) — ✅ all shipped
 
-1. **Phase 1 — Database + Contracts + Migration.** schema (incl. `hidden`), migration, `help-center` contracts. Commit `feat(help-center): schema, contracts, migration`.
-2. **Phase 2 — Owner APIs.** get-or-create, settings, collections (CRUD + reorder + duplicate + hide), articles (add/remove/reorder/feature), publish, available-guides, help-placements + tests. Commit.
-3. **Phase 3 — Owner Builder.** double-sidebar builder: Content (article cards + picker + collection menu), Design (live preview), Settings; wire the Rail "Help center" item + "Published In" in the guide editor. Commit.
-4. **Phase 4 — Public Help Center.** SSR homepage + collection + article (reader integration) + chrome + theme + SEO/sitemap. Commit.
-5. **Phase 5 — Search.** Postgres FTS + endpoint + ⌘K overlay + results page + highlight + `/` shortcut. Commit.
-6. **Phase 6 — Analytics.** help-center events + search analytics + collection analytics + source attribution + a small analytics view. Commit.
-7. **Phase 7 — Polish.** a11y, performance, loading/skeleton, 404s, empty states, responsive, docs. Mark RFC + plan Shipped. Commit.
+1. ✅ **Phase 1 — Database + Contracts + Migration.** schema (incl. `hidden`), migration, `help-center` contracts.
+2. ✅ **Phase 2 — Owner APIs.** get-or-create, settings, collections (CRUD + reorder + duplicate + hide), articles (add/remove/reorder/feature), publish, available-guides, help-placements + tests.
+3. ✅ **Phase 3 — Owner Builder.** double-sidebar builder: Content (article cards + picker + collection menu), Design (live preview), Settings; wire the Rail "Help center" item + "Published In" in the guide editor.
+4. ✅ **Phase 4 — Public Help Center.** SSR homepage + collection + article (reader integration) + chrome + theme + SEO/sitemap.
+5. ✅ **Phase 5 — Search.** Postgres FTS + endpoint + ⌘K overlay + results page + highlight + `/` shortcut.
+6. ✅ **Phase 6 — Analytics.** help-center events (`HelpCenterEvent`) + search/zero-result/collection analytics + guide-read source attribution + analytics tab reusing the guide-analytics primitives.
+7. ✅ **Phase 7 — Polish.** Flash-free light-only theme (pre-paint script + `useForceLight`), contrast-aware navbar foreground, search-overlay a11y, streaming loading skeleton, empty/404 states, `/help-demo` prototype removed, docs marked Shipped.
 
 ---
 
@@ -147,5 +147,5 @@ Additive; three models + two back-relations. (Full DDL in the RFC §2; deltas fr
 - **contracts:** `src/help-center.ts` (+ `package.json` subpath).
 - **api:** `features/help-center/{router,publish,serialize,search}.ts` + tests, `features/public/help-router.ts`, `features/guide/router.ts` (help-placements), `app.ts` (mounts).
 - **web (owner):** `app/(app)/help-center/…`, `components/help-center/*`, `components/app-shell/help-center-panel.tsx`, Rail wiring, guide editor `PublishedIn`.
-- **web (public):** `app/help/[slug]/…` (+ layout, sitemap, metadata), `components/help/*`.
-- **cleanup:** the `/help-demo` design prototypes are the reference; remove or fold once the real routes land (Phase 7).
+- **web (public):** `app/help/[slug]/…` (+ layout, loading, sitemap, metadata), `components/help/*`, `lib/help-tracker.tsx`.
+- **cleanup:** ✅ the `/help-demo` design prototypes were removed once the real routes landed (Phase 7).
