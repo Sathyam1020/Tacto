@@ -9,6 +9,8 @@ import { Input } from "@workspace/ui/components/input"
 import { LogoMark } from "@workspace/ui/components/logo"
 
 import { SettingSection, SettingsPage } from "@/components/settings/setting-section"
+import { DangerAction, DangerZone } from "@/components/settings/danger-zone"
+import { ConfirmDialog } from "@/components/settings/confirm-dialog"
 import { ImageUpload } from "@/components/settings/image-upload"
 import { SectionSkeleton } from "@/components/settings/section-skeleton"
 import { authClient } from "@/lib/auth-client"
@@ -153,6 +155,41 @@ export default function WorkspacePage() {
           />
         </div>
       </SettingSection>
+
+      {can(myRole, "workspace:delete") && <DeleteWorkspace orgId={ws.id} name={ws.name} />}
     </SettingsPage>
+  )
+}
+
+function DeleteWorkspace({ orgId, name }: { orgId: string; name: string }) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <DangerZone>
+      <DangerAction
+        title="Delete workspace"
+        description="Permanently delete this workspace and all of its guides, forms, and help center. Members lose access immediately. This cannot be undone."
+        action={
+          <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
+            Delete workspace
+          </Button>
+        }
+      />
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={`Delete ${name}?`}
+        description="This permanently deletes the workspace along with every guide, form, and its help center. All members lose access. This can't be undone."
+        confirmLabel="Delete workspace"
+        confirmText={name}
+        onConfirm={async () => {
+          const { error } = await authClient.organization.delete({ organizationId: orgId })
+          if (error) {
+            toast.error(error.message ?? "Couldn't delete the workspace")
+            return
+          }
+          window.location.href = "/home"
+        }}
+      />
+    </DangerZone>
   )
 }

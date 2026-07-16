@@ -9,6 +9,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
 import { SettingSection, SettingsPage } from "@/components/settings/setting-section"
+import { DangerAction, DangerZone } from "@/components/settings/danger-zone"
+import { ConfirmDialog } from "@/components/settings/confirm-dialog"
 import { ImageUpload } from "@/components/settings/image-upload"
 import { SectionSkeleton } from "@/components/settings/section-skeleton"
 import { authClient } from "@/lib/auth-client"
@@ -117,6 +119,41 @@ export default function ProfilePage() {
           )}
         </div>
       </SettingSection>
+
+      <DeleteAccount email={user.email} />
     </SettingsPage>
+  )
+}
+
+function DeleteAccount({ email }: { email: string }) {
+  const [open, setOpen] = React.useState(false)
+  return (
+    <DangerZone>
+      <DangerAction
+        title="Delete account"
+        description="Permanently delete your account and any workspaces you solely own, including their guides, forms, and help centers. This cannot be undone."
+        action={
+          <Button variant="destructive" size="sm" onClick={() => setOpen(true)}>
+            Delete account
+          </Button>
+        }
+      />
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="Delete your account?"
+        description="This permanently deletes your account and every workspace you solely own — with all their guides, forms, and help centers. This can't be undone."
+        confirmLabel="Delete account"
+        confirmText={email}
+        onConfirm={async () => {
+          const { error } = await authClient.deleteUser({})
+          if (error) {
+            toast.error(error.message ?? "Couldn't delete account")
+            return
+          }
+          window.location.href = "/sign-in"
+        }}
+      />
+    </DangerZone>
   )
 }
