@@ -84,7 +84,6 @@ import {
   useDiscardDraft,
   useGuide,
   useGuideDraft,
-  usePublishDraft,
   useSaveDraft,
   uploadStepMedia,
   type DraftBlockClient,
@@ -241,7 +240,6 @@ export default function GuideEditPage() {
 
   const saveDraft = useSaveDraft(params.id)
   const discardDraft = useDiscardDraft(params.id)
-  const publishMutation = usePublishDraft(params.id)
 
   const [history, setHistory] = React.useState<History<EditorDoc>>(() =>
     initHistory(EMPTY_DOC)
@@ -259,7 +257,6 @@ export default function GuideEditPage() {
   const [status, setStatus] = React.useState<DraftStatus>("saved")
   const [savedAt, setSavedAt] = React.useState<number | null>(null)
   const [now, setNow] = React.useState(0)
-  const [publishing, setPublishing] = React.useState(false)
   const [leaveOpen, setLeaveOpen] = React.useState(false)
   const [discardOpen, setDiscardOpen] = React.useState(false)
   const [conflictOpen, setConflictOpen] = React.useState(false)
@@ -607,7 +604,6 @@ export default function GuideEditPage() {
   const latest = React.useRef({
     present: doc,
     dirty,
-    publish: publishMutation.mutateAsync,
     discard: discardDraft.mutateAsync,
     refetchDraft: draftQuery.refetch,
   })
@@ -615,7 +611,6 @@ export default function GuideEditPage() {
     latest.current = {
       present: doc,
       dirty,
-      publish: publishMutation.mutateAsync,
       discard: discardDraft.mutateAsync,
       refetchDraft: draftQuery.refetch,
     }
@@ -624,28 +619,6 @@ export default function GuideEditPage() {
   const handleBack = React.useCallback(() => {
     if (latest.current.dirty) setLeaveOpen(true)
     else router.push(viewHref)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const handlePublish = React.useCallback(async () => {
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    setPublishing(true)
-    try {
-      // Ensure the server draft reflects the latest edits before publishing:
-      // wait out any in-flight autosave, then flush anything still pending.
-      for (let i = 0; savingRef.current && i < 60; i++) {
-        await new Promise((r) => setTimeout(r, 50))
-      }
-      await flush()
-      // Apply that draft to the published content (server-side, transactional)
-      // and delete it.
-      await latest.current.publish()
-      clearDraftCache(params.id)
-      setDirty(false)
-      router.push(viewHref)
-    } finally {
-      setPublishing(false)
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -994,12 +967,9 @@ export default function GuideEditPage() {
             variant="ghost"
             size="sm"
             onClick={() => setDiscardOpen(true)}
-            disabled={!dirty || publishing}
+            disabled={!dirty}
           >
             Discard draft
-          </Button>
-          <Button size="sm" onClick={handlePublish} disabled={publishing}>
-            {publishing ? "Updating…" : "Update guide"}
           </Button>
         </div>
       ),
@@ -1008,7 +978,6 @@ export default function GuideEditPage() {
       handleBack,
       doUndo,
       doRedo,
-      handlePublish,
       seeded,
       status,
       savedAt,
@@ -1017,7 +986,6 @@ export default function GuideEditPage() {
       cR,
       count,
       dirty,
-      publishing,
     ]
   )
 
