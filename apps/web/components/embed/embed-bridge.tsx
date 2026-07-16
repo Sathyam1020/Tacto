@@ -66,12 +66,17 @@ export function EmbedBridge({ shareId, mode }: { shareId: string; mode?: string 
     }
     window.addEventListener("tacto:track", onTrack as EventListener)
 
+    // Surface uncaught errors so the host can react (Tacto.on("error", …)).
+    const onError = (ev: ErrorEvent) => post("ERROR", { message: String(ev.message || "error").slice(0, 200) })
+    window.addEventListener("error", onError)
+
     return () => {
       cancelAnimationFrame(raf)
       ro.disconnect()
       io.disconnect()
       window.clearTimeout(t)
       window.removeEventListener("tacto:track", onTrack as EventListener)
+      window.removeEventListener("error", onError)
     }
   }, [shareId, mode])
 

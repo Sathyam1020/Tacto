@@ -1,6 +1,6 @@
 # Phase 15 — Embed Foundation — Implementation Plan
 
-**Status:** In progress · **Source of truth for build** · Companion to `phase-15-embeds-showcases-rfc.md`
+**Status:** ✅ Shipped (Phases 1–4 complete) · **Source of truth for build** · Companion to `phase-15-embeds-showcases-rfc.md`
 **Branch:** `feat/showcase-embed` · **Scope:** `apps/web`, `apps/api`, `packages/{contracts,ui}`
 
 > Lives in `docs/plans/` beside the RFC + the phase-11→14 plans (the established location).

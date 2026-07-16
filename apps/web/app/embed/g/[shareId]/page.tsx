@@ -48,7 +48,7 @@ export default async function EmbedGuidePage({ params, searchParams }: Params) {
         chromeless
         mode={asMode(mode)}
         lang={lang}
-        sourceHost="embed"
+        source="embed"
       />
     </div>
   )

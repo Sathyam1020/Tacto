@@ -34,6 +34,8 @@ export const guideEventContextSchema = z
     formId: z.string().max(64).optional(),
     durationMs: z.number().int().min(0).max(86_400_000).optional(),
     referrerHost: z.string().max(128).optional(),
+    /** Distribution surface the read came from: "embed" | "help-center" | … */
+    source: z.string().max(32).optional(),
     // Future-proof (stored, not surfaced):
     guideVersion: z.number().int().optional(),
     deviceType: z.enum(["mobile", "tablet", "desktop"]).optional(),

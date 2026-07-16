@@ -89,6 +89,7 @@
   // ── popup ─────────────────────────────────────────────────────────────────
   function open(opts) {
     if (!opts || !opts.guide) return null;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var lastFocus = document.activeElement;
     var overlay = document.createElement("div");
     overlay.setAttribute("role", "dialog");
@@ -96,11 +97,12 @@
     overlay.setAttribute("aria-label", "Guide");
     overlay.style.cssText =
       "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;" +
-      "background:rgba(0,0,0,.5);padding:16px;opacity:0;transition:opacity .15s ease";
+      "background:rgba(0,0,0,.5);padding:16px;opacity:0;" + (reduce ? "" : "transition:opacity .15s ease");
     var modal = document.createElement("div");
     modal.style.cssText =
       "position:relative;width:100%;max-width:920px;height:86vh;max-height:760px;border-radius:16px;" +
-      "overflow:hidden;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);transform:scale(.98);transition:transform .15s ease";
+      "overflow:hidden;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);" +
+      (reduce ? "" : "transform:scale(.98);transition:transform .15s ease");
     var iframe = makeIframe(opts);
     iframe.style.height = "100%";
     iframe.style.borderRadius = "16px";
