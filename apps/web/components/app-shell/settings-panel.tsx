@@ -10,6 +10,7 @@ import {
   Palette,
   Shield,
   User,
+  Users,
 } from "lucide-react"
 
 import { cn } from "@workspace/ui/lib/utils"
@@ -35,7 +36,10 @@ const GROUPS: NavGroup[] = [
   },
   {
     label: "Workspace",
-    items: [{ href: "/settings/workspace", label: "General", icon: Building2 }],
+    items: [
+      { href: "/settings/workspace", label: "General", icon: Building2 },
+      { href: "/settings/members", label: "Members", icon: Users },
+    ],
   },
   {
     label: "Preferences",

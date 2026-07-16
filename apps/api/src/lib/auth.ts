@@ -52,6 +52,15 @@ export const auth = betterAuth({
     // Workspaces created via the UI get a default folder too (signup creates
     // its workspace directly, handled in the user.create hook below).
     organization({
+      // Email delivery (Resend) is not wired yet, so invitations are
+      // LINK-BASED in V1: the inviter copies the /invite/{id} link and shares
+      // it. This seam records the invite; once Resend lands, send the email
+      // here and nothing else changes.
+      sendInvitationEmail: async (data) => {
+        console.info(
+          `[invite] ${data.email} → "${data.organization.name}" (invitation ${data.id})`
+        );
+      },
       organizationHooks: {
         afterCreateOrganization: async ({ organization: org }) => {
           await ensureDefaultFolder(prisma, org.id);
