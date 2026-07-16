@@ -10,7 +10,7 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "test": "tsx lib/editor-history.test.ts && tsx lib/draft-cache.test.ts"
+    "test": "tsx lib/editor-history.test.ts && tsx lib/draft-cache.test.ts && tsx lib/permissions.test.ts"
   },
   "dependencies": {
     "@rive-app/react-canvas": "^4.29.5",

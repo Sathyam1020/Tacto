@@ -197,9 +197,18 @@ function RailAccount() {
         aria-label="Account"
         className="mt-1 flex size-9 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
       >
-        <span className="flex size-8 items-center justify-center rounded-lg bg-ink text-xs font-semibold text-paper">
-          {initial}
-        </span>
+        {session.user.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={session.user.image}
+            alt=""
+            className="size-8 rounded-lg object-cover"
+          />
+        ) : (
+          <span className="flex size-8 items-center justify-center rounded-lg bg-ink text-xs font-semibold text-paper">
+            {initial}
+          </span>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent side="right" align="end" className="w-56">
         <DropdownMenuGroup>

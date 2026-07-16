@@ -33,6 +33,32 @@ export const auth = betterAuth({
     requireEmailVerification: false,
   },
 
+  user: {
+    // Account deletion (Settings ▸ Danger zone). No email verification step
+    // (Resend not wired) — the client gates it with a typed confirmation.
+    deleteUser: {
+      enabled: true,
+      // Before the account goes, delete every workspace this user SOLELY owns
+      // so none is left ownerless. Organization cascade removes its guides,
+      // folders, forms, and help center. Shared workspaces with another owner
+      // are left intact.
+      beforeDelete: async (user) => {
+        const owned = await prisma.member.findMany({
+          where: { userId: user.id, role: "owner" },
+          select: { organizationId: true },
+        });
+        for (const { organizationId } of owned) {
+          const otherOwners = await prisma.member.count({
+            where: { organizationId, role: "owner", userId: { not: user.id } },
+          });
+          if (otherOwners === 0) {
+            await prisma.organization.delete({ where: { id: organizationId } });
+          }
+        }
+      },
+    },
+  },
+
   // Google is enabled only when credentials are configured, so email/password
   // auth works before the OAuth console setup is done.
   socialProviders:
@@ -52,6 +78,15 @@ export const auth = betterAuth({
     // Workspaces created via the UI get a default folder too (signup creates
     // its workspace directly, handled in the user.create hook below).
     organization({
+      // Email delivery (Resend) is not wired yet, so invitations are
+      // LINK-BASED in V1: the inviter copies the /invite/{id} link and shares
+      // it. This seam records the invite; once Resend lands, send the email
+      // here and nothing else changes.
+      sendInvitationEmail: async (data) => {
+        console.info(
+          `[invite] ${data.email} → "${data.organization.name}" (invitation ${data.id})`
+        );
+      },
       organizationHooks: {
         afterCreateOrganization: async ({ organization: org }) => {
           await ensureDefaultFolder(prisma, org.id);
