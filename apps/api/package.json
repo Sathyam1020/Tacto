@@ -11,7 +11,7 @@
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "seed:capture": "node scripts/seed-capture.mjs",
-    "test": "tsx --env-file=.env src/features/guide/draft.test.ts && tsx --env-file=.env src/features/guide/publish-draft.test.ts && tsx --env-file=.env src/features/voice/domain.test.ts && tsx --env-file=.env src/features/form/contracts.test.ts && tsx --env-file=.env src/features/form/lifecycle.test.ts && tsx --env-file=.env src/features/form/results.test.ts && tsx src/features/guide/analytics.test.ts && tsx src/features/help-center/analytics.test.ts && tsx --env-file=.env src/features/help-center/logic.test.ts"
+    "test": "tsx --env-file=.env src/features/guide/draft.test.ts && tsx --env-file=.env src/features/guide/publish-draft.test.ts && tsx --env-file=.env src/features/voice/domain.test.ts && tsx --env-file=.env src/features/form/contracts.test.ts && tsx --env-file=.env src/features/form/lifecycle.test.ts && tsx --env-file=.env src/features/form/results.test.ts && tsx src/features/guide/analytics.test.ts && tsx src/features/help-center/analytics.test.ts && tsx --env-file=.env src/features/help-center/logic.test.ts && tsx src/features/showcase/logic.test.ts && tsx src/features/showcase/analytics.test.ts"
   },
   "dependencies": {
     "@workspace/ai": "*",

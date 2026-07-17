@@ -463,6 +463,74 @@ export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
 }
 
+export type EnumShowcaseStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseStatus | Prisma.EnumShowcaseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel> | $Enums.ShowcaseStatus
+}
+
+export type EnumShowcaseLayoutFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseLayout | Prisma.EnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel> | $Enums.ShowcaseLayout
+}
+
+export type EnumShowcaseStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseStatus | Prisma.EnumShowcaseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel>
+}
+
+export type EnumShowcaseLayoutWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseLayout | Prisma.EnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseLayoutWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseLayout
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel>
+}
+
+export type EnumShowcaseItemTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseItemType | Prisma.EnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel> | $Enums.ShowcaseItemType
+}
+
+export type EnumShowcaseItemTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseItemType | Prisma.EnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseItemTypeWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseItemType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel>
+}
+
+export type EnumShowcaseEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseEventType | Prisma.EnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel> | $Enums.ShowcaseEventType
+}
+
+export type EnumShowcaseEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseEventType | Prisma.EnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel>
+}
+
 export type EnumGuideEventTypeFilter<$PrismaModel = never> = {
   equals?: $Enums.GuideEventType | Prisma.EnumGuideEventTypeFieldRefInput<$PrismaModel>
   in?: $Enums.GuideEventType[] | Prisma.ListEnumGuideEventTypeFieldRefInput<$PrismaModel>
@@ -892,6 +960,74 @@ export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedBoolNullableFilter<$PrismaModel>
   _max?: Prisma.NestedBoolNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumShowcaseStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseStatus | Prisma.EnumShowcaseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel> | $Enums.ShowcaseStatus
+}
+
+export type NestedEnumShowcaseLayoutFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseLayout | Prisma.EnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel> | $Enums.ShowcaseLayout
+}
+
+export type NestedEnumShowcaseStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseStatus | Prisma.EnumShowcaseStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseStatus[] | Prisma.ListEnumShowcaseStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseStatusWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseStatusFilter<$PrismaModel>
+}
+
+export type NestedEnumShowcaseLayoutWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseLayout | Prisma.EnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseLayout[] | Prisma.ListEnumShowcaseLayoutFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseLayoutWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseLayout
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseLayoutFilter<$PrismaModel>
+}
+
+export type NestedEnumShowcaseItemTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseItemType | Prisma.EnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel> | $Enums.ShowcaseItemType
+}
+
+export type NestedEnumShowcaseItemTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseItemType | Prisma.EnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseItemType[] | Prisma.ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseItemTypeWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseItemType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseItemTypeFilter<$PrismaModel>
+}
+
+export type NestedEnumShowcaseEventTypeFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseEventType | Prisma.EnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel> | $Enums.ShowcaseEventType
+}
+
+export type NestedEnumShowcaseEventTypeWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ShowcaseEventType | Prisma.EnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  in?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ShowcaseEventType[] | Prisma.ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumShowcaseEventTypeWithAggregatesFilter<$PrismaModel> | $Enums.ShowcaseEventType
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumShowcaseEventTypeFilter<$PrismaModel>
 }
 
 export type NestedEnumGuideEventTypeFilter<$PrismaModel = never> = {

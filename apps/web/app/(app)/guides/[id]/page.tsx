@@ -65,6 +65,7 @@ import {
   resolveCustomization,
   useGuide,
   useGuideTranslations,
+  usePublishDraft,
   type GuideTranslationFull,
 } from "@/lib/guides"
 import { useNarration } from "@/lib/narration"
@@ -114,6 +115,7 @@ export default function GuidePage() {
     }
   }, [guide, dv])
   const [shareOpen, setShareOpen] = React.useState(false)
+  const publishDraft = usePublishDraft(params.id)
   const [infoOpen, setInfoOpen] = React.useState(false)
   // The video currently being downloaded (null = none).
   const [videoReq, setVideoReq] = React.useState<VideoDownloadItem | null>(null)
@@ -245,16 +247,28 @@ export default function GuidePage() {
       }
     >
       {guide.hasUnpublishedChanges && (
-        <Link
-          href={`/guides/${params.id}/edit`}
-          className="mb-6 flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-700 transition-colors hover:bg-amber-500/15 dark:text-amber-400"
-        >
+        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-sm text-amber-700 dark:text-amber-400">
           <SquarePenIcon size={15} />
-          <span className="font-medium">You have unpublished changes.</span>
-          <span className="text-amber-700/80 dark:text-amber-400/80">
-            Continue editing →
-          </span>
-        </Link>
+          <span className="flex-1 font-medium">You have unpublished changes.</span>
+          <Link
+            href={`/guides/${params.id}/edit`}
+            className="font-medium text-amber-700/90 underline-offset-2 hover:underline dark:text-amber-400/90"
+          >
+            Continue editing
+          </Link>
+          <Button
+            size="sm"
+            disabled={publishDraft.isPending}
+            onClick={() =>
+              publishDraft.mutate(undefined, {
+                onSuccess: () => toast.success("Changes published"),
+                onError: () => toast.error("Couldn't publish changes"),
+              })
+            }
+          >
+            {publishDraft.isPending ? "Publishing…" : "Publish changes"}
+          </Button>
+        </div>
       )}
       <div className="flex items-start justify-between gap-4">
         <h1 className="font-serif text-4xl leading-tight font-medium tracking-tight text-balance">

@@ -50,6 +50,7 @@ export function PublicGuideView({
   onLangChange,
   stepVariant,
   sourceHost,
+  source,
 }: {
   guide: PublicGuide
   /** Rendered inside another page's chrome (e.g. a Help Center) — hides the
@@ -64,8 +65,11 @@ export function PublicGuideView({
   onLangChange?: (lang: string | null) => void
   /** "cards" wraps each list step in a bordered card (Help Center look). */
   stepVariant?: "cards"
-  /** Attributes reads to a host surface (e.g. "help-center") in analytics. */
+  /** Attributes reads to a host surface (e.g. "help-center") in analytics by
+   *  overwriting the referrer. Use `source` instead to tag WITHOUT losing the
+   *  real referrer (embeds keep the host site + tag source="embed"). */
   sourceHost?: string
+  source?: string
 }) {
   const cust = React.useMemo(
     () => resolveCustomization(guide.customization),
@@ -120,7 +124,7 @@ export function PublicGuideView({
     (lang ? (RTL_LANGUAGE_CODES as readonly string[]).includes(lang) : false)
 
   // ── Analytics ──────────────────────────────────────────────────────────────
-  const tracker = useGuideTracker(guide.shareId, sourceHost)
+  const tracker = useGuideTracker(guide.shareId, sourceHost, source)
   const { track } = tracker
   const started = React.useRef(false)
 

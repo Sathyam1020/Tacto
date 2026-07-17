@@ -103,7 +103,11 @@ function dedupKey(type: GuideEventType, ctx?: GuideEventContext): string {
   return `${type}|${disc}`
 }
 
-export function useGuideTracker(shareId: string, sourceHost?: string): GuideTracker {
+export function useGuideTracker(
+  shareId: string,
+  sourceHost?: string,
+  source?: string
+): GuideTracker {
   const queue = React.useRef<
     { type: GuideEventType; context?: GuideEventContext }[]
   >([])
@@ -153,6 +157,15 @@ export function useGuideTracker(shareId: string, sourceHost?: string): GuideTrac
       seen.current.add(key)
       const ctx = type === "view" ? { ...sessionCtx.current, ...context } : context
       queue.current.push(ctx && Object.keys(ctx).length ? { type, context: ctx } : { type })
+      // Surface each tracked event to the ambient DOM so the embed bridge (and
+      // any future in-page consumer) can relay it — no coupling to this module.
+      if (typeof window !== "undefined") {
+        try {
+          window.dispatchEvent(new CustomEvent("tacto:track", { detail: { type, context: ctx } }))
+        } catch {
+          /* ignore */
+        }
+      }
       if (timer.current) clearTimeout(timer.current)
       timer.current = setTimeout(flush, 1500)
     },
@@ -168,6 +181,9 @@ export function useGuideTracker(shareId: string, sourceHost?: string): GuideTrac
     // read to that surface so the guide's "sources" report reflects it — a
     // same-origin referrer would otherwise collapse to "direct".
     if (sourceHost) sessionCtx.current.referrerHost = sourceHost.slice(0, 128)
+    // A distribution marker kept ALONGSIDE the referrer (embeds keep the real
+    // host site as referrerHost + tag source="embed").
+    if (source) sessionCtx.current.source = source.slice(0, 32)
 
     const end = () => {
       if (ended.current) return
@@ -189,7 +205,7 @@ export function useGuideTracker(shareId: string, sourceHost?: string): GuideTrac
       document.removeEventListener("visibilitychange", onVisibility)
       end()
     }
-  }, [flush, sourceHost])
+  }, [flush, sourceHost, source])
 
   return React.useMemo(() => ({ track }), [track])
 }

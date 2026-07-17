@@ -401,6 +401,10 @@ export const ModelName = {
   HelpCenterEvent: 'HelpCenterEvent',
   HelpCollection: 'HelpCollection',
   HelpArticle: 'HelpArticle',
+  Showcase: 'Showcase',
+  ShowcaseSection: 'ShowcaseSection',
+  ShowcaseItem: 'ShowcaseItem',
+  ShowcaseEvent: 'ShowcaseEvent',
   GuideEvent: 'GuideEvent',
   GuideDraft: 'GuideDraft',
   GuideTranslation: 'GuideTranslation',
@@ -427,7 +431,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "helpCenter" | "helpCenterEvent" | "helpCollection" | "helpArticle" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
+    modelProps: "user" | "session" | "account" | "verification" | "organization" | "folder" | "member" | "invitation" | "form" | "formDraft" | "formSubmission" | "capture" | "guide" | "helpCenter" | "helpCenterEvent" | "helpCollection" | "helpArticle" | "showcase" | "showcaseSection" | "showcaseItem" | "showcaseEvent" | "guideEvent" | "guideDraft" | "guideTranslation" | "guideReaction" | "guideComment" | "captureIntent" | "step" | "narration" | "narrationSegment" | "mediaRender" | "segmentRenderRef"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1689,6 +1693,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Showcase: {
+      payload: Prisma.$ShowcasePayload<ExtArgs>
+      fields: Prisma.ShowcaseFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShowcaseFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShowcaseFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        findFirst: {
+          args: Prisma.ShowcaseFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShowcaseFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        findMany: {
+          args: Prisma.ShowcaseFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>[]
+        }
+        create: {
+          args: Prisma.ShowcaseCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        createMany: {
+          args: Prisma.ShowcaseCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShowcaseCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>[]
+        }
+        delete: {
+          args: Prisma.ShowcaseDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        update: {
+          args: Prisma.ShowcaseUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        deleteMany: {
+          args: Prisma.ShowcaseDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShowcaseUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShowcaseUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>[]
+        }
+        upsert: {
+          args: Prisma.ShowcaseUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcasePayload>
+        }
+        aggregate: {
+          args: Prisma.ShowcaseAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShowcase>
+        }
+        groupBy: {
+          args: Prisma.ShowcaseGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShowcaseCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShowcaseSection: {
+      payload: Prisma.$ShowcaseSectionPayload<ExtArgs>
+      fields: Prisma.ShowcaseSectionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShowcaseSectionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShowcaseSectionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        findFirst: {
+          args: Prisma.ShowcaseSectionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShowcaseSectionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        findMany: {
+          args: Prisma.ShowcaseSectionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>[]
+        }
+        create: {
+          args: Prisma.ShowcaseSectionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        createMany: {
+          args: Prisma.ShowcaseSectionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShowcaseSectionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>[]
+        }
+        delete: {
+          args: Prisma.ShowcaseSectionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        update: {
+          args: Prisma.ShowcaseSectionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShowcaseSectionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShowcaseSectionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShowcaseSectionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShowcaseSectionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseSectionPayload>
+        }
+        aggregate: {
+          args: Prisma.ShowcaseSectionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShowcaseSection>
+        }
+        groupBy: {
+          args: Prisma.ShowcaseSectionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseSectionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShowcaseSectionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseSectionCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShowcaseItem: {
+      payload: Prisma.$ShowcaseItemPayload<ExtArgs>
+      fields: Prisma.ShowcaseItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShowcaseItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShowcaseItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        findFirst: {
+          args: Prisma.ShowcaseItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShowcaseItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        findMany: {
+          args: Prisma.ShowcaseItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>[]
+        }
+        create: {
+          args: Prisma.ShowcaseItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        createMany: {
+          args: Prisma.ShowcaseItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShowcaseItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>[]
+        }
+        delete: {
+          args: Prisma.ShowcaseItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        update: {
+          args: Prisma.ShowcaseItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShowcaseItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShowcaseItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShowcaseItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShowcaseItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseItemPayload>
+        }
+        aggregate: {
+          args: Prisma.ShowcaseItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShowcaseItem>
+        }
+        groupBy: {
+          args: Prisma.ShowcaseItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShowcaseItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    ShowcaseEvent: {
+      payload: Prisma.$ShowcaseEventPayload<ExtArgs>
+      fields: Prisma.ShowcaseEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ShowcaseEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ShowcaseEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        findFirst: {
+          args: Prisma.ShowcaseEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ShowcaseEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        findMany: {
+          args: Prisma.ShowcaseEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>[]
+        }
+        create: {
+          args: Prisma.ShowcaseEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        createMany: {
+          args: Prisma.ShowcaseEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ShowcaseEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>[]
+        }
+        delete: {
+          args: Prisma.ShowcaseEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        update: {
+          args: Prisma.ShowcaseEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.ShowcaseEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ShowcaseEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ShowcaseEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.ShowcaseEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ShowcaseEventPayload>
+        }
+        aggregate: {
+          args: Prisma.ShowcaseEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateShowcaseEvent>
+        }
+        groupBy: {
+          args: Prisma.ShowcaseEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ShowcaseEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ShowcaseEventCountAggregateOutputType> | number
+        }
+      }
+    }
     GuideEvent: {
       payload: Prisma.$GuideEventPayload<ExtArgs>
       fields: Prisma.GuideEventFieldRefs
@@ -2818,6 +3118,69 @@ export const HelpArticleScalarFieldEnum = {
 export type HelpArticleScalarFieldEnum = (typeof HelpArticleScalarFieldEnum)[keyof typeof HelpArticleScalarFieldEnum]
 
 
+export const ShowcaseScalarFieldEnum = {
+  id: 'id',
+  organizationId: 'organizationId',
+  slug: 'slug',
+  status: 'status',
+  listed: 'listed',
+  title: 'title',
+  description: 'description',
+  layout: 'layout',
+  autoplay: 'autoplay',
+  brandColor: 'brandColor',
+  logoUrl: 'logoUrl',
+  theme: 'theme',
+  seo: 'seo',
+  publishedAt: 'publishedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShowcaseScalarFieldEnum = (typeof ShowcaseScalarFieldEnum)[keyof typeof ShowcaseScalarFieldEnum]
+
+
+export const ShowcaseSectionScalarFieldEnum = {
+  id: 'id',
+  showcaseId: 'showcaseId',
+  title: 'title',
+  position: 'position',
+  hidden: 'hidden',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ShowcaseSectionScalarFieldEnum = (typeof ShowcaseSectionScalarFieldEnum)[keyof typeof ShowcaseSectionScalarFieldEnum]
+
+
+export const ShowcaseItemScalarFieldEnum = {
+  id: 'id',
+  sectionId: 'sectionId',
+  position: 'position',
+  type: 'type',
+  guideId: 'guideId',
+  title: 'title',
+  url: 'url',
+  formShareId: 'formShareId',
+  createdAt: 'createdAt'
+} as const
+
+export type ShowcaseItemScalarFieldEnum = (typeof ShowcaseItemScalarFieldEnum)[keyof typeof ShowcaseItemScalarFieldEnum]
+
+
+export const ShowcaseEventScalarFieldEnum = {
+  id: 'id',
+  showcaseId: 'showcaseId',
+  type: 'type',
+  anonId: 'anonId',
+  sessionId: 'sessionId',
+  target: 'target',
+  createdAt: 'createdAt'
+} as const
+
+export type ShowcaseEventScalarFieldEnum = (typeof ShowcaseEventScalarFieldEnum)[keyof typeof ShowcaseEventScalarFieldEnum]
+
+
 export const GuideEventScalarFieldEnum = {
   id: 'id',
   guideId: 'guideId',
@@ -3214,6 +3577,62 @@ export type ListEnumHelpCenterEventTypeFieldRefInput<$PrismaModel> = FieldRefInp
 
 
 /**
+ * Reference to a field of type 'ShowcaseStatus'
+ */
+export type EnumShowcaseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseStatus[]'
+ */
+export type ListEnumShowcaseStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseLayout'
+ */
+export type EnumShowcaseLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseLayout'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseLayout[]'
+ */
+export type ListEnumShowcaseLayoutFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseLayout[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseItemType'
+ */
+export type EnumShowcaseItemTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseItemType'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseItemType[]'
+ */
+export type ListEnumShowcaseItemTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseItemType[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseEventType'
+ */
+export type EnumShowcaseEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseEventType'>
+    
+
+
+/**
+ * Reference to a field of type 'ShowcaseEventType[]'
+ */
+export type ListEnumShowcaseEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ShowcaseEventType[]'>
+    
+
+
+/**
  * Reference to a field of type 'GuideEventType'
  */
 export type EnumGuideEventTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'GuideEventType'>
@@ -3367,6 +3786,10 @@ export type GlobalOmitConfig = {
   helpCenterEvent?: Prisma.HelpCenterEventOmit
   helpCollection?: Prisma.HelpCollectionOmit
   helpArticle?: Prisma.HelpArticleOmit
+  showcase?: Prisma.ShowcaseOmit
+  showcaseSection?: Prisma.ShowcaseSectionOmit
+  showcaseItem?: Prisma.ShowcaseItemOmit
+  showcaseEvent?: Prisma.ShowcaseEventOmit
   guideEvent?: Prisma.GuideEventOmit
   guideDraft?: Prisma.GuideDraftOmit
   guideTranslation?: Prisma.GuideTranslationOmit

@@ -7,6 +7,7 @@ import { createWorkspaceSchema } from "@workspace/contracts/workspace"
 import {
   Check,
   ClipboardList,
+  GalleryHorizontalEnd,
   LifeBuoy,
   Moon,
   Plus,
@@ -259,6 +260,7 @@ export function Rail() {
 
   const onForms = pathname?.startsWith("/forms") ?? false
   const onHelp = pathname?.startsWith("/help-center") ?? false
+  const onShowcases = pathname?.startsWith("/showcases") ?? false
   const onLibrary = pathname === "/home"
 
   return (
@@ -293,6 +295,15 @@ export function Rail() {
         }}
       >
         <ClipboardList className="size-[19px]" />
+      </RailButton>
+      <RailButton
+        label="Showcases"
+        active={onShowcases}
+        onClick={() => {
+          if (!onShowcases) router.push("/showcases")
+        }}
+      >
+        <GalleryHorizontalEnd className="size-[19px]" />
       </RailButton>
       <RailButton
         label="Help center"

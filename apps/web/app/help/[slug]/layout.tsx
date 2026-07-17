@@ -1,21 +1,18 @@
 import * as React from "react"
 
+import { PublicThemeProvider, PUBLIC_THEME_PREPAINT } from "@/lib/public-theme"
+
 /**
- * The public Help Center is intentionally light-only, but the app defaults to a
- * `.dark` class that next-themes sets pre-paint. This blocking inline script
- * strips `.dark` before the help content paints, so there's no dark→light flash
- * on a full page load. (Client-side navigation is handled by `useForceLight`,
- * which also restores `.dark` when leaving for the app.)
+ * The public Help Center supports light + dark via a visitor-owned theme
+ * (independent of the app's next-themes default). The blocking inline script
+ * applies the saved choice before paint (no flash); `PublicThemeProvider` holds
+ * it against next-themes and drives the header toggle.
  */
 export default function HelpLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: "try{document.documentElement.classList.remove('dark')}catch(e){}",
-        }}
-      />
-      {children}
+      <script dangerouslySetInnerHTML={{ __html: PUBLIC_THEME_PREPAINT }} />
+      <PublicThemeProvider>{children}</PublicThemeProvider>
     </>
   )
 }

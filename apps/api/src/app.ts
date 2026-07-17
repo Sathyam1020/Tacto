@@ -16,6 +16,8 @@ import { imageRouter } from "./features/img/router.js";
 import { mediaRouter } from "./features/media/router.js";
 import { meRouter } from "./features/me/router.js";
 import { publicRouter } from "./features/public/router.js";
+import { showcasePublicRouter } from "./features/public/showcase-router.js";
+import { showcaseRouter } from "./features/showcase/router.js";
 import { uploadsRouter } from "./features/uploads/router.js";
 import { voiceRouter } from "./features/voice/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
@@ -72,6 +74,7 @@ export function createApp(): Express {
   app.use(publicRouter);
   app.use(formPublicRouter);
   app.use(helpPublicRouter);
+  app.use(showcasePublicRouter);
   app.use(imageRouter);
   app.use(meRouter);
   app.use(workspaceRouter);
@@ -81,6 +84,7 @@ export function createApp(): Express {
   app.use(faqRouter);
   app.use(formRouter);
   app.use(helpCenterRouter);
+  app.use(showcaseRouter);
   app.use(folderRouter);
   app.use(mediaRouter);
   app.use(uploadsRouter);
