@@ -16,26 +16,28 @@ const LAYOUT_LABEL: Record<string, string> = { SECTION: "Section", CHECKLIST: "C
 export default function ShowcasesPage() {
   const router = useRouter()
   const { data: showcases, isPending } = useShowcases()
-  const create = useCreateShowcase()
+  // Destructure the STABLE `mutate`/`isPending` — the `create` object itself is a
+  // new reference every render, which would make the navbar effect loop.
+  const { mutate: createShowcase, isPending: creating } = useCreateShowcase()
 
   const newShowcase = React.useCallback(() => {
-    create.mutate("Untitled showcase", {
+    createShowcase("Untitled showcase", {
       onSuccess: (detail) => router.push(`/showcases/${detail.id}`),
       onError: () => toast.error("Couldn't create the showcase"),
     })
-  }, [create, router])
+  }, [createShowcase, router])
 
   useSetNavbar(
     {
       leftActions: <h1 className="text-[15px] font-semibold">Showcases</h1>,
       actions: (
-        <Button size="sm" onClick={newShowcase} disabled={create.isPending}>
+        <Button size="sm" onClick={newShowcase} disabled={creating}>
           <Plus className="size-4" />
           New showcase
         </Button>
       ),
     },
-    [newShowcase, create.isPending]
+    [newShowcase, creating]
   )
 
   if (isPending) {
@@ -58,7 +60,7 @@ export default function ShowcasesPage() {
         <p className="mt-1.5 text-sm text-muted-foreground">
           Bundle guides and resources into a branded, embeddable collection.
         </p>
-        <Button className="mt-6" onClick={newShowcase} disabled={create.isPending}>
+        <Button className="mt-6" onClick={newShowcase} disabled={creating}>
           <Plus className="size-4" />
           New showcase
         </Button>
