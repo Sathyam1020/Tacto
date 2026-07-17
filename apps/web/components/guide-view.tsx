@@ -24,7 +24,6 @@ export function GuideBody({
   customization,
   interactive,
   narration,
-  variant,
 }: {
   blocks: GuideBlock[]
   mode: ViewMode
@@ -56,35 +55,26 @@ export function GuideBody({
         />
       ) : (
         <>
-          {navBarOn && stepTotal > 0 && variant !== "cards" && (
+          {navBarOn && stepTotal > 0 && (
             <ListNavBar containerRef={listRef} total={stepTotal} />
           )}
-          {variant === "cards" ? (
-            <div ref={listRef} className="flex flex-col gap-5">
-              {numbered.map((block) => (
+          {/* Guidejar-style stacked cards: STEP/OUTCOME each get a bordered
+              card; structural blocks (heading/tip/alert) render inline. */}
+          <div ref={listRef} className="flex flex-col gap-5">
+            {numbered.map((block) => {
+              const carded = block.type === "STEP" || block.type === "OUTCOME"
+              return carded ? (
                 <div
                   key={block.id}
-                  className="rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-6 shadow-[0_2px_8px_-4px_rgba(20,22,40,0.08)] sm:p-7"
+                  className="rounded-2xl border border-[var(--l-hairline)] bg-[var(--l-card)] p-5 shadow-[0_2px_8px_-4px_rgba(20,22,40,0.08)] sm:p-6"
                 >
-                  <BlockView block={block} stepNumber={block.stepNumber} connect={false} />
+                  <BlockView block={block} stepNumber={block.stepNumber} />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div ref={listRef} className="flex flex-col gap-8">
-              {numbered.map((block, i) => (
-                <BlockView
-                  key={block.id}
-                  block={block}
-                  stepNumber={block.stepNumber}
-                  // Thread the spine only between back-to-back steps.
-                  connect={
-                    block.type === "STEP" && numbered[i + 1]?.type === "STEP"
-                  }
-                />
-              ))}
-            </div>
-          )}
+              ) : (
+                <BlockView key={block.id} block={block} stepNumber={block.stepNumber} />
+              )
+            })}
+          </div>
         </>
       )}
     </GuideCustomizationProvider>

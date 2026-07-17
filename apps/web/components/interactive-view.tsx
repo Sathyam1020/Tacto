@@ -424,10 +424,15 @@ export function InteractiveView({
           </div>
         )}
         <div
-          className="bg-card overflow-hidden rounded-xl border"
+          className="bg-card relative overflow-hidden rounded-xl border"
           data-step-key={stepFrame ? currentFrameId : undefined}
         >
-          <ChromeBar actions={chromeActions} />
+          {/* Floating controls over the screenshot — no fake browser chrome. */}
+          {chromeActions && (
+            <div className="absolute top-3 right-3 z-30 flex items-center gap-0.5 rounded-full border border-border/60 bg-background/80 px-1 py-1 shadow-sm backdrop-blur">
+              {chromeActions}
+            </div>
+          )}
 
           {frame.kind === "slide" ? (
             <SlideFrame
@@ -460,6 +465,24 @@ export function InteractiveView({
                   />
                 </m.div>
               </div>
+
+              {/* Spotlight — dim everything except the target region so the
+                  eye lands on the click (Guidejar's signature). */}
+              {rect && (
+                <m.div
+                  aria-hidden
+                  className="pointer-events-none absolute z-[5] rounded-lg"
+                  initial={false}
+                  animate={{
+                    left: `${Math.max(0, (rect.x - 0.01) * 100)}%`,
+                    top: `${Math.max(0, (rect.y - 0.01) * 100)}%`,
+                    width: `${(rect.w + 0.02) * 100}%`,
+                    height: `${(rect.h + 0.02) * 100}%`,
+                  }}
+                  transition={travelT}
+                  style={{ boxShadow: "0 0 0 9999px rgba(15,17,30,0.44)" }}
+                />
+              )}
 
               {/* Click target — advances (snappier) when tapped. */}
               {rect && !atEnd && (
@@ -543,34 +566,10 @@ export function InteractiveView({
               />
             </div>
           )}
-        </div>
 
-        {/* Bottom nav — prev · counter · next, plus a dot scrubber. */}
-        <div className="mt-5 flex items-center justify-center gap-4">
-          <NavButton onClick={() => go(-1)} disabled={atStart} label="Previous">
-            <ChevronLeft className="size-4" />
-          </NavButton>
-          <span className="text-muted-foreground font-mono text-xs tabular-nums">
-            {index + 1} / {frames.length}
-          </span>
-          <NavButton onClick={() => go(1)} disabled={atEnd} label="Next">
-            <ChevronRight className="size-4" />
-          </NavButton>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-1.5">
-          {frames.map((s, i) => (
-            <button
-              key={s.id}
-              aria-label={`Go to ${i + 1}`}
-              onClick={() => jumpTo(i)}
-              className={
-                i === index
-                  ? "bg-primary h-1.5 w-6 rounded-full transition-all"
-                  : "bg-border hover:bg-muted-foreground/40 h-1.5 w-1.5 rounded-full transition-all"
-              }
-            />
-          ))}
+          {/* Edge chevrons — Guidejar-style prev/next over the stage. */}
+          {!atStart && <EdgeChevron side="left" onClick={() => go(-1)} />}
+          {!atEnd && <EdgeChevron side="right" onClick={() => go(1)} />}
         </div>
 
         {wv.cta.enabled && atEnd && <CtaCard cta={wv.cta} />}
@@ -807,39 +806,29 @@ function SlideFrame({
   )
 }
 
-function NavButton({
+/** A large prev/next chevron floating over the stage edge (Guidejar-style). */
+function EdgeChevron({
+  side,
   onClick,
-  disabled,
-  label,
-  children,
 }: {
+  side: "left" | "right"
   onClick: () => void
-  disabled: boolean
-  label: string
-  children: React.ReactNode
 }) {
   return (
     <button
       onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className="hover:bg-muted flex size-8 items-center justify-center rounded-lg border transition-colors disabled:opacity-30"
+      aria-label={side === "left" ? "Previous" : "Next"}
+      className={cn(
+        "text-foreground absolute top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-md backdrop-blur transition hover:bg-background active:scale-90",
+        side === "left" ? "left-3" : "right-3"
+      )}
     >
-      {children}
+      {side === "left" ? (
+        <ChevronLeft className="size-5" />
+      ) : (
+        <ChevronRight className="size-5" />
+      )}
     </button>
-  )
-}
-
-/** The screenshot's chrome bar — traffic-light dots + right-aligned actions. */
-function ChromeBar({ actions }: { actions?: React.ReactNode }) {
-  return (
-    <div className="flex items-center gap-1.5 border-b px-3 py-2.5">
-      <span className="bg-line-2 size-2 rounded-full" />
-      <span className="bg-line-2 size-2 rounded-full" />
-      <span className="bg-line-2 size-2 rounded-full" />
-      <span className="bg-sheet ml-2 h-4 flex-1 rounded-full border" />
-      {actions && <div className="flex items-center gap-0.5 pl-1">{actions}</div>}
-    </div>
   )
 }
 

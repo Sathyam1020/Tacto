@@ -28,6 +28,8 @@
     --font-serif: var(--font-serif); /* knowledge content: editorial serif */
     --font-mono: var(--font-mono);   /* captured data: timestamps, selectors, kbd */
     --font-heading: var(--font-sans);
+    --font-display: var(--font-display); /* marketing display grotesque (loaded per-route) */
+    --font-accent: var(--font-accent);   /* marketing editorial italic serif (loaded per-route) */
 
     /* Semantic colors (shadcn contract) */
     --color-background: var(--background);

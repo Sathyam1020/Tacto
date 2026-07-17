@@ -27,6 +27,7 @@ const fontMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://tacto.fyi"),
   title: {
     default: "Tacto",
     template: "%s · Tacto",

@@ -265,19 +265,27 @@ export function PublicGuideView({
 
       <main className={cn("mx-auto px-6", embedded || chromeless ? "pt-6 pb-14" : "py-14", width)}>
         {embedded && !chromeless && <div className="mb-6 flex justify-end">{controls}</div>}
-        <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
-          {displayTitle}
-        </h1>
-        {displaySummary && (
-          <p className="text-muted-foreground mt-4 text-lg leading-relaxed">
-            {displaySummary}
-          </p>
-        )}
-        <p className="text-muted-foreground mt-4 border-b pb-6 font-mono text-xs">
-          {stepCount} steps
-        </p>
 
-        <div className="mt-10">
+        {/* Interactive/walkthrough mode is a self-contained player (its own
+            progress + completion), so the title/summary/step-count header and
+            the article chrome below only belong to scroll (list) mode. */}
+        {effectiveMode !== "interactive" && (
+          <>
+            <h1 className="font-serif text-4xl font-medium leading-tight tracking-tight text-balance">
+              {displayTitle}
+            </h1>
+            {displaySummary && (
+              <p className="text-muted-foreground mt-4 text-lg leading-relaxed">
+                {displaySummary}
+              </p>
+            )}
+            <p className="text-muted-foreground mt-4 border-b pb-6 font-mono text-xs">
+              {stepCount} steps
+            </p>
+          </>
+        )}
+
+        <div className={effectiveMode === "interactive" ? undefined : "mt-10"}>
           <GuideBody
             blocks={displayBlocks}
             interactive={displayInteractive}
@@ -288,19 +296,23 @@ export function PublicGuideView({
           />
         </div>
 
-        <GuideFaqs faqs={guide.faqs} />
+        {effectiveMode !== "interactive" && (
+          <>
+            <GuideFaqs faqs={guide.faqs} />
 
-        {guide.embeds.map((embed) => (
-          <FormEmbedOverlay key={embed.id} embed={embed} guideId={guide.shareId} />
-        ))}
+            {guide.embeds.map((embed) => (
+              <FormEmbedOverlay key={embed.id} embed={embed} guideId={guide.shareId} />
+            ))}
 
-        <GuideFeedback
-          shareId={guide.shareId}
-          allowReactions={cust.feedback.allowReactions}
-          allowComments={cust.feedback.allowComments}
-          initialReactions={guide.reactions}
-          initialComments={guide.comments}
-        />
+            <GuideFeedback
+              shareId={guide.shareId}
+              allowReactions={cust.feedback.allowReactions}
+              allowComments={cust.feedback.allowComments}
+              initialReactions={guide.reactions}
+              initialComments={guide.comments}
+            />
+          </>
+        )}
 
         {!embedded && !chromeless && (
         <footer className="mt-20 border-t pt-8 text-center">

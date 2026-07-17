@@ -29,12 +29,9 @@ type ViewableBlock = {
 export function BlockView({
   block,
   stepNumber,
-  connect = false,
 }: {
   block: ViewableBlock
   stepNumber?: number
-  /** Draw the throughline spine down to the next step (set by GuideBody). */
-  connect?: boolean
 }) {
   switch (block.type) {
     case "HEADING":
@@ -66,71 +63,59 @@ export function BlockView({
       )
 
     case "OUTCOME":
-      // Presentation-only confirmation of the final result — no number, no
-      // pointer, distinct "you'll now see" treatment.
+      // Presentation-only confirmation of the final result. Header row
+      // (icon + label + text), screenshot full-width below — the card look.
       return (
-        <div className="flex gap-5">
-          <div className="relative flex flex-col items-center">
-            <span className="mt-0.5 flex size-8 items-center justify-center rounded-full bg-[var(--l-success)]/15 text-[var(--l-success)] ring-1 ring-[var(--l-success)]/30">
+        <div>
+          <div className="flex items-center gap-3">
+            <span className="flex size-8 flex-none items-center justify-center rounded-full bg-[var(--l-success)]/15 text-[var(--l-success)] ring-1 ring-[var(--l-success)]/30">
               <Check className="size-4" strokeWidth={2.5} />
             </span>
+            <div className="min-w-0">
+              <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
+                You&apos;ll now see
+              </p>
+              <RichText html={block.content} className="mt-0.5 text-[17px] leading-snug" />
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-mono text-[10px] tracking-widest text-muted-foreground uppercase">
-              You'll now see
-            </p>
-            <RichText html={block.content} className="mt-1 text-[17px]" />
-            {block.screenshotUrl && (
-              <ScreenshotFrame
-                src={block.screenshotUrl}
-                clickRect={null}
-                controls
-                className="mt-4"
-              />
-            )}
-          </div>
+          {block.screenshotUrl && (
+            <ScreenshotFrame src={block.screenshotUrl} clickRect={null} controls className="mt-4" />
+          )}
         </div>
       )
 
     case "STEP":
     default:
+      // Card structure: step number + instruction on a top row, the screenshot
+      // full-width below (no connecting spine).
       return (
-        <div className="flex gap-5" data-step-key={block.key}>
-          <div className="relative flex flex-col items-center">
-            <StepMarker step={stepNumber ?? 1} size="lg" className="mt-0.5" />
-            {connect && (
-              <span
-                aria-hidden
-                className="bg-line-2 mt-2 -mb-8 w-px flex-1"
-              />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between gap-3">
-              <RichText html={block.content} className="text-[17px]" />
-              {block.confidence !== null && block.confidence < 0.7 && (
-                <Badge
-                  variant="outline"
-                  className="mt-1.5 shrink-0 font-mono text-[10px]"
-                >
-                  review
-                </Badge>
+        <div data-step-key={block.key}>
+          <div className="flex items-start gap-3">
+            <StepMarker step={stepNumber ?? 1} size="lg" className="mt-0.5 flex-none" />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-start justify-between gap-3">
+                <RichText html={block.content} className="text-[17px] leading-snug" />
+                {block.confidence !== null && block.confidence < 0.7 && (
+                  <Badge variant="outline" className="mt-0.5 shrink-0 font-mono text-[10px]">
+                    review
+                  </Badge>
+                )}
+              </div>
+              {block.url && (
+                <p className="text-muted-foreground mt-1 truncate font-mono text-xs">
+                  {block.url.replace(/^https?:\/\//, "")}
+                </p>
               )}
             </div>
-            {block.url && (
-              <p className="text-muted-foreground mt-1.5 truncate font-mono text-xs">
-                {block.url.replace(/^https?:\/\//, "")}
-              </p>
-            )}
-            {block.screenshotUrl && (
-              <ScreenshotFrame
-                src={block.screenshotUrl}
-                clickRect={block.clickRect}
-                controls
-                className="mt-4"
-              />
-            )}
           </div>
+          {block.screenshotUrl && (
+            <ScreenshotFrame
+              src={block.screenshotUrl}
+              clickRect={block.clickRect}
+              controls
+              className="mt-4"
+            />
+          )}
         </div>
       )
   }
