@@ -64,6 +64,21 @@ export function useDeleteShowcase() {
   })
 }
 
+/** Rename any showcase (id passed per-call, for the panel list). */
+export function useRenameShowcase() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ id, title }: { id: string; title: string }) => {
+      const { data } = await api.patch<{ detail: ShowcaseDetail }>(`/showcases/${id}`, { title })
+      return data.detail
+    },
+    onSuccess: (detail) => {
+      qc.setQueryData(one(detail.id), detail)
+      void qc.invalidateQueries({ queryKey: LIST })
+    },
+  })
+}
+
 /** Shared writer — a showcase mutation returns the fresh detail; keep both the
  *  detail cache and the list (title/status/itemCount) in sync. */
 function useDetailMutation<TVars>(id: string, fn: (vars: TVars) => Promise<ShowcaseDetail>) {
