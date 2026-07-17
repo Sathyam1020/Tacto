@@ -43,12 +43,22 @@ function readableForeground(hex?: string | null): string {
 export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicShowcase; embedded?: boolean }) {
   // Standalone showcase is light-only (like the guide reader); the embed variant
   // controls theme via its layout. Skip when embedded (theme already applied).
+  // next-themes re-applies `.dark` once after hydration (its provider effect
+  // runs after this child effect), so a one-shot removal loses the race and the
+  // viewer ends up with dark-mode ink on its forced-white surface. A short-lived
+  // MutationObserver strips `.dark` whenever it reappears; the layout's pre-paint
+  // script covers the first frame so there's no flash.
   React.useEffect(() => {
     if (embedded) return
     const el = document.documentElement
     const wasDark = el.classList.contains("dark")
     el.classList.remove("dark")
+    const obs = new MutationObserver(() => {
+      if (el.classList.contains("dark")) el.classList.remove("dark")
+    })
+    obs.observe(el, { attributes: true, attributeFilter: ["class"] })
     return () => {
+      obs.disconnect()
       if (wasDark) el.classList.add("dark")
     }
   }, [embedded])
