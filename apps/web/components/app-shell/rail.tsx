@@ -46,7 +46,7 @@ import { generateSlug } from "@/lib/slug"
 function RailWorkspaceSwitcher() {
   const router = useRouter()
   const { data: workspaces } = authClient.useListOrganizations()
-  const { data: activeWorkspace } = authClient.useActiveOrganization()
+  const { data: activeWorkspace, isPending: activePending } = authClient.useActiveOrganization()
 
   const [createOpen, setCreateOpen] = React.useState(false)
   const [name, setName] = React.useState("")
@@ -54,13 +54,20 @@ function RailWorkspaceSwitcher() {
   const [creating, setCreating] = React.useState(false)
 
   const firstWorkspaceId = workspaces?.[0]?.id
+  // Bootstrap an active workspace ONLY when the user genuinely has none — e.g.
+  // the first load right after sign-up, before the session's active org is set.
+  // `useActiveOrganization()` returns `null` *transiently while loading* on
+  // every page load; acting on that would clobber the persisted choice with
+  // `workspaces[0]` on every refresh. Gate on `!activePending` (settled) and a
+  // one-shot ref so it never overrides a real selection.
+  const bootstrapped = React.useRef(false)
   React.useEffect(() => {
-    if (activeWorkspace === null && firstWorkspaceId) {
-      void authClient.organization
-        .setActive({ organizationId: firstWorkspaceId })
-        .then(() => router.refresh())
-    }
-  }, [activeWorkspace, firstWorkspaceId, router])
+    if (activePending || activeWorkspace || bootstrapped.current || !firstWorkspaceId) return
+    bootstrapped.current = true
+    void authClient.organization
+      .setActive({ organizationId: firstWorkspaceId })
+      .then(() => router.refresh())
+  }, [activeWorkspace, activePending, firstWorkspaceId, router])
 
   async function switchWorkspace(organizationId: string) {
     if (organizationId === activeWorkspace?.id) return

@@ -43,7 +43,7 @@ import { generateSlug } from "@/lib/slug"
 export function WorkspaceSwitcher() {
   const router = useRouter()
   const { data: workspaces } = authClient.useListOrganizations()
-  const { data: activeWorkspace } = authClient.useActiveOrganization()
+  const { data: activeWorkspace, isPending: activePending } = authClient.useActiveOrganization()
 
   const [createOpen, setCreateOpen] = React.useState(false)
   const [name, setName] = React.useState("")
@@ -51,15 +51,20 @@ export function WorkspaceSwitcher() {
   const [creating, setCreating] = React.useState(false)
 
   // Self-heal: the very first session after sign-up may have no active
-  // workspace (server hook ordering). Activate the first one automatically.
+  // workspace (server hook ordering). Activate the first one automatically —
+  // but ONLY when it's genuinely unset. `useActiveOrganization()` returns
+  // `null` transiently while loading on every page load; acting on that would
+  // clobber the persisted choice with `workspaces[0]` on each refresh. Gate on
+  // `!activePending` (settled) + a one-shot ref.
   const firstWorkspaceId = workspaces?.[0]?.id
+  const bootstrapped = React.useRef(false)
   React.useEffect(() => {
-    if (activeWorkspace === null && firstWorkspaceId) {
-      void authClient.organization
-        .setActive({ organizationId: firstWorkspaceId })
-        .then(() => router.refresh())
-    }
-  }, [activeWorkspace, firstWorkspaceId, router])
+    if (activePending || activeWorkspace || bootstrapped.current || !firstWorkspaceId) return
+    bootstrapped.current = true
+    void authClient.organization
+      .setActive({ organizationId: firstWorkspaceId })
+      .then(() => router.refresh())
+  }, [activeWorkspace, activePending, firstWorkspaceId, router])
 
   async function switchWorkspace(organizationId: string) {
     if (organizationId === activeWorkspace?.id) return
