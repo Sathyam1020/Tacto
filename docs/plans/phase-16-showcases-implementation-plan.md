@@ -1,6 +1,6 @@
 # Phase 16 — Showcases — Implementation Plan
 
-**Status:** Proposed (plan-only; awaiting go-ahead to build) · Implements the **Showcase** half of `phase-15-embeds-showcases-rfc.md`
+**Status:** ✅ Shipped (2026-07-17) — all 6 phases built, tested, and verified on `feat/showcase-embed` · Implements the **Showcase** half of `phase-15-embeds-showcases-rfc.md`
 **Branch:** `feat/showcase-embed` · **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui,storage}`
 
 > A Showcase is a Supademo-style **curated, branded, embeddable collection** of a workspace's content — guides **and** resources (video · PDF · link · form) — organized into sections and presented in one of three layouts (Section · Checklist · Gallery), with autoplay/checklist progress. **Many per workspace** (unlike the one-per-workspace Help Center). It reuses the Guide Reader, the **Embed Foundation** (Phase 15), the Help Center collection patterns, branding/uploads, and the GuideEvent analytics. **Decision locked:** guides + resources ship from day one.
@@ -194,12 +194,12 @@ Enums (`ShowcaseLayout/Status/ItemType`), `createShowcaseSchema`, `updateShowcas
 ---
 
 ## 13. Rollout (commit after each; each independently green)
-1. **Model + contracts + migration.** Schema (5 enums/tables) + `showcase` contracts + migration.
-2. **Owner APIs.** CRUD, sections, items (all 5 types), reorder, publish, available-guides, analytics; generalize uploads to video/pdf. Tests.
-3. **Owner builder.** Rail item + `ShowcasesPanel`; list + editor (Content/Design/Settings) incl. the Add-item menu (guides + resource forms); dirty-gated publish + Share/Embed.
-4. **Public viewer.** SSR `/showcase/[slug]` + the 3 layouts + item renderers (guide/video/pdf/link/form) + progress/autoplay + chrome/branding + SEO.
-5. **Showcase embed + analytics.** `/embed/showcase/[slug]` + `data-tacto-showcase` in embed.js + floating checklist badge; `ShowcaseEvent` + `useShowcaseTracker` + guide `source` attribution + the Analytics tab.
-6. **Polish.** a11y, responsive, loading/empty states, sitemap/robots, docs; mark the RFC + this plan Shipped.
+1. ✅ **Model + contracts + migration.** Schema (5 enums/tables) + `showcase` contracts + migration.
+2. ✅ **Owner APIs.** CRUD, sections, items (all 5 types), reorder, publish, available-guides, analytics; generalize uploads to video/pdf. Tests.
+3. ✅ **Owner builder.** Rail item + `ShowcasesPanel`; list + editor (Content/Design/Settings) incl. the Add-item menu (guides + resource forms); dirty-gated publish + Share/Embed. (Create now prompts for a name; panel has rename/delete.)
+4. ✅ **Public viewer.** SSR `/showcase/[slug]` + the 3 layouts + item renderers (guide/video/pdf/link/form) + progress/autoplay + chrome/branding + SEO.
+5. ✅ **Showcase embed + analytics.** `/embed/showcase/[slug]` + `data-tacto-showcase` in embed.js + floating checklist badge; `ShowcaseEvent` + `useShowcaseTracker` + guide `source` attribution + the Analytics tab.
+6. ✅ **Polish.** a11y (gallery-modal Esc/focus/scroll-lock, `aria-current`, labelled nav), responsive (mobile item bar for the desktop-only sidebar), loading/empty states, docs marked Shipped. *(App-wide sitemap/robots infra doesn't exist yet — deferred rather than adding a showcase-only outlier; showcases stay `noindex` until published + listed.)*
 
 ---
 

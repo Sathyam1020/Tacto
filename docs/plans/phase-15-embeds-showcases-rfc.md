@@ -1,6 +1,6 @@
 # Phase 15 — Embeds & Showcases — RFC
 
-**Status:** Proposed · **Author:** Principal Eng · **Date:** 2026-07-16
+**Status:** ✅ Shipped (2026-07-17) — Embed Foundation (phase-15 plan) + Showcases (phase-16 plan) both built on `feat/showcase-embed` · **Author:** Principal Eng · **Date:** 2026-07-16
 **Scope:** `apps/web`, `apps/api`, `packages/{contracts,db,ui,storage}` · builds on the Guide Reader, the GuideEvent analytics log, the Help Center collection pattern, Forms, R2, and guide branding
 
 ---

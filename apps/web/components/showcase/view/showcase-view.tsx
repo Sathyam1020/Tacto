@@ -214,6 +214,7 @@ function SplitLayout({
                     <button
                       key={item.id}
                       onClick={() => setActiveId(item.id)}
+                      aria-current={isActive ? "true" : undefined}
                       className={cn(
                         "flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left text-[13px] transition-colors",
                         isActive ? "bg-primary/10 font-medium text-primary" : "text-[var(--l-ink)] hover:bg-[var(--l-hover)]"
@@ -242,6 +243,17 @@ function SplitLayout({
       </aside>
 
       <main className="min-w-0 flex-1">
+        {/* Mobile item nav — the sidebar is desktop-only, so small screens get a
+            horizontal scroller (same convention as the guide reader). */}
+        <MobileItemBar
+          showcase={showcase}
+          activeId={active?.id ?? null}
+          setActiveId={setActiveId}
+          completed={completed}
+          checklist={checklist}
+          total={total}
+          done={done}
+        />
         {active && <ShowcaseItemView key={active.id} item={active} slug={showcase.slug} onComplete={onItemComplete} />}
         {checklist && hasNext && (
           <div className="mt-6 flex justify-end">
@@ -254,6 +266,72 @@ function SplitLayout({
           </div>
         )}
       </main>
+    </div>
+  )
+}
+
+/* ── Mobile item nav (< lg): horizontal chip scroller ─────────────────────── */
+function MobileItemBar({
+  showcase,
+  activeId,
+  setActiveId,
+  completed,
+  checklist,
+  total,
+  done,
+}: {
+  showcase: PublicShowcase
+  activeId: string | null
+  setActiveId: (id: string) => void
+  completed: Set<string>
+  checklist: boolean
+  total: number
+  done: number
+}) {
+  const items = showcase.sections.flatMap((s) => s.items)
+  if (items.length <= 1) return null
+  return (
+    <div className="mb-5 lg:hidden">
+      {checklist && (
+        <div className="mb-2">
+          <div className="mb-1.5 flex items-center justify-between text-[12px] font-medium text-[var(--l-ink-subtle)]">
+            <span>Progress</span>
+            <span className="tabular-nums">
+              {done} / {total}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-[var(--l-chrome)]">
+            <div className="h-full rounded-full bg-primary transition-[width]" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+          </div>
+        </div>
+      )}
+      <nav aria-label="Showcase items" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6">
+        {items.map((item) => {
+          const Icon = ITEM_ICON[item.type]
+          const isActive = activeId === item.id
+          const isDone = completed.has(item.id)
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveId(item.id)}
+              aria-current={isActive ? "true" : undefined}
+              className={cn(
+                "flex flex-none items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors",
+                isActive
+                  ? "border-primary bg-primary/10 font-medium text-primary"
+                  : "border-[var(--l-hairline)] text-[var(--l-ink)] hover:bg-[var(--l-hover)]"
+              )}
+            >
+              {checklist && isDone ? (
+                <Check className="size-3.5 flex-none text-primary" strokeWidth={3} />
+              ) : (
+                <Icon className="size-3.5 flex-none text-[var(--l-ink-tertiary)]" />
+              )}
+              <span className="max-w-[10rem] truncate">{item.title}</span>
+            </button>
+          )
+        })}
+      </nav>
     </div>
   )
 }
@@ -274,6 +352,23 @@ function GalleryLayout({
 }) {
   const [open, setOpen] = React.useState(false)
   const active = showcase.sections.flatMap((s) => s.items).find((i) => i.id === activeId)
+  const closeRef = React.useRef<HTMLButtonElement>(null)
+
+  // Modal a11y: Esc to close, focus the close button, lock body scroll.
+  React.useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false)
+    }
+    document.addEventListener("keydown", onKey)
+    closeRef.current?.focus()
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [open])
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
@@ -310,9 +405,18 @@ function GalleryLayout({
       ))}
 
       {open && active && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[6vh]" role="dialog" aria-modal="true">
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 pt-[6vh]"
+          role="dialog"
+          aria-modal="true"
+          aria-label={active.title}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setOpen(false)
+          }}
+        >
           <div className="relative w-full max-w-3xl rounded-2xl bg-[#FEFFFF] p-4 shadow-2xl sm:p-6">
             <button
+              ref={closeRef}
               onClick={() => setOpen(false)}
               aria-label="Close"
               className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-lg bg-black/10 text-[var(--l-ink)] hover:bg-black/20"
