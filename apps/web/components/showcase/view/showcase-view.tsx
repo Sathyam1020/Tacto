@@ -15,6 +15,7 @@ import type { PublicShowcase, ShowcaseItemPayload } from "@workspace/contracts/s
 import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { PublicThemeToggle } from "@/components/public-theme-toggle"
 import { ChecklistBadge } from "@/components/showcase/view/checklist-badge"
 import { ShowcaseItemView } from "@/components/showcase/view/item-renderer"
 import { useShowcaseTracker } from "@/lib/showcase-tracker"
@@ -41,28 +42,9 @@ function readableForeground(hex?: string | null): string {
 }
 
 export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicShowcase; embedded?: boolean }) {
-  // Standalone showcase is light-only (like the guide reader); the embed variant
-  // controls theme via its layout. Skip when embedded (theme already applied).
-  // next-themes re-applies `.dark` once after hydration (its provider effect
-  // runs after this child effect), so a one-shot removal loses the race and the
-  // viewer ends up with dark-mode ink on its forced-white surface. A short-lived
-  // MutationObserver strips `.dark` whenever it reappears; the layout's pre-paint
-  // script covers the first frame so there's no flash.
-  React.useEffect(() => {
-    if (embedded) return
-    const el = document.documentElement
-    const wasDark = el.classList.contains("dark")
-    el.classList.remove("dark")
-    const obs = new MutationObserver(() => {
-      if (el.classList.contains("dark")) el.classList.remove("dark")
-    })
-    obs.observe(el, { attributes: true, attributeFilter: ["class"] })
-    return () => {
-      obs.disconnect()
-      if (wasDark) el.classList.add("dark")
-    }
-  }, [embedded])
-
+  // Theme: the standalone viewer's light/dark is owned by PublicThemeProvider
+  // (from the route layout) + the header toggle; the embed variant applies its
+  // own `?theme=` via EmbedTheme. Nothing to force here.
   const tracker = useShowcaseTracker(showcase.slug)
 
   const flat = React.useMemo(() => showcase.sections.flatMap((s) => s.items), [showcase.sections])
@@ -104,18 +86,15 @@ export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicS
     if (showcase.autoplay) advance()
   }, [active, markComplete, advance, showcase.autoplay, tracker])
 
-  const style = {
-    backgroundColor: "#FEFFFF",
-    ...(showcase.brandColor
-      ? {
-          ["--primary" as string]: showcase.brandColor,
-          ["--primary-foreground" as string]: readableForeground(showcase.brandColor),
-        }
-      : {}),
-  } as React.CSSProperties
+  const style = showcase.brandColor
+    ? ({
+        ["--primary" as string]: showcase.brandColor,
+        ["--primary-foreground" as string]: readableForeground(showcase.brandColor),
+      } as React.CSSProperties)
+    : undefined
 
   return (
-    <div className="flex min-h-svh flex-col text-[var(--l-ink)]" style={style}>
+    <div className="flex min-h-svh flex-col bg-white text-[var(--l-ink)] dark:bg-[var(--l-canvas)]" style={style}>
       {!embedded && (
         <header className="sticky top-0 z-30 bg-primary text-primary-foreground">
           <div className="mx-auto flex h-14 max-w-6xl items-center gap-2.5 px-4 sm:px-6">
@@ -128,6 +107,7 @@ export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicS
               </span>
             )}
             <span className="truncate text-[15px] font-semibold">{showcase.title}</span>
+            <PublicThemeToggle className="ml-auto" />
           </div>
         </header>
       )}
@@ -424,7 +404,7 @@ function GalleryLayout({
             if (e.target === e.currentTarget) setOpen(false)
           }}
         >
-          <div className="relative w-full max-w-3xl rounded-2xl bg-[#FEFFFF] p-4 shadow-2xl sm:p-6">
+          <div className="relative w-full max-w-3xl rounded-2xl bg-white p-4 shadow-2xl sm:p-6 dark:bg-[var(--l-card)]">
             <button
               ref={closeRef}
               onClick={() => setOpen(false)}

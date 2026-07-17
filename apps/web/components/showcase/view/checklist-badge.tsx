@@ -29,7 +29,7 @@ export function ChecklistBadge({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed right-4 bottom-4 z-40 flex items-center gap-2.5 rounded-full border border-black/5 bg-[#FEFFFF] py-2 pr-4 pl-2 shadow-lg",
+        "pointer-events-none fixed right-4 bottom-4 z-40 flex items-center gap-2.5 rounded-full border border-black/5 bg-white py-2 pr-4 pl-2 shadow-lg dark:border-white/10 dark:bg-[var(--l-card)]",
         className
       )}
       role="status"

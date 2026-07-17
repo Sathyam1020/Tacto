@@ -34,26 +34,12 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ViewModeToggle, type ViewMode } from "@/components/guide-view"
 import { LanguageSwitcher, PublicGuideView } from "@/components/public-guide-view"
 import { publicCollectionIcon } from "@/components/help/public-icon"
+import { PublicThemeToggle } from "@/components/public-theme-toggle"
 import { resolveCustomization } from "@/lib/guides"
 import { HelpTrackerProvider, useHelpTracker } from "@/lib/help-tracker"
 import { fetchHelpSearch } from "@/lib/public-help"
 import type { PublicGuide } from "@/lib/public-guide"
 import { downloadGuidePdf } from "@/lib/pdf"
-
-/** Force light mode on the public help center (the app defaults to a `.dark`
- *  class; the public reader is intentionally light-only). Restored on leave.
- *  A pre-paint script in the help layout prevents the first-load flash; this
- *  covers client-side navigation into (and back out of) the help center. */
-function useForceLight() {
-  React.useEffect(() => {
-    const el = document.documentElement
-    const wasDark = el.classList.contains("dark")
-    el.classList.remove("dark")
-    return () => {
-      if (wasDark) el.classList.add("dark")
-    }
-  }, [])
-}
 
 /**
  * Black or white, whichever reads better on the brand color — so the navbar/hero
@@ -101,7 +87,6 @@ export function HelpChrome({
   actions?: React.ReactNode
   children: React.ReactNode
 }) {
-  useForceLight()
   const [searchOpen, setSearchOpen] = React.useState(false)
   const open = React.useCallback(() => setSearchOpen(true), [])
 
@@ -127,17 +112,16 @@ export function HelpChrome({
     <HelpTrackerProvider slug={chrome.slug}>
     <HelpSearchContext.Provider value={open}>
     <div
-      className="flex min-h-svh flex-col text-[var(--l-ink)]"
-      style={{
-        backgroundColor: "#FEFFFF",
-        ...(chrome.brandColor
-          ? {
+      className="flex min-h-svh flex-col bg-white text-[var(--l-ink)] dark:bg-[var(--l-canvas)]"
+      style={
+        chrome.brandColor
+          ? ({
               ["--primary" as string]: chrome.brandColor,
               // Keep navbar/hero text legible on any brand color.
               ["--primary-foreground" as string]: readableForeground(chrome.brandColor),
-            }
-          : {}),
-      } as React.CSSProperties}
+            } as React.CSSProperties)
+          : undefined
+      }
     >
       <header className="sticky top-0 z-30 bg-primary text-primary-foreground">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
@@ -164,6 +148,7 @@ export function HelpChrome({
             <button onClick={open} aria-label="Search" className="flex size-9 items-center justify-center rounded-lg text-primary-foreground/80 transition-colors hover:bg-white/15 hover:text-primary-foreground">
               <Search className="size-4" />
             </button>
+            <PublicThemeToggle />
           </div>
         </div>
       </header>
