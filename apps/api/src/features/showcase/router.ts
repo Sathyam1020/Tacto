@@ -17,10 +17,13 @@ import { Prisma, prisma } from "@workspace/db";
 import { Router } from "express";
 import { z } from "zod";
 
+import { ANALYTICS_RANGE_DAYS, analyticsRangeSchema } from "@workspace/contracts/guide-analytics";
+
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
 import { requireWorkspace } from "../../middleware/require-workspace.js";
 import { uniqueSlug } from "../help-center/slug.js";
+import { computeShowcaseAnalytics, type ShowcaseEventRow } from "./analytics.js";
 
 /** Showcases — owner (authenticated) management. Many per workspace. Items are
  *  published guides (rendered by the Guide Reader) or resources. */
@@ -369,4 +372,44 @@ showcaseRouter.get("/api/showcases/:id/available-guides", requireAuth, requireWo
   res.json({
     guides: guides.map((g) => ({ id: g.id, title: g.title, stepCount: g._count.blocks })),
   });
+});
+
+// ── Analytics ──────────────────────────────────────────────────────────────────
+const analyticsQuerySchema = z.object({ range: analyticsRangeSchema.optional() });
+showcaseRouter.get("/api/showcases/:id/analytics", requireAuth, requireWorkspace, async (req, res) => {
+  const { id } = idParam.parse(req.params);
+  await assertShowcase(id, req.workspace!.id);
+  const { range = "30d" } = analyticsQuerySchema.parse(req.query);
+  const days = ANALYTICS_RANGE_DAYS[range];
+  const now = new Date();
+  const since = new Date(now);
+  since.setUTCHours(0, 0, 0, 0);
+  since.setUTCDate(since.getUTCDate() - (days - 1));
+
+  const [events, sc] = await Promise.all([
+    prisma.showcaseEvent.findMany({
+      where: { showcaseId: id, createdAt: { gte: since } },
+      orderBy: { createdAt: "asc" },
+      select: { type: true, anonId: true, sessionId: true, target: true, createdAt: true },
+    }),
+    prisma.showcase.findUnique({
+      where: { id },
+      select: {
+        sections: {
+          select: { items: { select: { id: true, title: true, guide: { select: { title: true } } } } },
+        },
+      },
+    }),
+  ]);
+
+  // itemId → display title (matches the public payload's title resolution).
+  const itemTitles: Record<string, string> = {};
+  for (const sec of sc?.sections ?? []) {
+    for (const it of sec.items) itemTitles[it.id] = it.title || it.guide?.title || "Untitled";
+  }
+
+  const analytics = computeShowcaseAnalytics(events as ShowcaseEventRow[], itemTitles, days, now, {
+    range,
+  });
+  res.json({ analytics });
 });

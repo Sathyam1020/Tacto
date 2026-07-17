@@ -8,9 +8,12 @@
  *   <script src="https://YOURAPP/embed.js" async></script>
  *   <div data-tacto-guide="SHAREID" data-tacto-mode="interactive"></div>
  *   <button data-tacto-guide-popup="SHAREID">Show me how</button>
+ *   <div data-tacto-showcase="SLUG"></div>
+ *   <button data-tacto-showcase-popup="SLUG">Explore</button>
  *
  * Programmatic:
  *   const inst = Tacto.embed("#el", { guide: "SHAREID", mode: "list", theme: "auto" });
+ *   const sc   = Tacto.embed("#el", { showcase: "SLUG", theme: "auto" });
  *   const pop  = Tacto.open({ guide: "SHAREID", mode: "interactive" });
  *   Tacto.close(pop); Tacto.destroy(inst);
  *   Tacto.on("complete", fn); Tacto.off("complete", fn);
@@ -49,7 +52,10 @@
     if (opts.theme) q.set("theme", opts.theme);
     if (opts.lang) q.set("lang", opts.lang);
     var qs = q.toString();
-    return ORIGIN + "/embed/g/" + encodeURIComponent(opts.guide) + (qs ? "?" + qs : "");
+    var path = opts.showcase
+      ? "/embed/showcase/" + encodeURIComponent(opts.showcase)
+      : "/embed/g/" + encodeURIComponent(opts.guide);
+    return ORIGIN + path + (qs ? "?" + qs : "");
   }
 
   function makeIframe(opts) {
@@ -57,7 +63,7 @@
     f.src = buildUrl(opts);
     f.setAttribute("allow", "fullscreen");
     f.setAttribute("loading", "lazy");
-    f.setAttribute("title", "Tacto guide");
+    f.setAttribute("title", opts.showcase ? "Tacto showcase" : "Tacto guide");
     f.style.border = "0";
     f.style.width = "100%";
     f.style.display = "block";
@@ -70,7 +76,7 @@
   // ── inline ────────────────────────────────────────────────────────────────
   function embed(target, opts) {
     var el = typeof target === "string" ? document.querySelector(target) : target;
-    if (!el || !opts || !opts.guide) return null;
+    if (!el || !opts || !(opts.guide || opts.showcase)) return null;
     var iframe = makeIframe(opts);
     iframe.style.height = (opts.height || Number(el.getAttribute && el.getAttribute("data-tacto-height")) || 520) + "px";
     el.innerHTML = "";
@@ -88,7 +94,7 @@
 
   // ── popup ─────────────────────────────────────────────────────────────────
   function open(opts) {
-    if (!opts || !opts.guide) return null;
+    if (!opts || !(opts.guide || opts.showcase)) return null;
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var lastFocus = document.activeElement;
     var overlay = document.createElement("div");
@@ -211,6 +217,31 @@
           });
         });
       })(btn);
+    }
+    // ── showcases ─────────────────────────────────────────────────────────────
+    var scInl = document.querySelectorAll("[data-tacto-showcase]");
+    for (var k = 0; k < scInl.length; k++) {
+      var scEl = scInl[k];
+      if (scEl._tactoDone) continue;
+      scEl._tactoDone = true;
+      embed(scEl, {
+        showcase: scEl.getAttribute("data-tacto-showcase"),
+        theme: scEl.getAttribute("data-tacto-theme") || undefined
+      });
+    }
+    var scPops = document.querySelectorAll("[data-tacto-showcase-popup]");
+    for (var m = 0; m < scPops.length; m++) {
+      var scBtn = scPops[m];
+      if (scBtn._tactoDone) continue;
+      scBtn._tactoDone = true;
+      (function (b) {
+        b.addEventListener("click", function () {
+          open({
+            showcase: b.getAttribute("data-tacto-showcase-popup"),
+            theme: b.getAttribute("data-tacto-theme") || undefined
+          });
+        });
+      })(scBtn);
     }
   }
 

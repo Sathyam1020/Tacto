@@ -15,7 +15,9 @@ import type { PublicShowcase, ShowcaseItemPayload } from "@workspace/contracts/s
 import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { ChecklistBadge } from "@/components/showcase/view/checklist-badge"
 import { ShowcaseItemView } from "@/components/showcase/view/item-renderer"
+import { useShowcaseTracker } from "@/lib/showcase-tracker"
 
 const ITEM_ICON: Record<ShowcaseItemPayload["type"], React.ComponentType<{ className?: string }>> = {
   guide: FileText,
@@ -51,12 +53,29 @@ export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicS
     }
   }, [embedded])
 
+  const tracker = useShowcaseTracker(showcase.slug)
+
   const flat = React.useMemo(() => showcase.sections.flatMap((s) => s.items), [showcase.sections])
+  const total = flat.length
   const [activeId, setActiveId] = React.useState<string | null>(flat[0]?.id ?? null)
   const [completed, setCompleted] = React.useState<Set<string>>(new Set())
 
   const active = flat.find((i) => i.id === activeId) ?? flat[0] ?? null
   const activeIndex = active ? flat.findIndex((i) => i.id === active.id) : -1
+
+  // Fire `view` once, and `item_open` whenever the active item changes (the
+  // tracker dedups both per visit).
+  React.useEffect(() => {
+    tracker.track("view")
+  }, [tracker])
+  React.useEffect(() => {
+    if (active) tracker.track("item_open", active.id)
+  }, [active?.id, tracker]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // `complete` fires once when every item is checked off.
+  React.useEffect(() => {
+    if (total > 0 && completed.size >= total) tracker.track("complete")
+  }, [completed, total, tracker])
 
   const markComplete = React.useCallback(
     (id: string) => setCompleted((prev) => (prev.has(id) ? prev : new Set(prev).add(id))),
@@ -68,9 +87,12 @@ export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicS
   }, [flat, activeIndex])
 
   const onItemComplete = React.useCallback(() => {
-    if (active) markComplete(active.id)
+    if (active) {
+      markComplete(active.id)
+      tracker.track("item_complete", active.id)
+    }
     if (showcase.autoplay) advance()
-  }, [active, markComplete, advance, showcase.autoplay])
+  }, [active, markComplete, advance, showcase.autoplay, tracker])
 
   const style = {
     backgroundColor: "#FEFFFF",
@@ -120,6 +142,10 @@ export function ShowcaseView({ showcase, embedded = false }: { showcase: PublicS
           />
         )}
       </div>
+
+      {showcase.layout === "CHECKLIST" && (
+        <ChecklistBadge done={completed.size} total={total} className={embedded ? undefined : "lg:hidden"} />
+      )}
 
       {!embedded && (
         <footer className="border-t border-[var(--l-hairline)]">

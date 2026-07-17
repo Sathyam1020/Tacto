@@ -2,21 +2,24 @@
 
 import * as React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Eye } from "lucide-react"
+import { Eye, Share2 } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { AnalyticsSurface } from "@/components/showcase/analytics-surface"
 import { ContentSurface, DesignSurface, SettingsSurface } from "@/components/showcase/builder"
+import { ShowcaseShareDialog } from "@/components/showcase/share-dialog"
 import { useSetNavbar } from "@/components/navbar-context"
 import { usePublishShowcase, useShowcase } from "@/lib/showcase"
 
-type Tab = "content" | "design" | "settings"
+type Tab = "content" | "design" | "settings" | "analytics"
 const TABS: { value: Tab; label: string }[] = [
   { value: "content", label: "Content" },
   { value: "design", label: "Design" },
   { value: "settings", label: "Settings" },
+  { value: "analytics", label: "Analytics" },
 ]
 
 export default function ShowcaseEditorPage() {
@@ -25,6 +28,8 @@ export default function ShowcaseEditorPage() {
   const { data: sc } = useShowcase(params.id)
   const publish = usePublishShowcase(params.id)
   const [tab, setTab] = React.useState<Tab>("content")
+  const [shareOpen, setShareOpen] = React.useState(false)
+  const openShare = React.useCallback(() => setShareOpen(true), [])
 
   const published = sc?.status === "PUBLISHED"
 
@@ -56,6 +61,12 @@ export default function ShowcaseEditorPage() {
               {published ? "View" : "Preview"}
             </Button>
           )}
+          {sc && (
+            <Button variant="outline" size="sm" onClick={openShare}>
+              <Share2 className="size-4" />
+              Share
+            </Button>
+          )}
           {sc && !published && (
             <Button size="sm" disabled={publish.isPending} onClick={() => publish.mutate(true)}>
               {publish.isPending ? "Publishing…" : "Publish"}
@@ -64,7 +75,7 @@ export default function ShowcaseEditorPage() {
         </div>
       ),
     },
-    [sc?.title, sc?.slug, published, publish.isPending]
+    [sc?.title, sc?.slug, published, publish.isPending, openShare]
   )
 
   if (!sc) {
@@ -97,9 +108,13 @@ export default function ShowcaseEditorPage() {
         <ContentSurface sc={sc} />
       ) : tab === "design" ? (
         <DesignSurface sc={sc} />
+      ) : tab === "analytics" ? (
+        <AnalyticsSurface sc={sc} />
       ) : (
         <SettingsSurface sc={sc} onDeleted={() => router.push("/showcases")} />
       )}
+
+      <ShowcaseShareDialog sc={sc} open={shareOpen} onOpenChange={setShareOpen} />
     </div>
   )
 }

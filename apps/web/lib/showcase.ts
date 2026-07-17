@@ -4,6 +4,8 @@ import {
   MAX_ASSET_BYTES,
   SHOWCASE_ASSET_TYPES,
   type AddResourceInput,
+  type ShowcaseAnalytics,
+  type ShowcaseAnalyticsRange,
   type ShowcaseCard,
   type ShowcaseDetail,
   type ShowcaseSettingsInput,
@@ -158,6 +160,20 @@ export function useAvailableGuides(id: string, q: string, enabled: boolean) {
       return data.guides
     },
     enabled,
+  })
+}
+
+/** Owner-facing showcase analytics for a range (mirrors useGuideAnalytics). */
+export function useShowcaseAnalytics(id: string, range: ShowcaseAnalyticsRange) {
+  return useQuery({
+    queryKey: ["showcase-analytics", id, range],
+    queryFn: async () => {
+      const { data } = await api.get<{ analytics: ShowcaseAnalytics }>(`/showcases/${id}/analytics`, {
+        params: { range },
+      })
+      return data.analytics
+    },
+    enabled: !!id,
   })
 }
 
