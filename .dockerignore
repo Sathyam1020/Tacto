@@ -1,0 +1,22 @@
+# Keep the build context small and never ship secrets or build artifacts.
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/build
+**/.output
+**/src/generated
+.git
+.github
+**/*.log
+**/.DS_Store
+
+# Secrets — env is injected by the host at runtime.
+**/.env
+**/.env.*
+!**/.env.example
+
+# Local-only
+DEPLOYMENT.md
+docs
+**/*.test.ts

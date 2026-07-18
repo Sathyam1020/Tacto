@@ -3,6 +3,8 @@ import { notFound } from "next/navigation"
 
 import { PublicGuideView } from "@/components/public-guide-view"
 import { fetchPublicGuide } from "@/lib/public-guide"
+import { buildGuideJsonLd } from "@/lib/public-guide-schema"
+import { SITE_URL } from "@/lib/marketing/seo"
 
 /**
  * Public shared guide — server-rendered for link previews (OG) and SEO.
@@ -21,9 +23,11 @@ export async function generateMetadata({
   return {
     title: guide.title,
     description: guide.summary ?? `A step-by-step guide by ${guide.workspaceName}.`,
+    alternates: { canonical: `/g/${shareId}` },
     openGraph: {
       title: guide.title,
       description: guide.summary ?? undefined,
+      url: `/g/${shareId}`,
       type: "article",
     },
   }
@@ -33,5 +37,14 @@ export default async function PublicGuidePage({ params }: Params) {
   const { shareId } = await params
   const guide = await fetchPublicGuide(shareId)
   if (!guide) notFound()
-  return <PublicGuideView guide={guide} />
+  const schema = buildGuideJsonLd(guide, { idUrl: `${SITE_URL}/g/${shareId}` })
+  return (
+    <>
+      {schema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      )}
+      <PublicGuideView guide={guide} />
+    </>
+  )
 }
+

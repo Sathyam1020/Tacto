@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { HelpArticle } from "@/components/help/help-site"
 import { fetchHelpArticle } from "@/lib/public-help"
 import { fetchPublicGuide } from "@/lib/public-guide"
+import { buildGuideJsonLd } from "@/lib/public-guide-schema"
 
 /** A help-center article = a published guide, rendered by the Guide Reader
  *  inside the help-center chrome. */
@@ -28,5 +29,15 @@ export default async function HelpArticlePage({ params }: Params) {
   if (!page) notFound()
   const guide = await fetchPublicGuide(page.guideShareId)
   if (!guide) notFound()
-  return <HelpArticle page={page} guide={guide} />
+  // HowTo/FAQ structured data for indexable help articles. No @id: help centers
+  // can run on customer domains, so we don't bake a tacto.fyi URL into it.
+  const schema = page.chrome.noindex ? null : buildGuideJsonLd(guide)
+  return (
+    <>
+      {schema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
+      )}
+      <HelpArticle page={page} guide={guide} />
+    </>
+  )
 }

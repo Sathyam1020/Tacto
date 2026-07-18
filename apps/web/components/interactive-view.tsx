@@ -125,50 +125,11 @@ export function InteractiveView({
   const rootRef = React.useRef<HTMLDivElement>(null)
 
   const autoplay = wv.autoplay
-  const [playing, setPlaying] = React.useState(autoplay.enabled)
-  React.useEffect(() => setPlaying(autoplay.enabled), [autoplay.enabled])
-
-  // Background music — loops during the walkthrough. Browsers block autoplay of
-  // sound until a gesture, so we also start it on the first click.
   const music = wv.backgroundMusic
+  const voice = wv.voice
   const audioRef = React.useRef<HTMLAudioElement>(null)
-  const [musicOn, setMusicOn] = React.useState(false)
-  React.useEffect(() => {
-    if (audioRef.current) audioRef.current.volume = music.volume
-  }, [music.volume])
-  React.useEffect(() => {
-    const audio = audioRef.current
-    if (!audio || !music.url) return
-    audio.volume = music.volume
-    void audio.play().then(() => setMusicOn(true)).catch(() => {})
-    function onGesture() {
-      if (audio && audio.paused) {
-        void audio.play().then(() => setMusicOn(true)).catch(() => {})
-      }
-      window.removeEventListener("pointerdown", onGesture)
-    }
-    window.addEventListener("pointerdown", onGesture)
-    return () => {
-      window.removeEventListener("pointerdown", onGesture)
-      audio.pause()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [music.url])
-  const toggleMusic = React.useCallback(() => {
-    const audio = audioRef.current
-    if (!audio) return
-    if (audio.paused) void audio.play().then(() => setMusicOn(true)).catch(() => {})
-    else {
-      audio.pause()
-      setMusicOn(false)
-    }
-  }, [])
 
   // ── Narration voiceover ──────────────────────────────────────────────────
-  // When a frame has narration audio, playback plays it and advances on `ended`
-  // (audio-driven). Frames without audio fall back to the timer below. Music
-  // ducks while narration speaks.
-  const voice = wv.voice
   const narrationRef = React.useRef<HTMLAudioElement | null>(null)
   const currentFrameId = frames[index]?.id
   const rawAudio = currentFrameId
@@ -179,18 +140,30 @@ export function InteractiveView({
   const [audioErrored, setAudioErrored] = React.useState(false)
   React.useEffect(() => setAudioErrored(false), [currentFrameId])
   const currentAudio = audioErrored ? null : rawAudio
-  const [speaking, setSpeaking] = React.useState(false)
-  // The walkthrough has a voiceover → the Play control must be available even
-  // when timer-autoplay is off (that's the only way to start narration).
   const hasNarration = !!narration && Object.keys(narration).length > 0
+  const [speaking, setSpeaking] = React.useState(false)
 
-  const duckMusic = React.useCallback(
-    (on: boolean) => {
-      const m = audioRef.current
-      if (m) m.volume = music.volume * (on ? 0.28 : 1)
-    },
-    [music.volume]
-  )
+  // "Sound" = background music or voiceover. When present, the player shows a
+  // center Play button first (a gesture is required to start audio anyway), and
+  // ONE play/pause + ONE mute drive BOTH tracks together.
+  const hasSound = !!music.url || hasNarration
+  const [started, setStarted] = React.useState(!hasSound)
+  const [playing, setPlaying] = React.useState(!hasSound && autoplay.enabled)
+  const [muted, setMuted] = React.useState(false)
+  React.useEffect(() => {
+    if (!hasSound) setStarted(true)
+  }, [hasSound])
+
+  // Background music follows the master play/pause + mute, ducking under voice.
+  React.useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !music.url) return
+    audio.loop = true
+    audio.muted = muted
+    audio.volume = music.volume * (speaking ? 0.55 : 1)
+    if (playing) void audio.play().catch(() => {})
+    else audio.pause()
+  }, [playing, muted, speaking, music.url, music.volume])
 
   // Load the current frame's narration audio (reset to the start).
   React.useEffect(() => {
@@ -201,31 +174,29 @@ export function InteractiveView({
       el.currentTime = 0
     } else {
       el.removeAttribute("src")
-      duckMusic(false)
     }
-  }, [currentAudio, duckMusic])
+  }, [currentAudio])
 
-  // Follow play/pause for narration + music ducking.
+  // Narration follows the master play/pause + mute; it keeps advancing when
+  // muted (mute only silences), so the walkthrough still progresses.
   React.useEffect(() => {
     const el = narrationRef.current
     if (!el || !currentAudio) {
       setSpeaking(false)
       return
     }
+    el.muted = muted
     el.playbackRate = voice.speed
     if (playing) {
-      duckMusic(true)
       void el.play().then(() => setSpeaking(true)).catch(() => setSpeaking(false))
     } else {
       el.pause()
-      duckMusic(false)
       setSpeaking(false)
     }
-  }, [playing, currentAudio, voice.speed, duckMusic])
+  }, [playing, currentAudio, muted, voice.speed])
 
   // Advance when a frame's narration finishes (audio-driven auto-advance).
   const onNarrationEnded = React.useCallback(() => {
-    duckMusic(false)
     setSpeaking(false)
     setFast(false)
     setIndex((i) => {
@@ -235,13 +206,14 @@ export function InteractiveView({
       }
       return i + 1
     })
-  }, [frames.length, autoplay.loop, duckMusic])
+  }, [frames.length, autoplay.loop])
 
   // Manual navigation. `viaClick` = the viewer clicked the on-image target,
-  // so the transition is snappier than an arrow press.
+  // so the transition is snappier than an arrow press. Navigation does NOT stop
+  // playback — advancing while playing keeps the audio flowing into the next
+  // step's narration (and the background music never pauses).
   const go = React.useCallback(
     (delta: number, viaClick = false) => {
-      setPlaying(false)
       setFast(viaClick)
       setIndex((i) => Math.min(Math.max(i + delta, 0), frames.length - 1))
     },
@@ -249,7 +221,6 @@ export function InteractiveView({
   )
 
   const jumpTo = React.useCallback((i: number) => {
-    setPlaying(false)
     setFast(false)
     setIndex(i)
   }, [])
@@ -259,6 +230,21 @@ export function InteractiveView({
     setFast(false)
     setIndex(0)
   }, [])
+
+  // The center Play overlay (shown once, before the first play when there's
+  // sound) and the chrome Play/Pause both drive playback + start from the top
+  // if we're at the end.
+  const startPlayback = React.useCallback(() => {
+    setStarted(true)
+    if (index >= frames.length - 1) setIndex(0)
+    setPlaying(true)
+  }, [index, frames.length])
+
+  const togglePlay = React.useCallback(() => {
+    setStarted(true)
+    if (!playing && index >= frames.length - 1) setIndex(0)
+    setPlaying((p) => !p)
+  }, [playing, index, frames.length])
 
   const toggleFullscreen = React.useCallback(() => {
     if (typeof document === "undefined") return
@@ -344,27 +330,17 @@ export function InteractiveView({
 
   const chromeActions = (
     <>
-      {music.url && (
-        <ChromeButton
-          label={musicOn ? "Mute music" : "Play music"}
-          onClick={toggleMusic}
-        >
-          {musicOn ? (
-            <Volume2 className="size-3.5" />
-          ) : (
+      {hasSound && (
+        <ChromeButton label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((m) => !m)}>
+          {muted ? (
             <VolumeX className="size-3.5" />
+          ) : (
+            <Volume2 className="size-3.5" />
           )}
         </ChromeButton>
       )}
-      {(autoplay.enabled || hasNarration) && (
-        <ChromeButton
-          label={playing ? "Pause" : hasNarration ? "Play voiceover" : "Play"}
-          onClick={() => {
-            // Starting from the last frame → restart so the whole thing plays.
-            if (!playing && index >= frames.length - 1) setIndex(0)
-            setPlaying((p) => !p)
-          }}
-        >
+      {(hasSound || autoplay.enabled) && (
+        <ChromeButton label={playing ? "Pause" : "Play"} onClick={togglePlay}>
           {playing ? (
             <Pause className="size-3.5" />
           ) : (
@@ -434,6 +410,21 @@ export function InteractiveView({
             </div>
           )}
 
+          {/* Center Play — shown once before the first play when the walkthrough
+              has sound (bg music or voiceover), Guidejar-style. */}
+          {hasSound && !started && (
+            <button
+              type="button"
+              onClick={startPlayback}
+              aria-label="Play walkthrough"
+              className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 backdrop-blur-[1px] transition-colors hover:bg-black/30"
+            >
+              <span className="flex size-16 items-center justify-center rounded-full bg-white/95 shadow-[0_10px_40px_-8px_rgba(0,0,0,0.5)] transition-transform hover:scale-105">
+                <Play className="ml-1 size-7 fill-zinc-900 text-zinc-900" />
+              </span>
+            </button>
+          )}
+
           {frame.kind === "slide" ? (
             <SlideFrame
               slide={frame.slide}
@@ -465,24 +456,6 @@ export function InteractiveView({
                   />
                 </m.div>
               </div>
-
-              {/* Spotlight — dim everything except the target region so the
-                  eye lands on the click (Guidejar's signature). */}
-              {rect && (
-                <m.div
-                  aria-hidden
-                  className="pointer-events-none absolute z-[5] rounded-lg"
-                  initial={false}
-                  animate={{
-                    left: `${Math.max(0, (rect.x - 0.01) * 100)}%`,
-                    top: `${Math.max(0, (rect.y - 0.01) * 100)}%`,
-                    width: `${(rect.w + 0.02) * 100}%`,
-                    height: `${(rect.h + 0.02) * 100}%`,
-                  }}
-                  transition={travelT}
-                  style={{ boxShadow: "0 0 0 9999px rgba(15,17,30,0.44)" }}
-                />
-              )}
 
               {/* Click target — advances (snappier) when tapped. */}
               {rect && !atEnd && (

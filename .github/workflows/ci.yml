@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Typecheck · Lint · Build · Test
+    runs-on: ubuntu-latest
+    env:
+      # Build-time placeholders. `next build` bakes the /api rewrite destination
+      # and metadataBase from these; real values are set in Vercel/Railway.
+      API_URL: http://localhost:4100
+      NEXT_PUBLIC_SITE_URL: https://tacto.fyi
+      # Prisma generate doesn't connect, but a syntactically valid URL is safest.
+      DATABASE_URL: postgresql://user:pass@localhost:5432/tacto?schema=public
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Turbo orders these by task graph: db `prisma generate` → app builds
+      # (next build for web, tsc --noEmit for api/worker) → lint → typecheck.
+      - name: Typecheck, lint, and build
+        run: npx turbo run typecheck lint build
+
+      - name: Unit tests (web)
+        run: npm run test --workspace web

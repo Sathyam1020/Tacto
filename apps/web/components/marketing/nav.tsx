@@ -30,6 +30,8 @@ import { buttonVariants } from "@workspace/ui/components/button"
 import { LogoMark } from "@workspace/ui/components/logo"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { authClient } from "@/lib/auth-client"
+
 const EASE = [0.22, 1, 0.36, 1] as const
 
 type MenuItem = { icon: React.ComponentType<{ className?: string }>; label: string; desc: string; href: string }
@@ -66,6 +68,8 @@ const MENUS: { key: MenuKey; label: string; items: MenuItem[] }[] = [
 
 export function MarketingNav() {
   const reduce = useReducedMotion()
+  const { data: session } = authClient.useSession()
+  const loggedIn = !!session?.user
   const [active, setActive] = React.useState<MenuKey | null>(null)
   const [mobile, setMobile] = React.useState(false)
   const closeTimer = React.useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -136,12 +140,20 @@ export function MarketingNav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link href="/sign-in" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}>
-            Log in
-          </Link>
-          <Link href="/sign-up" className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}>
-            Start for free
-          </Link>
+          {loggedIn ? (
+            <Link href="/home" className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}>
+              My account
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "hidden sm:inline-flex")}>
+                Log in
+              </Link>
+              <Link href="/sign-up" className={cn(buttonVariants({ size: "sm" }), "hidden sm:inline-flex")}>
+                Start for free
+              </Link>
+            </>
+          )}
           <button
             type="button"
             className="flex size-9 items-center justify-center rounded-lg text-[var(--l-ink)] transition-colors hover:bg-[var(--l-hover)] focus-visible:ring-2 focus-visible:ring-cobalt/50 focus-visible:outline-none md:hidden"
@@ -186,7 +198,7 @@ export function MarketingNav() {
       </AnimatePresence>
 
       {/* mobile drawer */}
-      <AnimatePresence>{mobile && <MobileDrawer reduce={!!reduce} onClose={() => setMobile(false)} />}</AnimatePresence>
+      <AnimatePresence>{mobile && <MobileDrawer reduce={!!reduce} loggedIn={loggedIn} onClose={() => setMobile(false)} />}</AnimatePresence>
     </header>
   )
 }
@@ -195,7 +207,7 @@ export function MarketingNav() {
 /* Portalled to <body> so it escapes the nav header's backdrop-filter, which
  * would otherwise become the containing block for this `fixed` panel and
  * collapse it to the header's height. */
-function MobileDrawer({ reduce, onClose }: { reduce: boolean; onClose: () => void }) {
+function MobileDrawer({ reduce, loggedIn, onClose }: { reduce: boolean; loggedIn: boolean; onClose: () => void }) {
   const [openSection, setOpenSection] = React.useState<MenuKey | null>("solutions")
   if (typeof document === "undefined") return null
 
@@ -297,12 +309,20 @@ function MobileDrawer({ reduce, onClose }: { reduce: boolean; onClose: () => voi
         </motion.nav>
 
         <div className="flex flex-none flex-col gap-2 border-t border-[var(--l-hairline)] p-5">
-          <Link href="/sign-in" onClick={onClose} className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
-            Log in
-          </Link>
-          <Link href="/sign-up" onClick={onClose} className={cn(buttonVariants(), "w-full")}>
-            Start for free
-          </Link>
+          {loggedIn ? (
+            <Link href="/home" onClick={onClose} className={cn(buttonVariants(), "w-full")}>
+              My account
+            </Link>
+          ) : (
+            <>
+              <Link href="/sign-in" onClick={onClose} className={cn(buttonVariants({ variant: "outline" }), "w-full")}>
+                Log in
+              </Link>
+              <Link href="/sign-up" onClick={onClose} className={cn(buttonVariants(), "w-full")}>
+                Start for free
+              </Link>
+            </>
+          )}
         </div>
       </motion.div>
     </>,
