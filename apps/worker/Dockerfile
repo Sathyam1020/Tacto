@@ -10,7 +10,11 @@ COPY . .
 RUN npm ci
 
 # Prisma client (the worker reads/writes the DB directly).
-RUN npm run db:generate -w @workspace/db
+# `prisma generate` never connects, but prisma.config.ts resolves
+# env("DATABASE_URL") eagerly on load — so the var must merely exist. Scoped to
+# this RUN only; never reaches the runtime image. Railway injects the real one.
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" \
+    npm run db:generate -w @workspace/db
 
 ENV NODE_ENV=production
 
