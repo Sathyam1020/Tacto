@@ -6,6 +6,13 @@ FROM node:22-bookworm-slim
 
 WORKDIR /app
 
+# Prisma's query engine needs OpenSSL to open a TLS connection to Postgres, and
+# the -slim base omits it (Prisma warns "failed to detect libssl"). Install it
+# plus CA certs so cert validation against Neon works.
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY . .
 RUN npm ci
 
