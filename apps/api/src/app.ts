@@ -22,7 +22,7 @@ import { showcaseRouter } from "./features/showcase/router.js";
 import { uploadsRouter } from "./features/uploads/router.js";
 import { voiceRouter } from "./features/voice/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
-import { env } from "./env.js";
+import { webOrigins } from "./env.js";
 import { auth } from "./lib/auth.js";
 import { errorHandler } from "./middleware/error.js";
 
@@ -46,7 +46,7 @@ export function createApp(): Express {
         if (
           !origin ||
           origin.startsWith("chrome-extension://") ||
-          origin === env.WEB_ORIGIN
+          webOrigins.includes(origin.replace(/\/+$/, ""))
         ) {
           callback(null, true);
         } else {

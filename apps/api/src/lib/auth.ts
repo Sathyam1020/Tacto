@@ -5,7 +5,7 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, organization } from "better-auth/plugins";
 
-import { env } from "../env.js";
+import { env, webOrigins } from "../env.js";
 import { analytics } from "./analytics.js";
 import { generateSlug } from "./slug.js";
 
@@ -22,7 +22,7 @@ import { generateSlug } from "./slug.js";
 export const auth = betterAuth({
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
-  trustedOrigins: [env.WEB_ORIGIN],
+  trustedOrigins: webOrigins,
 
   database: prismaAdapter(prisma, {
     provider: "postgresql",

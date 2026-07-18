@@ -25,8 +25,18 @@ const envSchema = z.object({
    */
   BETTER_AUTH_URL: z.url(),
 
-  /** Web app origin, trusted for auth requests. */
-  WEB_ORIGIN: z.url().default("http://localhost:3100"),
+  /**
+   * Web app origin(s) trusted for auth + CORS. Comma-separated so apex, www,
+   * and Vercel preview domains can all be allowed, e.g.
+   * "https://tacto.fyi,https://www.tacto.fyi".
+   */
+  WEB_ORIGIN: z
+    .string()
+    .default("http://localhost:3100")
+    .refine(
+      (s) => s.split(",").every((o) => URL.canParse(o.trim())),
+      "WEB_ORIGIN must be a comma-separated list of valid URLs"
+    ),
 
   /** Redis, for enqueueing capture-processing jobs. */
   REDIS_URL: z.url().default("redis://localhost:6379"),
@@ -57,3 +67,12 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+/**
+ * WEB_ORIGIN parsed into a normalized allowlist (trailing slash stripped so
+ * "https://tacto.fyi/" and "https://tacto.fyi" compare equal). Used by CORS and
+ * better-auth trustedOrigins.
+ */
+export const webOrigins = env.WEB_ORIGIN.split(",")
+  .map((o) => o.trim().replace(/\/+$/, ""))
+  .filter(Boolean);
