@@ -263,7 +263,16 @@ export function PublicGuideView({
         </header>
       )}
 
-      <main className={cn("mx-auto px-6", embedded || chromeless ? "pt-6 pb-14" : "py-14", width)}>
+      <main
+        className={cn(
+          "mx-auto px-6",
+          // Interactive is a wide, self-framed player — go wide with tight
+          // padding so it doesn't float in dead space. Others read as a column.
+          effectiveMode === "interactive"
+            ? "max-w-6xl py-4"
+            : cn(embedded || chromeless ? "pt-6 pb-14" : "py-14", width)
+        )}
+      >
         {embedded && !chromeless && <div className="mb-6 flex justify-end">{controls}</div>}
 
         {/* Interactive/walkthrough mode is a self-contained player (its own

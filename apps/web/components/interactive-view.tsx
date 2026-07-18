@@ -408,7 +408,7 @@ export function InteractiveView({
     <div
       ref={rootRef}
       className={cn(
-        "mx-auto max-w-4xl",
+        "mx-auto max-w-6xl",
         fullscreen &&
           "bg-background flex h-full max-w-none items-center justify-center p-4"
       )}

@@ -34,10 +34,11 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { LogoMark } from "@workspace/ui/components/logo"
 import { LogoutIcon } from "@workspace/ui/components/logout"
 import { SettingsIcon } from "@workspace/ui/components/settings"
 
-import { RailButton, Reticle } from "@/components/app-shell/shell-bits"
+import { RailButton } from "@/components/app-shell/shell-bits"
 import { useLibraryViewState } from "@/components/app-shell/view-context"
 import { authClient } from "@/lib/auth-client"
 import { generateSlug } from "@/lib/slug"
@@ -107,7 +108,7 @@ function RailWorkspaceSwitcher() {
           aria-label="Switch workspace"
           className="mb-2 flex size-10 items-center justify-center rounded-xl text-cobalt outline-none transition-colors hover:bg-[var(--l-hover)] focus-visible:ring-2 focus-visible:ring-ring/50"
         >
-          <Reticle />
+          <LogoMark className="size-6" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right" align="start" className="w-56">
           <DropdownMenuGroup>

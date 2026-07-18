@@ -16,7 +16,8 @@ export function Hero() {
     <section className="relative overflow-hidden">
       <Ambient />
 
-      <div className="mx-auto max-w-3xl px-5 pt-12 pb-12 text-center sm:pt-16">
+      {/* Compact text so the live demo lands in the first view. */}
+      <div className="mx-auto max-w-3xl px-5 pt-8 pb-8 text-center sm:pt-10">
         <Stagger className="flex flex-col items-center">
           <Item>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--l-hairline)] bg-white px-2.5 py-0.5 font-mono text-[10px] tracking-wide text-[var(--l-ink-subtle)] uppercase shadow-sm">
@@ -25,26 +26,19 @@ export function Hero() {
           </Item>
 
           <Item>
-            <h1 className="mt-5 font-display text-[44px] leading-[1.02] font-semibold tracking-[-0.02em] text-balance text-[var(--l-ink)] sm:text-[68px]">
+            <h1 className="mt-4 font-display text-[38px] leading-[1.02] font-semibold tracking-[-0.02em] text-balance text-[var(--l-ink)] sm:text-[54px]">
               Guides that write themselves.
             </h1>
           </Item>
 
           <Item>
-            <p className="mt-4 font-accent text-[22px] leading-snug text-[var(--l-ink-subtle)] sm:text-[26px]">
+            <p className="mt-3 font-accent text-[20px] leading-snug text-[var(--l-ink-subtle)] sm:text-[24px]">
               Record it once — Tacto documents it forever.
             </p>
           </Item>
 
           <Item>
-            <p className="mx-auto mt-6 max-w-lg text-[15px] leading-relaxed text-[var(--l-ink-subtle)] sm:text-[17px]">
-              Record any workflow once and Tacto turns every click into a polished step-by-step guide,
-              walkthrough, or branded help center — for teams who&apos;d rather ship than write docs.
-            </p>
-          </Item>
-
-          <Item>
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link href="/sign-up" className={buttonVariants({ size: "lg" })}>
                 Start for free <ArrowRight className="size-4" />
               </Link>
@@ -55,19 +49,51 @@ export function Hero() {
           </Item>
 
           <Item>
-            <p className="mt-5 font-mono text-[11px] tracking-wide text-[var(--l-ink-tertiary)] uppercase">
+            <p className="mt-4 font-mono text-[11px] tracking-wide text-[var(--l-ink-tertiary)] uppercase">
               Free forever · No credit card · Live in under a minute
             </p>
           </Item>
         </Stagger>
       </div>
 
-      <div className="mx-auto max-w-5xl px-5 pb-24 sm:px-8">
-        <Reveal delay={0.35}>
+      {/* Interactive demo — wide, with a hand-drawn note pointing at it. */}
+      <div className="mx-auto max-w-6xl px-4 pb-20 sm:px-8">
+        <Reveal className="mb-2 flex justify-center sm:justify-end sm:pr-8">
+          <HandNote />
+        </Reveal>
+        <Reveal delay={0.1}>
           <HeroEmbed />
         </Reveal>
       </div>
     </section>
+  )
+}
+
+/** A hand-written note with a curved arrow pointing at the live demo — the
+ *  brand's editorial-serif italic (its "handwriting"). */
+function HandNote() {
+  return (
+    <div className="flex flex-col items-center text-[var(--l-ink-subtle)] sm:items-end">
+      <p className="font-accent text-center text-[19px] leading-tight italic sm:text-right sm:text-[23px]">
+        This is an interactive guide
+        <br />
+        created using Tacto
+      </p>
+      <svg
+        aria-hidden
+        viewBox="0 0 60 56"
+        className="mt-0.5 h-10 w-10 text-[var(--l-ink-tertiary)] sm:mr-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M45 4 C 50 22, 41 41, 14 49" />
+        <path d="M14 49 l 13 -1.5" />
+        <path d="M14 49 l 6 -12" />
+      </svg>
+    </div>
   )
 }
 
