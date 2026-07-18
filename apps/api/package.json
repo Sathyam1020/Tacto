@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@workspace/ai": "*",
+    "@workspace/analytics": "*",
     "@workspace/contracts": "*",
     "@workspace/db": "*",
     "@workspace/generation": "*",

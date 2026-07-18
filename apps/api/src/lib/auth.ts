@@ -6,6 +6,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer, organization } from "better-auth/plugins";
 
 import { env } from "../env.js";
+import { analytics } from "./analytics.js";
 import { generateSlug } from "./slug.js";
 
 /**
@@ -86,6 +87,15 @@ export const auth = betterAuth({
         console.info(
           `[invite] ${data.email} → "${data.organization.name}" (invitation ${data.id})`
         );
+        const inviterId = data.inviter?.user?.id;
+        if (inviterId) {
+          analytics.capture(
+            inviterId,
+            "member_invited",
+            { workspaceId: data.organization.id, role: data.role ?? "member" },
+            data.organization.id
+          );
+        }
       },
       organizationHooks: {
         afterCreateOrganization: async ({ organization: org }) => {
@@ -123,6 +133,28 @@ export const auth = betterAuth({
           // Every workspace starts with a default folder so guides always have
           // a home.
           await ensureDefaultFolder(prisma, organizationId);
+
+          // Analytics — fire once per new user, from the authoritative source.
+          try {
+            const account = await prisma.account.findFirst({
+              where: { userId: user.id },
+              select: { providerId: true },
+            });
+            const method =
+              account && account.providerId && account.providerId !== "credential"
+                ? "google"
+                : "email";
+            analytics.identify(user.id, { email: user.email, name: user.name });
+            analytics.capture(user.id, "signed_up", { method });
+            analytics.capture(
+              user.id,
+              "workspace_created",
+              { workspaceId: organizationId },
+              organizationId
+            );
+          } catch {
+            // analytics must never block signup
+          }
         },
       },
     },

@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 
+import { CtaLink } from "@/components/analytics/cta-link"
 import { Reveal } from "@/components/marketing/motion"
 
 /** Closing call to action — a full-bleed cobalt band. Server-rendered. */
@@ -17,12 +18,14 @@ export function Cta() {
             Record it once with Tacto. Hand over a guide that answers for you — forever.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
+            <CtaLink
+              location="footer_cta"
+              label="Start for free"
               href="/sign-up"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-[15px] font-semibold text-cobalt shadow-[0_16px_40px_-16px_rgba(0,0,0,0.5)] transition-transform duration-200 hover:scale-[1.02]"
             >
               Start for free <ArrowRight className="size-4" />
-            </Link>
+            </CtaLink>
             <Link href="/sign-in" className="text-[15px] font-medium text-white/80 transition-colors hover:text-white">
               Log in
             </Link>

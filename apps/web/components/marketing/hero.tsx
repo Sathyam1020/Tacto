@@ -3,6 +3,7 @@ import { ArrowRight, Play, Sparkles } from "lucide-react"
 
 import { buttonVariants } from "@workspace/ui/components/button"
 
+import { CtaLink } from "@/components/analytics/cta-link"
 import { HeroEmbed } from "@/components/marketing/hero-embed"
 import { Item, Reveal, Stagger } from "@/components/marketing/motion"
 
@@ -39,9 +40,9 @@ export function Hero() {
 
           <Item>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link href="/sign-up" className={buttonVariants({ size: "lg" })}>
+              <CtaLink location="hero" label="Start for free" href="/sign-up" className={buttonVariants({ size: "lg" })}>
                 Start for free <ArrowRight className="size-4" />
-              </Link>
+              </CtaLink>
               <Link href="#see-it" className={buttonVariants({ size: "lg", variant: "outline" })}>
                 <Play className="size-4" /> See it in action
               </Link>

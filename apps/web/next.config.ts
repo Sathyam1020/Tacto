@@ -8,12 +8,23 @@ import type { NextConfig } from "next"
 const API_URL = process.env.API_URL ?? "http://localhost:4100"
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@workspace/ui"],
+  transpilePackages: ["@workspace/ui", "@workspace/analytics"],
+  // PostHog ingestion is reverse-proxied through /ingest so ad-blockers can't
+  // drop it and it stays first-party (same trick as /api). US region.
+  skipTrailingSlashRedirect: true,
   async rewrites() {
     return [
       {
         source: "/api/:path*",
         destination: `${API_URL}/api/:path*`,
+      },
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
       },
     ]
   },

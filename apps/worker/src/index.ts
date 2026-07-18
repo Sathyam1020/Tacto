@@ -29,6 +29,7 @@ import {
 } from "@workspace/generation";
 import { Worker } from "bullmq";
 
+import { analytics, guideActor } from "./analytics.js";
 import { processCapture } from "./pipeline/process-capture.js";
 import { composeGuideVideo } from "./pipeline/video-export.js";
 import { startReaper } from "./reaper.js";
@@ -54,7 +55,38 @@ const worker = new Worker<CaptureJobData>(
   CAPTURE_QUEUE,
   async (job) => {
     console.log(`job ${job.id}: capture ${job.data.captureId} (attempt ${job.attemptsMade + 1})`);
+    const startedAt = Date.now();
     await processCapture(job.data.captureId);
+    try {
+      const capture = await prisma.capture.findUnique({
+        where: { id: job.data.captureId },
+        select: { createdById: true, organizationId: true },
+      });
+      const guide = await prisma.guide.findFirst({
+        where: { captureId: job.data.captureId },
+        select: { id: true },
+      });
+      const stepCount = guide
+        ? await prisma.step.count({ where: { guideId: guide.id, type: "STEP" } })
+        : 0;
+      if (capture) {
+        analytics.capture(
+          capture.createdById,
+          "capture_completed",
+          {
+            captureId: job.data.captureId,
+            workspaceId: capture.organizationId,
+            stepCount,
+            durationMs: Date.now() - startedAt,
+            provider: env.AI_PROVIDER,
+            model: env.AI_MODEL,
+          },
+          capture.organizationId
+        );
+      }
+    } catch {
+      // analytics must never fail the job
+    }
   },
   {
     connection,
@@ -79,6 +111,22 @@ worker.on("failed", async (job, error) => {
       .catch((updateError) =>
         console.error("could not mark capture FAILED:", updateError)
       );
+    try {
+      const capture = await prisma.capture.findUnique({
+        where: { id: job.data.captureId },
+        select: { createdById: true, organizationId: true },
+      });
+      if (capture) {
+        analytics.capture(
+          capture.createdById,
+          "pipeline_failed",
+          { stage: "capture", captureId: job.data.captureId, error: error.message },
+          capture.organizationId
+        );
+      }
+    } catch {
+      /* analytics best-effort */
+    }
   }
 });
 
@@ -110,6 +158,15 @@ const voiceWorker = new Worker<VoiceJobData>(
       console.log(
         `narration.generate ${data.guideId}/${data.language} in ${Date.now() - t0}ms`
       );
+      const actor = await guideActor(data.guideId);
+      if (actor) {
+        analytics.capture(
+          actor.userId,
+          "voiceover_generated",
+          { guideId: data.guideId, language: data.language },
+          actor.workspaceId
+        );
+      }
       return;
     }
     // voice.synthesize
@@ -135,6 +192,15 @@ voiceWorker.on("failed", async (job, error) => {
       "failed",
       error.message
     );
+    const actor = await guideActor(parsed.data.guideId);
+    if (actor) {
+      analytics.capture(
+        actor.userId,
+        "pipeline_failed",
+        { stage: "voice", guideId: parsed.data.guideId, error: error.message },
+        actor.workspaceId
+      );
+    }
   }
 });
 
@@ -149,6 +215,15 @@ const translationWorker = new Worker<TranslationJobData>(
     const data = translationJobSchema.parse(job.data);
     await generateTranslation(data.guideId, data.language);
     await setTranslationStatus(data.guideId, data.language, "ready");
+    const actor = await guideActor(data.guideId);
+    if (actor) {
+      analytics.capture(
+        actor.userId,
+        "translation_generated",
+        { guideId: data.guideId, language: data.language },
+        actor.workspaceId
+      );
+    }
   },
   { connection, concurrency: 3, stalledInterval: 30_000, maxStalledCount: 2 }
 );
@@ -164,6 +239,15 @@ translationWorker.on("failed", async (job, error) => {
       "failed",
       error.message
     );
+    const actor = await guideActor(parsed.data.guideId);
+    if (actor) {
+      analytics.capture(
+        actor.userId,
+        "pipeline_failed",
+        { stage: "translation", guideId: parsed.data.guideId, error: error.message },
+        actor.workspaceId
+      );
+    }
   }
 });
 
@@ -181,6 +265,15 @@ const exportWorker = new Worker<ExportJobData>(
     console.log(
       `video.export ${data.guideId}/${data.language}${data.silent ? " (silent)" : ""} in ${Date.now() - t0}ms`
     );
+    const actor = await guideActor(data.guideId);
+    if (actor) {
+      analytics.capture(
+        actor.userId,
+        "video_exported",
+        { guideId: data.guideId, language: data.language, silent: data.silent },
+        actor.workspaceId
+      );
+    }
   },
   // ffmpeg is CPU-heavy — keep concurrency low.
   { connection, concurrency: 1, stalledInterval: 60_000, maxStalledCount: 1 }
@@ -197,6 +290,15 @@ exportWorker.on("failed", async (job, error) => {
       parsed.data.silent,
       error.message
     );
+    const actor = await guideActor(parsed.data.guideId);
+    if (actor) {
+      analytics.capture(
+        actor.userId,
+        "pipeline_failed",
+        { stage: "export", guideId: parsed.data.guideId, error: error.message },
+        actor.workspaceId
+      );
+    }
   }
 });
 
@@ -233,6 +335,7 @@ async function shutdown(signal: string) {
     translationWorker.close(),
     exportWorker.close(),
   ]);
+  await analytics.shutdown();
   process.exit(0);
 }
 

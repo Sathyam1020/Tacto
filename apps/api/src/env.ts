@@ -43,6 +43,10 @@ const envSchema = z.object({
   /** Google OAuth — optional; the google provider is disabled when absent. */
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),
+
+  /** PostHog product analytics — optional; analytics is a no-op when absent. */
+  POSTHOG_KEY: z.string().optional(),
+  POSTHOG_HOST: z.url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

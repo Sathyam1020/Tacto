@@ -31,6 +31,7 @@ import { nanoid } from "nanoid";
 import pdfParse from "pdf-parse/lib/pdf-parse.js";
 import { z } from "zod";
 
+import { analytics } from "../../lib/analytics.js";
 import { translationQueue } from "../../lib/queue.js";
 import { AppError } from "../../middleware/error.js";
 import { requireAuth } from "../../middleware/require-auth.js";
@@ -354,6 +355,22 @@ guideRouter.post(
     if (!guide) throw new AppError(404, "NOT_FOUND", "Guide not found");
     await publishDraft(id);
     res.json({ ok: true });
+
+    // Analytics — fire after the response, from the authoritative source.
+    try {
+      const [stepCount, narrationCount] = await Promise.all([
+        prisma.step.count({ where: { guideId: id, type: "STEP" } }),
+        prisma.narration.count({ where: { guideId: id } }),
+      ]);
+      analytics.capture(
+        req.user!.id,
+        "guide_published",
+        { guideId: id, workspaceId: req.workspace!.id, stepCount, hasVoiceover: narrationCount > 0 },
+        req.workspace!.id
+      );
+    } catch {
+      // analytics must never affect the publish result
+    }
   }
 );
 

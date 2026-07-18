@@ -1,0 +1,29 @@
+{
+  "name": "@workspace/analytics",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./events": "./src/events.ts",
+    "./browser": "./src/browser.ts",
+    "./server": "./src/server.ts",
+    "./extension": "./src/extension.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "posthog-js": "^1.404.1",
+    "posthog-node": "^5.45.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^9",
+    "typescript": "^5"
+  }
+}

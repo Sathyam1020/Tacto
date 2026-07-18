@@ -8,6 +8,7 @@ import {
   submitCapture,
   uploadShot,
 } from "@/lib/api"
+import { APP_VERSION, track } from "@/lib/analytics"
 import type { Message } from "@/lib/messages"
 import type { RecordedEvent, Status } from "@/lib/types"
 
@@ -35,8 +36,21 @@ export default defineBackground(() => {
   let token: string | null = null
   let workspaceName: string | null = null
   let recording = false
+  let recordingStartedAt = 0
   let recordingTabId: number | null = null
   let recordingWindowId: number | null = null
+
+  // Install / update lifecycle (registered at SW startup).
+  chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === "install") {
+      void track("extension_installed", { version: APP_VERSION })
+    } else if (details.reason === "update") {
+      void track("extension_updated", {
+        version: APP_VERSION,
+        previousVersion: details.previousVersion,
+      })
+    }
+  })
   // Folder the resulting guide should land in (chosen on the web at start).
   let recordingFolderId: string | null = null
   // Ordered event buffer + a seq index for correlating late "after" frames.
@@ -172,8 +186,10 @@ export default defineBackground(() => {
       return
     }
     recording = true
+    recordingStartedAt = Date.now()
     recordingTabId = tab.id
     recordingWindowId = tab.windowId
+    void track("recording_started", {})
     buffer = []
     byId = new Map()
     pendingBefore = new Map()
@@ -276,6 +292,11 @@ export default defineBackground(() => {
       const clean: CaptureEvent[] = buffer.map((b) => b.event)
       await submitCapture(token, captureId, clean)
 
+      void track("recording_completed", {
+        stepCount: clean.length,
+        durationMs: recordingStartedAt ? Date.now() - recordingStartedAt : 0,
+      })
+
       lastCaptureUrl = `${APP_URL}/home`
       buffer = []
       byId = new Map()
@@ -292,6 +313,7 @@ export default defineBackground(() => {
           workspaceName = null
           error = null
           chrome.storage.local.set({ token: message.token })
+          void track("extension_connected", { version: APP_VERSION })
           void loadWorkspace().then(() => sendResponse(status()))
           return true
         }

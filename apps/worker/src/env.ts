@@ -22,6 +22,10 @@ const envSchema = z.object({
   /** ElevenLabs TTS — required for voiceover audio synthesis. */
   ELEVENLABS_API_KEY: z.string().optional(),
 
+  /** PostHog product analytics — optional; analytics is a no-op when absent. */
+  POSTHOG_KEY: z.string().optional(),
+  POSTHOG_HOST: z.url().optional(),
+
   // ── Stuck-capture reaper ────────────────────────────────────────────────
   /** How often the reaper sweeps for stuck captures (seconds). */
   REAPER_INTERVAL_SEC: z.coerce.number().int().positive().default(60),
