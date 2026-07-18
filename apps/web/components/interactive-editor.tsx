@@ -1081,7 +1081,11 @@ function StepCanvas({
         <NavChevron side="right" disabled={atEnd} onClick={onNext} />
 
         <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
-          <ChromeBar />
+          <div className="flex items-center gap-1.5 bg-[#374151] px-3 py-1.5">
+            <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+            <span className="size-2.5 rounded-full bg-[#febc2e]" />
+            <span className="size-2.5 rounded-full bg-[#28c840]" />
+          </div>
           {step.screenshotUrl ? (
             <div className="group/shot relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1204,7 +1208,11 @@ function SlideCanvas({
         <NavChevron side="right" disabled={index === total - 1} onClick={onNext} />
 
         <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
-          <ChromeBar />
+          <div className="flex items-center gap-1.5 bg-[#374151] px-3 py-1.5">
+            <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+            <span className="size-2.5 rounded-full bg-[#febc2e]" />
+            <span className="size-2.5 rounded-full bg-[#28c840]" />
+          </div>
           <div
             className={cn(
               "flex flex-col justify-center gap-4 px-12 py-16 transition-colors",
@@ -1454,16 +1462,6 @@ function AutoTextarea({
       }}
       className={cn("[field-sizing:content]", className)}
     />
-  )
-}
-
-function ChromeBar() {
-  return (
-    <div className="bg-muted/40 flex items-center gap-1.5 border-b px-4 py-2.5">
-      <span className="size-2.5 rounded-full bg-red-400/70" />
-      <span className="size-2.5 rounded-full bg-yellow-400/70" />
-      <span className="size-2.5 rounded-full bg-green-400/70" />
-    </div>
   )
 }
 

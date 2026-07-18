@@ -3,6 +3,7 @@
 import * as React from "react"
 import { m, useReducedMotion } from "motion/react"
 import {
+  Captions,
   ChevronLeft,
   ChevronRight,
   Maximize2,
@@ -121,6 +122,9 @@ export function InteractiveView({
   // Reserve the image's height so remounting the screenshot on step change
   // never collapses the layout (which would clamp the page scroll toward top).
   const [stageH, setStageH] = React.useState<number>()
+  // The screenshot's aspect ratio (w/h), so fullscreen can scale the player to
+  // fill the screen while keeping the image undistorted.
+  const [aspect, setAspect] = React.useState<number>()
   const reduce = useReducedMotion()
   const rootRef = React.useRef<HTMLDivElement>(null)
 
@@ -150,6 +154,16 @@ export function InteractiveView({
   const [started, setStarted] = React.useState(!hasSound)
   const [playing, setPlaying] = React.useState(!hasSound && autoplay.enabled)
   const [muted, setMuted] = React.useState(false)
+  // Whether the on-image caption (the instruction callout) is shown — toggled by
+  // the CC control. On by default.
+  const [captions, setCaptions] = React.useState(true)
+  // 0–1 progress of the CURRENT step, for the timeline's active segment. Fed by
+  // the narration audio's timeupdate, or a timer for audio-less frames.
+  const [progress, setProgress] = React.useState(0)
+  React.useEffect(() => setProgress(0), [index])
+  // Timeline shows only while the cursor is in the bottom ~20% of the stage
+  // (tracked by pointer position so it never blocks clicks on the screenshot).
+  const [showTimeline, setShowTimeline] = React.useState(false)
   React.useEffect(() => {
     if (!hasSound) setStarted(true)
   }, [hasSound])
@@ -272,6 +286,23 @@ export function InteractiveView({
     return () => clearTimeout(t)
   }, [playing, index, frames.length, autoplay.loop, autoplay.delaySeconds, currentAudio])
 
+  // Drive the timeline's progress for audio-less frames (narration frames get
+  // their progress from the audio's timeupdate instead).
+  React.useEffect(() => {
+    if (!playing || currentAudio) return
+    const dur = Math.max(0.5, autoplay.delaySeconds) * 1000
+    let start = 0
+    let raf = 0
+    const tick = (t: number) => {
+      if (!start) start = t
+      const p = Math.min(1, (t - start) / dur)
+      setProgress(p)
+      if (p < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [playing, currentAudio, index, autoplay.delaySeconds])
+
   React.useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "ArrowRight") go(1)
@@ -330,15 +361,6 @@ export function InteractiveView({
 
   const chromeActions = (
     <>
-      {hasSound && (
-        <ChromeButton label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((m) => !m)}>
-          {muted ? (
-            <VolumeX className="size-3.5" />
-          ) : (
-            <Volume2 className="size-3.5" />
-          )}
-        </ChromeButton>
-      )}
       {(hasSound || autoplay.enabled) && (
         <ChromeButton label={playing ? "Pause" : "Play"} onClick={togglePlay}>
           {playing ? (
@@ -351,6 +373,24 @@ export function InteractiveView({
       <ChromeButton label="Restart" onClick={restart}>
         <RotateCcw className="size-3.5" />
       </ChromeButton>
+      {hasSound && (
+        <ChromeButton label={muted ? "Unmute" : "Mute"} onClick={() => setMuted((m) => !m)}>
+          {muted ? (
+            <VolumeX className="size-3.5" />
+          ) : (
+            <Volume2 className="size-3.5" />
+          )}
+        </ChromeButton>
+      )}
+      {wv.textAnnotations && (
+        <ChromeButton
+          label={captions ? "Hide captions" : "Show captions"}
+          onClick={() => setCaptions((c) => !c)}
+          active={captions}
+        >
+          <Captions className="size-3.5" />
+        </ChromeButton>
+      )}
       <ChromeButton
         label={fullscreen ? "Exit full screen" : "Full screen"}
         onClick={toggleFullscreen}
@@ -370,7 +410,7 @@ export function InteractiveView({
       className={cn(
         "mx-auto max-w-4xl",
         fullscreen &&
-          "bg-background flex h-full max-w-none items-center justify-center px-6"
+          "bg-background flex h-full max-w-none items-center justify-center p-4"
       )}
     >
       {music.url && (
@@ -382,10 +422,21 @@ export function InteractiveView({
         ref={narrationRef}
         onEnded={onNarrationEnded}
         onError={() => setAudioErrored(true)}
+        onTimeUpdate={(e) => {
+          const el = e.currentTarget
+          if (el.duration && Number.isFinite(el.duration)) setProgress(el.currentTime / el.duration)
+        }}
         preload="auto"
       />
       {speaking && <span className="sr-only" role="status">Narration playing</span>}
-      <div className={cn("w-full", fullscreen && "max-w-6xl")}>
+      <div
+        className={cn("w-full", fullscreen && "max-w-none")}
+        style={
+          fullscreen && aspect
+            ? { width: `min(96vw, calc(92vh * ${aspect.toFixed(3)}))` }
+            : undefined
+        }
+      >
         {/* Off-layout measurer: keeps `stageH` warm from the first screenshot so
             slides match the step height even before a step is viewed. */}
         {firstStepUrl && (
@@ -395,7 +446,10 @@ export function InteractiveView({
               src={firstStepUrl}
               alt=""
               className="w-full"
-              onLoad={(e) => setStageH(e.currentTarget.offsetHeight)}
+              onLoad={(e) => {
+                setStageH(e.currentTarget.offsetHeight)
+                setAspect(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)
+              }}
             />
           </div>
         )}
@@ -403,27 +457,40 @@ export function InteractiveView({
           className="bg-card relative overflow-hidden rounded-xl border"
           data-step-key={stepFrame ? currentFrameId : undefined}
         >
-          {/* Floating controls over the screenshot — no fake browser chrome. */}
-          {chromeActions && (
-            <div className="absolute top-3 right-3 z-30 flex items-center gap-0.5 rounded-full border border-border/60 bg-background/80 px-1 py-1 shadow-sm backdrop-blur">
-              {chromeActions}
+          {/* Window chrome — traffic lights + controls (Guidejar-style). */}
+          <div className="flex items-center justify-between gap-2 bg-[#374151] px-3 py-1">
+            <div className="flex items-center gap-1.5">
+              <span className="size-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="size-2.5 rounded-full bg-[#febc2e]" />
+              <span className="size-2.5 rounded-full bg-[#28c840]" />
             </div>
-          )}
+            <div className="flex items-center gap-0.5">{chromeActions}</div>
+          </div>
 
-          {/* Center Play — shown once before the first play when the walkthrough
-              has sound (bg music or voiceover), Guidejar-style. */}
-          {hasSound && !started && (
-            <button
-              type="button"
-              onClick={startPlayback}
-              aria-label="Play walkthrough"
-              className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 backdrop-blur-[1px] transition-colors hover:bg-black/30"
-            >
-              <span className="flex size-16 items-center justify-center rounded-full bg-white/95 shadow-[0_10px_40px_-8px_rgba(0,0,0,0.5)] transition-transform hover:scale-105">
-                <Play className="ml-1 size-7 fill-zinc-900 text-zinc-900" />
-              </span>
-            </button>
-          )}
+          {/* Stage — screenshot / slide, with the overlays + hover timeline. */}
+          <div
+            className="relative"
+            onMouseMove={(e) => {
+              const r = e.currentTarget.getBoundingClientRect()
+              const inZone = e.clientY - r.top > r.height * 0.8
+              setShowTimeline((v) => (v === inZone ? v : inZone))
+            }}
+            onMouseLeave={() => setShowTimeline(false)}
+          >
+            {/* Center Play — shown once before the first play when the
+                walkthrough has sound (bg music or voiceover). */}
+            {hasSound && !started && (
+              <button
+                type="button"
+                onClick={startPlayback}
+                aria-label="Play walkthrough"
+                className="absolute inset-0 z-40 flex items-center justify-center bg-black/25 backdrop-blur-[1px] transition-colors hover:bg-black/30"
+              >
+                <span className="flex size-16 items-center justify-center rounded-full bg-white/95 shadow-[0_10px_40px_-8px_rgba(0,0,0,0.5)] transition-transform hover:scale-105">
+                  <Play className="ml-1 size-7 fill-zinc-900 text-zinc-900" />
+                </span>
+              </button>
+            )}
 
           {frame.kind === "slide" ? (
             <SlideFrame
@@ -452,7 +519,10 @@ export function InteractiveView({
                     src={stepFrame!.screenshotUrl!}
                     alt=""
                     className="block w-full"
-                    onLoad={(e) => setStageH(e.currentTarget.offsetHeight)}
+                    onLoad={(e) => {
+                      setStageH(e.currentTarget.offsetHeight)
+                      setAspect(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)
+                    }}
                   />
                 </m.div>
               </div>
@@ -508,8 +578,9 @@ export function InteractiveView({
                   </m.div>
                 ))}
 
-              {/* Callout — floats beside the pointer, tail on the pointer. */}
-              {wv.textAnnotations && (
+              {/* Callout (the "caption") — floats beside the pointer. Toggled
+                  by CC, and hidden until playback has started. */}
+              {wv.textAnnotations && captions && started && (
                 <Callout
                   cx={cx}
                   cy={cy}
@@ -540,9 +611,13 @@ export function InteractiveView({
             </div>
           )}
 
-          {/* Edge chevrons — Guidejar-style prev/next over the stage. */}
-          {!atStart && <EdgeChevron side="left" onClick={() => go(-1)} />}
-          {!atEnd && <EdgeChevron side="right" onClick={() => go(1)} />}
+            {/* Edge chevrons — prev/next over the stage. */}
+            {!atStart && <EdgeChevron side="left" onClick={() => go(-1)} />}
+            {!atEnd && <EdgeChevron side="right" onClick={() => go(1)} />}
+
+            {/* Hover timeline — segmented scrubber revealed on bottom hover. */}
+            <TimelineScrubber total={frames.length} index={index} progress={progress} show={showTimeline} onSeek={jumpTo} />
+          </div>
         </div>
 
         {wv.cta.enabled && atEnd && <CtaCard cta={wv.cta} />}
@@ -792,8 +867,10 @@ function EdgeChevron({
       onClick={onClick}
       aria-label={side === "left" ? "Previous" : "Next"}
       className={cn(
-        "text-foreground absolute top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-border/60 bg-background/85 shadow-md backdrop-blur transition hover:bg-background active:scale-90",
-        side === "left" ? "left-3" : "right-3"
+        // Almost transparent — just a hint of a button — until hovered. The
+        // drop-shadow keeps the arrow legible over both light and dark shots.
+        "absolute top-1/2 z-30 flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/15 text-white/80 backdrop-blur-[1px] transition hover:bg-black/50 hover:text-white active:scale-90 [&_svg]:drop-shadow-[0_1px_2px_rgba(0,0,0,0.55)]",
+        side === "left" ? "left-2.5" : "right-2.5"
       )}
     >
       {side === "left" ? (
@@ -809,20 +886,91 @@ function EdgeChevron({
 function ChromeButton({
   label,
   onClick,
+  active,
   children,
 }: {
   label: string
   onClick: () => void
+  /** Toggle controls (e.g. captions) that stay lit while enabled. */
+  active?: boolean
   children: React.ReactNode
 }) {
   return (
     <button
       onClick={onClick}
       aria-label={label}
+      aria-pressed={active}
       title={label}
-      className="text-muted-foreground hover:bg-muted hover:text-foreground flex size-7 items-center justify-center rounded-md transition-colors"
+      className={cn(
+        "flex size-5 items-center justify-center rounded-md transition-colors",
+        active
+          ? "bg-white/15 text-white"
+          : "text-white/70 hover:bg-white/10 hover:text-white"
+      )}
     >
       {children}
     </button>
+  )
+}
+
+/**
+ * The hover-reveal timeline — a segmented scrubber along the bottom of the
+ * player (Guidejar-style). Completed steps fill with the accent; every segment
+ * is clickable to jump. Fades in when the stage is hovered.
+ */
+function TimelineScrubber({
+  total,
+  index,
+  progress,
+  show,
+  onSeek,
+}: {
+  total: number
+  index: number
+  /** 0–1 progress through the current step. */
+  progress: number
+  /** Reveal state (cursor in the bottom of the stage). */
+  show: boolean
+  onSeek: (i: number) => void
+}) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 bottom-0 z-30 flex items-end px-3 pt-12 pb-2.5 transition-opacity duration-200",
+        show ? "opacity-100" : "opacity-0"
+      )}
+      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)" }}
+    >
+      <div className={cn("flex w-full items-center gap-1.5", show ? "pointer-events-auto" : "pointer-events-none")}>
+        {Array.from({ length: total }).map((_, i) => {
+          const active = i === index
+          const done = i < index
+          return (
+            <button
+              key={i}
+              type="button"
+              aria-label={`Go to step ${i + 1}`}
+              onClick={() => onSeek(i)}
+              // The active step is a wider pill that fills as it plays.
+              className={cn("group/seg py-2", active ? "flex-[2.5]" : "flex-1")}
+            >
+              <span
+                className={cn(
+                  "relative block h-1.5 overflow-hidden rounded-full",
+                  done ? "bg-white" : "bg-white/35 group-hover/seg:bg-white/55"
+                )}
+              >
+                {active && (
+                  <span
+                    className="absolute inset-y-0 left-0 rounded-full bg-primary transition-[width] duration-150 ease-linear"
+                    style={{ width: `${Math.round(progress * 100)}%` }}
+                  />
+                )}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
