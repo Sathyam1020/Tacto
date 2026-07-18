@@ -23,6 +23,10 @@ const connection = {
   host: redisUrl.hostname,
   port: Number(redisUrl.port || 6379),
   ...(redisUrl.password ? { password: redisUrl.password } : {}),
+  // Railway's private Redis hostname is IPv6-only; ioredis defaults to IPv4 and
+  // would fail with ENOTFOUND. `family: 0` lets the resolver use either stack.
+  // No-op for localhost/public hosts.
+  family: 0,
   maxRetriesPerRequest: null,
 };
 
