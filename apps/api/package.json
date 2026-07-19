@@ -20,6 +20,7 @@
     "@workspace/contracts": "*",
     "@workspace/db": "*",
     "@workspace/generation": "*",
+    "@workspace/observability": "*",
     "@workspace/storage": "*",
     "better-auth": "^1.6.23",
     "bullmq": "^5.79.3",

@@ -30,6 +30,7 @@ import {
 import { Worker } from "bullmq";
 
 import { analytics, guideActor } from "./analytics.js";
+import { logger, loggerShutdown } from "./logger.js";
 import { processCapture } from "./pipeline/process-capture.js";
 import { composeGuideVideo } from "./pipeline/video-export.js";
 import { startReaper } from "./reaper.js";
@@ -104,7 +105,8 @@ const worker = new Worker<CaptureJobData>(
 );
 
 worker.on("failed", async (job, error) => {
-  console.error(`job ${job?.id} failed:`, error.message);
+  logger.error({ err: error, jobId: job?.id, queue: CAPTURE_QUEUE }, "job failed");
+  analytics.captureException(error, undefined, { queue: CAPTURE_QUEUE, jobId: job?.id });
   // Mark the capture FAILED only when retries are exhausted.
   if (job && job.attemptsMade >= (job.opts.attempts ?? 1)) {
     await prisma.capture
@@ -184,7 +186,8 @@ const voiceWorker = new Worker<VoiceJobData>(
 );
 
 voiceWorker.on("failed", async (job, error) => {
-  console.error(`voice job ${job?.id} failed:`, error.message);
+  logger.error({ err: error, jobId: job?.id, queue: VOICE_QUEUE }, "job failed");
+  analytics.captureException(error, undefined, { queue: VOICE_QUEUE, jobId: job?.id });
   if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
   const parsed = voiceJobSchema.safeParse(job.data);
   // narration.generate marks the narration failed; voice.synthesize already
@@ -233,7 +236,8 @@ const translationWorker = new Worker<TranslationJobData>(
 );
 
 translationWorker.on("failed", async (job, error) => {
-  console.error(`translation job ${job?.id} failed:`, error.message);
+  logger.error({ err: error, jobId: job?.id, queue: TRANSLATION_QUEUE }, "job failed");
+  analytics.captureException(error, undefined, { queue: TRANSLATION_QUEUE, jobId: job?.id });
   if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
   const parsed = translationJobSchema.safeParse(job.data);
   if (parsed.success) {
@@ -284,7 +288,8 @@ const exportWorker = new Worker<ExportJobData>(
 );
 
 exportWorker.on("failed", async (job, error) => {
-  console.error(`export job ${job?.id} failed:`, error.message);
+  logger.error({ err: error, jobId: job?.id, queue: EXPORT_QUEUE }, "job failed");
+  analytics.captureException(error, undefined, { queue: EXPORT_QUEUE, jobId: job?.id });
   if (!job || job.attemptsMade < (job.opts.attempts ?? 1)) return;
   const parsed = exportJobSchema.safeParse(job.data);
   if (parsed.success) {
@@ -330,7 +335,7 @@ void sweepVoiceRenders();
 
 /** Graceful shutdown: finish in-flight jobs, then close connections. */
 async function shutdown(signal: string) {
-  console.log(`${signal} received — shutting down…`);
+  logger.info({ signal }, "shutting down");
   clearInterval(reaperTimer);
   clearInterval(voiceGcTimer);
   await Promise.all([
@@ -340,6 +345,7 @@ async function shutdown(signal: string) {
     exportWorker.close(),
   ]);
   await analytics.shutdown();
+  await loggerShutdown();
   process.exit(0);
 }
 

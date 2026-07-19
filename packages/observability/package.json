@@ -1,0 +1,29 @@
+{
+  "name": "@workspace/observability",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@opentelemetry/api-logs": "^0.205.0",
+    "@opentelemetry/exporter-logs-otlp-http": "^0.205.0",
+    "@opentelemetry/resources": "^2.0.0",
+    "@opentelemetry/sdk-logs": "^0.205.0",
+    "@opentelemetry/semantic-conventions": "^1.28.0",
+    "pino": "^9.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^9",
+    "typescript": "^5"
+  }
+}

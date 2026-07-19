@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import cors from "cors";
 import express, { type Express } from "express";
 import { toNodeHandler } from "better-auth/node";
@@ -24,6 +26,7 @@ import { voiceRouter } from "./features/voice/router.js";
 import { workspaceRouter } from "./features/workspace/router.js";
 import { webOrigins } from "./env.js";
 import { auth } from "./lib/auth.js";
+import { logger } from "./lib/logger.js";
 import { errorHandler } from "./middleware/error.js";
 
 /**
@@ -58,11 +61,27 @@ export function createApp(): Express {
     })
   );
 
-  // Dev request log — makes extension/cross-origin calls visible.
-  app.use((req, _res, next) => {
-    if (req.path.startsWith("/api/extension") || req.path.startsWith("/api/captures")) {
-      console.log(`→ ${req.method} ${req.path}  origin=${req.headers.origin ?? "-"}`);
-    }
+  // Structured request log → stdout + PostHog Logs. Each request gets an id
+  // (echoed as x-request-id) so one request's log lines are filterable. Health
+  // checks are skipped to keep the stream signal-heavy.
+  app.use((req, res, next) => {
+    if (req.path === "/api/health") return next();
+    const requestId = randomUUID();
+    const start = Date.now();
+    res.setHeader("x-request-id", requestId);
+    res.on("finish", () => {
+      logger.info(
+        {
+          requestId,
+          method: req.method,
+          path: req.path,
+          status: res.statusCode,
+          durationMs: Date.now() - start,
+          origin: req.headers.origin,
+        },
+        `${req.method} ${req.path} ${res.statusCode}`
+      );
+    });
     next();
   });
 

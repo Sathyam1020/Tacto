@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { ZodError, z } from "zod";
 
+import { analytics } from "../lib/analytics.js";
+import { logger } from "../lib/logger.js";
 import { env } from "../env.js";
 
 /**
@@ -22,7 +24,7 @@ export class AppError extends Error {
 /** Central error handler — must be registered last. */
 export function errorHandler(
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   // Express identifies error middleware by arity — the 4th param is required.
   _next: NextFunction
@@ -45,8 +47,15 @@ export function errorHandler(
     return;
   }
 
-  // Unexpected error: log it, return an opaque 500 (no internals leak).
-  console.error("Unhandled error:", err);
+  // Unexpected error: log it, report to Error Tracking, return an opaque 500.
+  logger.error(
+    { err, path: req.path, method: req.method, requestId: res.getHeader("x-request-id") },
+    "unhandled error"
+  );
+  analytics.captureException(err, undefined, {
+    path: req.path,
+    method: req.method,
+  });
   res.status(500).json({
     error: {
       code: "INTERNAL_ERROR",

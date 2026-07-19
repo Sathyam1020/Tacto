@@ -19,6 +19,7 @@
     "@workspace/contracts": "*",
     "@workspace/db": "*",
     "@workspace/generation": "*",
+    "@workspace/observability": "*",
     "@workspace/storage": "*",
     "bullmq": "^5.79.3",
     "execa": "^9.6.1",

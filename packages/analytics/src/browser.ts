@@ -58,6 +58,8 @@ export function initBrowserAnalytics(config: BrowserAnalyticsConfig): void {
     capture_pageview: false,
     capture_pageleave: true,
     autocapture: false,
+    // Send uncaught errors + unhandled rejections to PostHog Error Tracking.
+    capture_exceptions: true,
     opt_out_capturing_by_default: config.optOutByDefault ?? true,
   })
   posthog.register(contextProperties("web", config))

@@ -26,6 +26,11 @@ const envSchema = z.object({
   POSTHOG_KEY: z.string().optional(),
   POSTHOG_HOST: z.url().optional(),
 
+  /** OTLP logs → PostHog Logs. Logs go to stdout only when unset. */
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+  /** OTLP headers as "k=v,k2=v2", e.g. "Authorization=Bearer phc_…". */
+  OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
+
   // ── Stuck-capture reaper ────────────────────────────────────────────────
   /** How often the reaper sweeps for stuck captures (seconds). */
   REAPER_INTERVAL_SEC: z.coerce.number().int().positive().default(60),

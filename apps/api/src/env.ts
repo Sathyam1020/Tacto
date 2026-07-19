@@ -57,6 +57,11 @@ const envSchema = z.object({
   /** PostHog product analytics — optional; analytics is a no-op when absent. */
   POSTHOG_KEY: z.string().optional(),
   POSTHOG_HOST: z.url().optional(),
+
+  /** OTLP logs → PostHog Logs. Logs go to stdout only when unset. */
+  OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+  /** OTLP headers as "k=v,k2=v2", e.g. "Authorization=Bearer phc_…". */
+  OTEL_EXPORTER_OTLP_HEADERS: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

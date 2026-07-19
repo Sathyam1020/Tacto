@@ -28,6 +28,8 @@ export type ServerAnalytics = {
   identify(distinctId: string, traits: UserTraits): void
   /** Set workspace (group) properties. */
   identifyWorkspace(workspaceId: string, traits: WorkspaceTraits): void
+  /** Report an exception to PostHog Error Tracking (with stack + context). */
+  captureException(error: unknown, distinctId?: string, properties?: Record<string, unknown>): void
   /** Flush queued events — call in the process's shutdown handler. */
   shutdown(): Promise<void>
   /** Whether analytics is live (a key was provided). */
@@ -39,6 +41,7 @@ const noop: ServerAnalytics = {
   capture() {},
   identify() {},
   identifyWorkspace() {},
+  captureException() {},
   shutdown: async () => {},
 }
 
@@ -77,6 +80,10 @@ export function createServerAnalytics(config: ServerAnalyticsConfig): ServerAnal
         groupKey: workspaceId,
         properties: { ...traits },
       })
+    },
+    captureException(error, distinctId, properties) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      client.captureException(err, distinctId, { ...base, ...properties })
     },
     shutdown: () => client.shutdown(),
   }
