@@ -28,13 +28,13 @@ export function Hero() {
 
           <Item>
             <h1 className="mt-4 font-display text-[38px] leading-[1.02] font-semibold tracking-[-0.02em] text-balance text-[var(--l-ink)] sm:text-[54px]">
-              Guides that write themselves.
+              Step-by-step guides that write themselves.
             </h1>
           </Item>
 
           <Item>
             <p className="mt-3 font-accent text-[20px] leading-snug text-[var(--l-ink-subtle)] sm:text-[24px]">
-              Record it once — Tacto documents it forever.
+              Record any workflow once — Tacto turns it into interactive walkthroughs and a branded help center.
             </p>
           </Item>
 

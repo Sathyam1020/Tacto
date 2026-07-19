@@ -17,7 +17,7 @@ import { PageHero } from "@/components/marketing/page-hero"
 import { pageMeta } from "@/lib/marketing/seo"
 
 export const metadata: Metadata = pageMeta({
-  title: "Solutions",
+  title: "Solutions — SOPs, onboarding, support & product demos",
   description:
     "From step-by-step guides to interactive walkthroughs, showcases, help centers, forms, and analytics — the ways teams turn one recording into everything they need.",
   path: "/solutions",

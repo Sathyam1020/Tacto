@@ -17,17 +17,17 @@ import { UseCases } from "@/components/marketing/use-cases"
  * phases. SSR-first: only the nav, motion wrappers, and the hero embed hydrate.
  */
 export const metadata: Metadata = {
-  title: { absolute: "Tacto — Guides that write themselves" },
+  title: { absolute: "Tacto — Step-by-step guides that write themselves" },
   description:
-    "Record any workflow once. Tacto turns every click into a polished step-by-step guide, interactive walkthrough, or branded help center — no editing, no writing.",
+    "Record any workflow once. Tacto turns every click into a polished step-by-step guide, interactive walkthrough, SOP, or branded knowledge base — no editing, no writing.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "Tacto — Guides that write themselves",
+    title: "Tacto — Step-by-step guides that write themselves",
     description:
-      "Record any workflow once. Tacto turns it into a step-by-step guide, interactive walkthrough, or help center — automatically.",
+      "Record any workflow once. Tacto turns it into a step-by-step guide, interactive walkthrough, SOP, or knowledge base — automatically.",
     type: "website",
     siteName: "Tacto",
-    url: "https://tacto.fyi",
+    url: "/",
   },
   twitter: { card: "summary_large_image" },
 }

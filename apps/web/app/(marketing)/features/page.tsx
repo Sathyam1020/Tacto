@@ -21,7 +21,7 @@ import { PageHero } from "@/components/marketing/page-hero"
 import { pageMeta } from "@/lib/marketing/seo"
 
 export const metadata: Metadata = pageMeta({
-  title: "Features",
+  title: "Features — step-by-step guides, walkthroughs & help center",
   description:
     "Everything Tacto does: browser capture, AI-written steps, interactive walkthroughs, a branded help center, showcases, forms, analytics, voice-over, translations, redaction, and export.",
   path: "/features",

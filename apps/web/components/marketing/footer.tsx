@@ -38,6 +38,8 @@ const COLUMNS: { heading: string; links: { label: string; href: string }[] }[] =
       { label: "Tacto vs Supademo", href: "/compare/supademo" },
       { label: "Tacto vs Tango", href: "/compare/tango" },
       { label: "Tacto vs Arcade", href: "/compare/arcade" },
+      { label: "Tacto vs Guidde", href: "/compare/guidde" },
+      { label: "Tacto vs Storylane", href: "/compare/storylane" },
       { label: "See all comparisons", href: "/compare" },
     ],
   },
