@@ -5,9 +5,10 @@ import { ArrowLeft } from "lucide-react"
 
 import { BlogCover, PostRow, TagChip } from "@/components/marketing/blog-parts"
 import { Cta } from "@/components/marketing/cta"
+import { FaqAccordion } from "@/components/marketing/faq-accordion"
 import { Prose } from "@/components/marketing/prose"
 import { allPosts, formatDate, getPost } from "@/lib/marketing/blog"
-import { jsonLd, pageMeta, SITE_URL } from "@/lib/marketing/seo"
+import { breadcrumbJsonLd, faqPageJsonLd, jsonLd, pageMeta, SITE_URL } from "@/lib/marketing/seo"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -38,18 +39,26 @@ export default async function BlogPostPage({ params }: Params) {
     .filter((p) => p.slug !== post.slug && p.tags.some((t) => post.tags.includes(t)))
     .slice(0, 2)
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: post.title,
-    description: post.description,
-    datePublished: post.date,
-    dateModified: post.date,
-    author: { "@type": "Organization", name: post.author, url: SITE_URL },
-    publisher: { "@type": "Organization", name: "Tacto", url: SITE_URL },
-    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
-    keywords: post.tags.join(", "),
-  }
+  const schema: Record<string, unknown>[] = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.description,
+      datePublished: post.date,
+      dateModified: post.date,
+      author: { "@type": "Organization", name: post.author, url: SITE_URL },
+      publisher: { "@type": "Organization", name: "Tacto", url: SITE_URL },
+      mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/blog/${post.slug}` },
+      keywords: post.tags.join(", "),
+    },
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Blog", path: "/blog" },
+      { name: post.title, path: `/blog/${post.slug}` },
+    ]),
+  ]
+  if (post.faqs?.length) schema.push(faqPageJsonLd(post.faqs))
 
   return (
     <>
@@ -87,6 +96,17 @@ export default async function BlogPostPage({ params }: Params) {
             <post.Body />
           </Prose>
         </div>
+
+        {post.faqs?.length ? (
+          <div className="mx-auto max-w-2xl px-5 pb-12 sm:px-8">
+            <h2 className="font-display text-[26px] leading-tight font-semibold tracking-[-0.02em] text-[var(--l-ink)]">
+              Frequently asked questions
+            </h2>
+            <div className="mt-6">
+              <FaqAccordion items={post.faqs.map((f) => ({ q: f.q, a: f.a }))} />
+            </div>
+          </div>
+        ) : null}
       </article>
 
       {related.length > 0 && (

@@ -11,7 +11,7 @@ import { FaqAccordion } from "@/components/marketing/faq-accordion"
 import { Item, Reveal, StaggerReveal } from "@/components/marketing/motion"
 import { PageHero } from "@/components/marketing/page-hero"
 import { COMPARISONS, getComparison } from "@/lib/marketing/compare"
-import { jsonLd, pageMeta } from "@/lib/marketing/seo"
+import { breadcrumbJsonLd, faqPageJsonLd, jsonLd, pageMeta } from "@/lib/marketing/seo"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -38,15 +38,14 @@ export default async function ComparePage({ params }: Params) {
   if (!c) notFound()
 
   const others = COMPARISONS.filter((x) => x.slug !== c.slug)
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: c.faqs.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  }
+  const schema = [
+    faqPageJsonLd(c.faqs),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Compare", path: "/compare" },
+      { name: c.name, path: `/compare/${c.slug}` },
+    ]),
+  ]
 
   return (
     <>
