@@ -31,7 +31,7 @@ const fontAccent = Instrument_Serif({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://tacto.fyi"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://tacto.fyi"),
 }
 
 const PREPAINT = "try{document.documentElement.classList.remove('dark')}catch(e){}"

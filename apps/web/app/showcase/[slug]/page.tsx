@@ -17,7 +17,13 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: sc.title,
     description: sc.description ?? undefined,
-    openGraph: { title: sc.title, description: sc.description ?? undefined, type: "website" },
+    alternates: { canonical: `/showcase/${slug}` },
+    openGraph: {
+      title: sc.title,
+      description: sc.description ?? undefined,
+      url: `/showcase/${slug}`,
+      type: "website",
+    },
     robots: sc.noindex ? { index: false, follow: false } : undefined,
   }
 }

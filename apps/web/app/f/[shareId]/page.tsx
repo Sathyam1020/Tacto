@@ -17,6 +17,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: form.title,
     description: form.description ?? undefined,
+    // Forms live inside their parent guide; the standalone page is a fill
+    // endpoint, not a search destination. Keep it out of the index but let link
+    // equity flow to the guide it belongs to.
+    robots: { index: false, follow: true },
   }
 }
 
