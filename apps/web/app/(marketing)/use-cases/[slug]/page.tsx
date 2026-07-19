@@ -11,7 +11,7 @@ import { FaqAccordion } from "@/components/marketing/faq-accordion"
 import { Item, Reveal, StaggerReveal } from "@/components/marketing/motion"
 import { PageHero } from "@/components/marketing/page-hero"
 import { getUseCase, USE_CASES } from "@/lib/marketing/use-cases"
-import { jsonLd, pageMeta } from "@/lib/marketing/seo"
+import { breadcrumbJsonLd, faqPageJsonLd, jsonLd, pageMeta } from "@/lib/marketing/seo"
 
 type Params = { params: Promise<{ slug: string }> }
 
@@ -32,15 +32,14 @@ export default async function UseCasePage({ params }: Params) {
   if (!uc) notFound()
 
   const others = USE_CASES.filter((u) => u.slug !== uc.slug)
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    mainEntity: uc.faqs.map((f) => ({
-      "@type": "Question",
-      name: f.q,
-      acceptedAnswer: { "@type": "Answer", text: f.a },
-    })),
-  }
+  const schema = [
+    faqPageJsonLd(uc.faqs),
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Use cases", path: "/use-cases" },
+      { name: uc.label, path: `/use-cases/${uc.slug}` },
+    ]),
+  ]
 
   return (
     <>

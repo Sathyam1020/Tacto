@@ -7,15 +7,18 @@ import {
   Headset,
   Languages,
   LayoutGrid,
+  Library,
   Lock,
   Megaphone,
   MousePointerClick,
   RefreshCw,
+  Rocket,
   Search,
   ScrollText,
   ShieldCheck,
   Sparkles,
   Users,
+  Workflow,
   Wrench,
   type LucideIcon,
 } from "lucide-react"
@@ -221,6 +224,99 @@ export const USE_CASES: UseCase[] = [
       { q: "Can training be interactive rather than watched?", a: "Yes. Interactive mode has learners click through the real interface step by step, which is far stickier than video." },
       { q: "Can we offer training in multiple languages?", a: "Guides can be translated, so one capture becomes a course in every language your team needs." },
       { q: "Can we track who completed training?", a: "Completion and drop-off analytics show engagement per guide and per course." },
+    ],
+  },
+  {
+    slug: "knowledge-base",
+    icon: Library,
+    label: "Knowledge base",
+    title: "A knowledge base customers actually use.",
+    subtitle: "A branded, searchable help center on your own domain — built from real captures.",
+    description:
+      "Build a knowledge base with Tacto. Publish step-by-step guides and interactive walkthroughs to a branded, searchable help center on your own domain, with completion analytics on every article.",
+    intro:
+      "Most knowledge bases are a graveyard of stale articles nobody can find. Tacto builds one from the work itself: capture a process once, and the guide is ready to publish to a branded, searchable help center on your own domain — where customers land before they ever open a ticket.",
+    pains: [
+      "Articles are walls of text with screenshots that went stale two releases ago.",
+      "Customers can't find the answer, so they file a ticket anyway.",
+      "There's no data on which articles resolve the question and which waste everyone's time.",
+    ],
+    capabilities: [
+      { icon: Search, title: "Searchable and self-serve", body: "Every guide lands in a searchable help center customers reach first, so the answer is found before a ticket is filed." },
+      { icon: LayoutGrid, title: "Branded, on your domain", body: "Host the knowledge base on your own domain with your branding — no Tacto watermark, fully yours on paid plans." },
+      { icon: BarChart3, title: "See what resolves", body: "Completion and drop-off analytics per article show which answers land, so you improve the ones that matter." },
+    ],
+    outcomes: [
+      "Deflect the repetitive questions with answers customers can find.",
+      "Keep every article's screenshots current by re-recording, not rewriting.",
+      "Invest in the articles the data says are doing the work.",
+    ],
+    faqs: [
+      { q: "Can I host the knowledge base on my own domain?", a: "Yes. On paid plans you publish to a branded help center on your own domain, with Tacto branding removed." },
+      { q: "How is this different from a static docs site?", a: "Every article can be an interactive, click-through walkthrough — not just text — and each one carries completion analytics." },
+      { q: "How do we keep articles from going stale?", a: "When a step changes, re-record it. The instructions regenerate and the screenshots are fresh by definition." },
+    ],
+  },
+  {
+    slug: "process-documentation",
+    icon: Workflow,
+    label: "Process documentation",
+    title: "Document how work gets done — automatically.",
+    subtitle: "Capture a process once and get clean, current documentation, screenshots included.",
+    description:
+      "Process documentation software that writes itself. Record any workflow once with Tacto and AI turns it into clear, screenshot-rich documentation you keep current by re-recording, not rewriting.",
+    intro:
+      "Process documentation is the work everyone agrees is important and nobody wants to write, so it stays trapped in people's heads. Tacto changes the economics: capture a workflow while doing it for real, and the AI writes the documentation — one clear step per action, screenshots marked, ready to publish.",
+    pains: [
+      "Writing documentation by hand competes with the actual work, so it never happens.",
+      "The docs that exist drift out of date the moment a tool changes.",
+      "Undocumented processes live with one person — a single point of failure.",
+    ],
+    capabilities: [
+      { icon: MousePointerClick, title: "Capture, don't write", body: "Record the workflow once from the browser; the documentation comes out the other side instead of starting from a blank page." },
+      { icon: Sparkles, title: "AI-written steps", body: "One clear instruction per action, with the click marked on every screenshot, so the doc is readable and searchable." },
+      { icon: RefreshCw, title: "Current by re-recording", body: "When a process changes, re-capture the step that moved. The text and screenshots refresh instead of rotting." },
+    ],
+    outcomes: [
+      "Get real coverage of the processes only one person knows.",
+      "Turn a quarter-long documentation project into a few days.",
+      "Keep documentation accurate without a maintenance backlog.",
+    ],
+    faqs: [
+      { q: "How is this different from your SOP use case?", a: "Same engine — SOPs are one kind of process documentation. Use this for any technical or operational workflow you need captured and kept current." },
+      { q: "Can we redact sensitive data in screenshots?", a: "Yes. Automatic PII redaction plus manual blur scrub credentials, customer data, and configuration before anything is shared." },
+      { q: "Where does the documentation live?", a: "Publish it to a branded, searchable help center on your own domain, or embed any guide inside your existing wiki or tools." },
+    ],
+  },
+  {
+    slug: "user-onboarding",
+    icon: Rocket,
+    label: "User onboarding",
+    title: "Get new users to their first win, faster.",
+    subtitle: "Interactive walkthroughs that guide users to activation — in your product and your docs.",
+    description:
+      "User onboarding software built on real product captures. Guide new users with interactive, click-through walkthroughs you can embed in your product and help center, and measure activation with completion analytics.",
+    intro:
+      "New users decide fast whether your product is worth the effort, and a wall of documentation isn't the thing that convinces them. Tacto turns a real capture into an interactive walkthrough that spotlights each step and lets users click through to their first win — embedded right where they get stuck.",
+    pains: [
+      "New users bounce before they reach the moment the product clicks.",
+      "Static docs and demo videos don't get users to actually do the thing.",
+      "There's no signal on where users stall on the path to activation.",
+    ],
+    capabilities: [
+      { icon: MousePointerClick, title: "Interactive walkthroughs", body: "Users click through the real interface, spotlighted step by step, instead of reading about it or watching a video." },
+      { icon: Boxes, title: "Embed in your product", body: "Drop the same walkthrough into your app, help center, or emails with an iframe — right where a user needs it." },
+      { icon: BarChart3, title: "Measure activation", body: "Completion and drop-off analytics show exactly where users stall, so you fix the step that's losing them." },
+    ],
+    outcomes: [
+      "Guide users to first value instead of hoping they find it.",
+      "Reuse one capture across in-app onboarding, docs, and email.",
+      "Improve the path to activation with real completion data.",
+    ],
+    faqs: [
+      { q: "Can I embed walkthroughs inside my product?", a: "Yes. Guides embed anywhere that accepts an iframe, so an interactive walkthrough can live directly in your app UI." },
+      { q: "Is this in-app onboarding or documentation?", a: "Both — the same interactive capture works embedded in your product and published to your help center." },
+      { q: "How do I know if onboarding is working?", a: "Completion and drop-off analytics per walkthrough show where users activate and where they give up." },
     ],
   },
 ]

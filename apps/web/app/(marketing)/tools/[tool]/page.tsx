@@ -10,7 +10,7 @@ import { ScreenRecorderTool } from "@/components/marketing/tools/screen-recorder
 import { ScreenshotAnnotatorTool } from "@/components/marketing/tools/screenshot-annotator-tool"
 import { SopCreatorTool } from "@/components/marketing/tools/sop-creator-tool"
 import { getTool, TOOLS } from "@/lib/marketing/tools"
-import { pageMeta } from "@/lib/marketing/seo"
+import { breadcrumbJsonLd, pageMeta } from "@/lib/marketing/seo"
 
 type Params = { params: Promise<{ tool: string }> }
 
@@ -73,15 +73,22 @@ export default async function ToolPage({ params }: Params) {
   const t = getTool(tool)
   if (!t) notFound()
 
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    name: `${t.name} — Tacto`,
-    applicationCategory: "UtilitiesApplication",
-    operatingSystem: "Web",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    description: t.description,
-  }
+  const schema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      name: `${t.name} — Tacto`,
+      applicationCategory: "UtilitiesApplication",
+      operatingSystem: "Web",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+      description: t.description,
+    },
+    breadcrumbJsonLd([
+      { name: "Home", path: "/" },
+      { name: "Tools", path: "/tools" },
+      { name: t.name, path: `/tools/${t.slug}` },
+    ]),
+  ]
 
   return (
     <>

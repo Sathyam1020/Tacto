@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { HelpHome } from "@/components/help/help-site"
+import { canonicalUrl } from "@/lib/canonical"
 import { fetchHelpHome } from "@/lib/public-help"
 
 /** Public Help Center homepage — SSR for SEO. Lives outside (app): no chrome. */
@@ -17,6 +18,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   return {
     title: hc.name,
     description: hc.heroSubtitle ?? `Guides and answers for ${hc.name}.`,
+    alternates: { canonical: await canonicalUrl(`/help/${slug}`) },
     openGraph: { title: hc.name, description: hc.heroSubtitle ?? undefined, type: "website" },
     robots: hc.noindex ? { index: false, follow: false } : undefined,
   }

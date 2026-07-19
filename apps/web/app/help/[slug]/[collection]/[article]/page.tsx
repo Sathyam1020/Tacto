@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 
 import { HelpArticle } from "@/components/help/help-site"
+import { canonicalUrl } from "@/lib/canonical"
 import { fetchHelpArticle } from "@/lib/public-help"
 import { fetchPublicGuide } from "@/lib/public-guide"
 import { buildGuideJsonLd } from "@/lib/public-guide-schema"
@@ -18,6 +19,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   if (!page) return { title: "Article not found" }
   return {
     title: `${page.article.title} · ${page.chrome.name}`,
+    alternates: { canonical: await canonicalUrl(`/help/${slug}/${collection}/${article}`) },
     openGraph: { title: page.article.title, type: "article" },
     robots: page.chrome.noindex ? { index: false, follow: false } : undefined,
   }
