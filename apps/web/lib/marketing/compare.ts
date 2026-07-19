@@ -143,6 +143,94 @@ export const COMPARISONS: Comparison[] = [
       { q: "Can Tacto also produce written guides?", a: "Yes — AI writes a step per action, so every capture is also a readable, searchable step-by-step guide." },
     ],
   },
+  {
+    slug: "guidde",
+    name: "Guidde",
+    title: "Tacto vs Guidde",
+    subtitle: "Both auto-capture and use AI. Only one turns captures into interactive walkthroughs and a branded help center.",
+    description:
+      "Tacto vs Guidde: a fair comparison and Guidde alternative. See how Tacto matches AI-captured how-to guides and adds interactive walkthroughs, a branded help center, and interactive mode on the free plan.",
+    intro:
+      "Guidde is known for AI video documentation with polished voice-over, captured straight from the browser. Tacto captures the same way and leans interactive: every recording becomes a click-through walkthrough, not just a video or scroll doc, and your guides can live in a searchable, branded help center on your own domain.",
+    rows: rows([true, "—", true, "Varies", "Basic", true, true, "—"]),
+    advantages: [
+      { title: "Interactive, not only video", body: "Every Tacto capture is also a spotlighted, click-through walkthrough viewers drive themselves — beyond a linear video or screenshot list." },
+      { title: "A branded help center", body: "Publish guides to a searchable knowledge base on your own domain, not just shared video links." },
+      { title: "Interactive on the free plan", body: "Evaluate the interactive walkthrough mode — the part that matters most — before you pay." },
+    ],
+    theirStrength:
+      "Guidde is an excellent choice when the deliverable is an AI-narrated how-to video and voice-over is your priority.",
+    faqs: [
+      { q: "Is Tacto a Guidde alternative?", a: "Yes. Tacto auto-captures AI-written guides the same way and adds interactive walkthroughs, a branded help center, and completion analytics." },
+      { q: "Does Tacto have voice-over like Guidde?", a: "Tacto supports voice-over narration; Guidde's AI video voice-over is more central to its product, so compare both on the same recording." },
+    ],
+  },
+  {
+    slug: "storylane",
+    name: "Storylane",
+    title: "Tacto vs Storylane",
+    subtitle: "Great interactive demos — plus the auto-captured guides and help center Storylane isn't built for.",
+    description:
+      "Tacto vs Storylane: compare interactive demo tools and find a Storylane alternative. See how Tacto matches interactive demos and adds auto-captured step-by-step guides and a branded help center.",
+    intro:
+      "Storylane is strong at interactive product demos for sales and marketing, with solid demo analytics and data masking. Tacto covers that same interactive walkthrough use case and is equally at home with documentation — auto-captured SOPs, onboarding, and a searchable help center on your own domain — so one tool serves both go-to-market and internal knowledge.",
+    rows: rows(["—", true, "—", "—", true, true, "—", "Varies"]),
+    advantages: [
+      { title: "Demos and docs in one", body: "Run external interactive demos and internal SOP/onboarding libraries from the same tool, instead of paying for two." },
+      { title: "Capture, don't rebuild", body: "Record a real workflow once and get a guide automatically — no rebuilding the flow screen by screen." },
+      { title: "A branded help center", body: "Host a searchable knowledge base on your own domain, not just standalone demo links." },
+    ],
+    theirStrength:
+      "Storylane is a great fit if your only job is polished, sales-led interactive demos and you don't need a documentation hub.",
+    faqs: [
+      { q: "Is Tacto a Storylane alternative?", a: "Yes. Tacto's interactive mode spotlights each step and lets viewers click through the real product, and it also produces auto-captured guides and a help center." },
+      { q: "Can Tacto handle internal documentation too?", a: "Yes — SOPs, onboarding, and support guides publish to a branded, searchable help center, which demo-only tools don't offer." },
+    ],
+  },
+  {
+    slug: "navattic",
+    name: "Navattic",
+    title: "Tacto vs Navattic",
+    subtitle: "No-code interactive demos — plus auto-captured guides and a documentation home.",
+    description:
+      "Tacto vs Navattic: compare interactive demo tools and find a Navattic alternative. See how Tacto matches no-code interactive demos and adds AI-written guides and a branded help center.",
+    intro:
+      "Navattic is a popular no-code way to build interactive product demos for the website and sales. Tacto covers interactive walkthroughs too, and pairs them with AI-written step-by-step guides and a branded help center — so the same capture serves a marketing demo and an internal SOP without rebuilding anything.",
+    rows: rows(["—", true, "—", "—", true, true, "—", "Varies"]),
+    advantages: [
+      { title: "AI writes the steps", body: "Tacto auto-writes one clear instruction per action, so a capture is also a readable, searchable guide — not only a visual demo." },
+      { title: "Documentation, not just demos", body: "Publish SOPs, onboarding, and support content to a branded help center alongside your demos." },
+      { title: "One capture, many formats", body: "Turn a recording into an interactive walkthrough, a scroll guide, and a PDF at once." },
+    ],
+    theirStrength:
+      "Navattic shines when the deliverable is a website or sales-led interactive demo and you don't need a maintained knowledge base.",
+    faqs: [
+      { q: "Is Tacto a Navattic alternative?", a: "Yes. Tacto builds interactive walkthroughs viewers click through, and also produces AI-written guides and a branded help center." },
+      { q: "Do I have to rebuild my product in Tacto?", a: "No — Tacto captures your real workflow from the browser, so you don't reconstruct screens the way pure demo builders often require." },
+    ],
+  },
+  {
+    slug: "walnut",
+    name: "Walnut",
+    title: "Tacto vs Walnut",
+    subtitle: "Sales-grade interactive demos — plus the auto-captured guides and help center Walnut leaves out.",
+    description:
+      "Tacto vs Walnut: compare interactive demo platforms and find a Walnut alternative. See how Tacto matches interactive demos and adds auto-captured step-by-step guides and a branded help center.",
+    intro:
+      "Walnut is built for sales teams running personalized, interactive product demos at scale, with strong demo management and analytics. Tacto covers the interactive walkthrough use case and adds auto-captured documentation — SOP libraries, onboarding, and a searchable help center on your own domain — making it a fit for teams that need demos and docs, not demos alone.",
+    rows: rows(["—", true, "—", "—", true, true, "—", "—"]),
+    advantages: [
+      { title: "Demos and docs in one", body: "Serve external interactive demos and internal knowledge from a single tool instead of a separate demo platform and docs stack." },
+      { title: "Capture-first, not rebuild-first", body: "Record the real workflow once and get a guide automatically, rather than reconstructing the product screen by screen." },
+      { title: "A branded help center", body: "Publish a searchable knowledge base on your own domain — something sales-demo platforms don't provide." },
+    ],
+    theirStrength:
+      "Walnut is a strong choice for enterprise sales teams whose core need is personalized demo creation and management at scale.",
+    faqs: [
+      { q: "Is Tacto a Walnut alternative?", a: "Yes — especially if you want interactive demos plus auto-captured guides and a branded help center, rather than a sales-only demo platform." },
+      { q: "Does Tacto have a free plan?", a: "Yes, and it includes the interactive walkthrough mode, so you can evaluate the core experience before committing." },
+    ],
+  },
 ]
 
 export function getComparison(slug: string): Comparison | undefined {
